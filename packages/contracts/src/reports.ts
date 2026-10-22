@@ -11,6 +11,16 @@ import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 export const REPORT_DESCRIPTION_MAX = 200;
 
 /**
+ * Where a report came from, so each kind can be listed and limited on its own:
+ * app (the phone), web (the public report page), audience (a demo-audience phone scanning the
+ * presenter QR code) and prompt (an answer to "Is <road> flooded right now?" at a data gap).
+ * Optional: a report without one is treated as app. Never evidence: it only labels and limits.
+ */
+export const REPORT_ORIGINS = ['app', 'web', 'audience', 'prompt'] as const;
+export const ReportOriginSchema = z.enum(REPORT_ORIGINS);
+export type ReportOrigin = z.infer<typeof ReportOriginSchema>;
+
+/**
  * Body of POST /scenarios/:id/reports. Validated identically on the phone, the report page and
  * the API. Clients never send timestamps: the server assigns every time from the simulation clock.
  */
@@ -23,6 +33,7 @@ export const ReportInputSchema = z
     impassable: z.boolean().optional(),
     point: LatLngSchema,
     observedPersonally: z.boolean(),
+    origin: ReportOriginSchema.optional(),
     description: z.string().trim().max(REPORT_DESCRIPTION_MAX).optional(),
     /** Random id kept on the device. Not authoritative evidence; hashed server-side. */
     deviceId: z

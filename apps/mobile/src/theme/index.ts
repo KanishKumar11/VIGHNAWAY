@@ -2,7 +2,7 @@ import { Platform, StyleSheet, useColorScheme, type ImageStyle, type TextStyle, 
 import {
   elevation,
   fontFamily,
-  googleMapStyles,
+  phoneGoogleMapStyles as googleMapStyles,
   layout,
   letterSpacing,
   marker,
@@ -10,7 +10,7 @@ import {
   radius,
   routeStyles,
   spacing,
-  themes,
+  phoneThemes as themes,
   type,
   zIndex,
   type RouteStyleKey,
@@ -134,7 +134,7 @@ export function textStyle(token: TypeToken): TextStyle {
 }
 
 /**
- * Text variants (DESIGN_VISION section 6): Inter throughout, hierarchy from scale, weight and
+ * Text variants (DESIGN_VISION section 6): Manrope throughout, hierarchy from scale, weight and
  * spacing. Numbers that change use tabular figures. Monospace (`mono`) is reserved for technical
  * information only: simulation time, identifiers, coordinates and diagnostics.
  */
@@ -142,6 +142,8 @@ export const text = {
   /** The hero ETA. */
   display: { fontFamily: fontFamily.bold, fontSize: type.display.size, lineHeight: type.display.lineHeight, fontVariant: tabular, letterSpacing: -1 },
   eta: textStyle('eta'),
+  /** Large screen title (DESIGN.md 15): a step under the ETA. */
+  headline: { fontFamily: fontFamily.bold, fontSize: type.eta.size - spacing.xxs, lineHeight: type.eta.lineHeight - spacing.xxs, letterSpacing: -0.5 },
   title: textStyle('title'),
   body: textStyle('body'),
   meta: textStyle('meta'),
@@ -155,7 +157,7 @@ export const text = {
   mono: { fontFamily: fontFamily.mono, fontSize: type.meta.size, lineHeight: type.meta.lineHeight, fontVariant: tabular },
 } satisfies Record<string, TextStyle>;
 
-/** Noto Sans Devanagari families (Hindi, Marathi), same weights as Inter. */
+/** Noto Sans Devanagari families (Hindi, Marathi), same weights as Manrope. */
 export const devanagari = {
   regular: 'NotoSansDevanagari_400Regular',
   medium: 'NotoSansDevanagari_500Medium',
@@ -170,7 +172,7 @@ const toDevanagari: Record<string, string> = {
   [fontFamily.bold]: devanagari.bold,
 };
 
-/** Inter family → its Noto Sans Devanagari equivalent for Hindi and Marathi (mono stays). */
+/** Manrope family → its Noto Sans Devanagari equivalent for Hindi and Marathi (mono stays). */
 export const devanagariFamily = (family: string | undefined): string | undefined => (family ? toDevanagari[family] ?? family : family);
 
 /** In-app "Larger text" multiplier, on top of the system font scale. */

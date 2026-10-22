@@ -3,6 +3,7 @@
 import type { Incident } from '@vighnaway/contracts';
 import type { CSSProperties } from 'react';
 import { t } from '@/i18n';
+import { routeLabel, rt } from '@/i18n/engineText';
 import { cn } from '@/lib/cn';
 import { recommendedRoute, type TripState } from '@/lib/demoTrip';
 import { incidentFacts } from '@/lib/incidents';
@@ -28,13 +29,18 @@ export function MapListView({ trip, incidents, nowS, style }: { trip: TripState 
           return (
             <li key={r.routeId} className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 py-4">
               <p className="text-title font-semibold text-ink-on-shell">
-                {r.name}
+                {routeLabel(r)}
                 <span className={cn('ml-3 text-body font-medium', blocked ? 'text-danger-ink' : r.routeId === rec?.routeId ? 'text-accent-ink' : 'text-ink-on-shell-muted')}>
                   {t.route.roles[r.role]}
                 </span>
               </p>
               <p className="text-title font-semibold text-ink-on-shell tabular">{blocked ? t.route.notViable : t.time.duration(r.etaS)}</p>
-              <p className="col-span-2 text-body text-ink-on-shell-muted">{r.explanation.reason}</p>
+              <p className="col-span-2 text-body text-ink-on-shell-muted">{rt(r.explanation.reasonText, r.explanation.reason)}</p>
+              {r.counterfactualText && (
+                <p className="col-span-2 text-body text-ink-on-shell-muted">
+                  <span className="font-semibold">{t.route.whyNot}</span> {rt(r.counterfactualText, '')}
+                </p>
+              )}
             </li>
           );
         })}

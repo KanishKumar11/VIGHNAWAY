@@ -6,7 +6,7 @@ import {
 } from '@vighnaway/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ReportsService } from '../src/reports/reports.service';
-import { AUTH, HOSPITAL_ROAD, NAGARDAS, report, resetScenario, SID, startApp, SUBWAY, type TestApp } from './helpers';
+import { AUTH, HOSPITAL_ROAD, NAGARDAS, OFF_ROAD, report, resetScenario, SID, startApp, SUBWAY, type TestApp } from './helpers';
 
 let t: TestApp;
 let baseSeq = 0;
@@ -36,13 +36,20 @@ describe('POST /scenarios/:id/reports', () => {
     const body = ReportResponseSchema.parse(res.body);
     expect(body.receipt.outcome).toBe('created_incident');
     expect(body.receipt.roadName).toBe('Andheri Subway');
-    expect(body.receipt.snappedEdgeId).toBe('fx029-fx030-0');
+    expect(body.receipt.snappedEdgeId).toBe('245674049-13640714641-0');
     expect(body.receipt.receivedAtS).toBe(0);
     const inc = body.incident!;
     expect(inc.status).toBe('unverified');
     expect(inc.source).toBe('user_report');
     expect(inc.depth).toBe('ankle');
-    expect(inc.edgeIds).toEqual(['fx029-fx030-0', 'fx030-fx029-0']);
+    // The snapped edge plus the other Andheri Subway edges within 60 m (one-way, so no twins).
+    expect(inc.edgeIds).toEqual([
+      '12415264430-245673271-0',
+      '13478767562-245673916-0',
+      '13640714641-12415264430-0',
+      '245673916-245674049-0',
+      '245674049-13640714641-0',
+    ]);
     expect(inc.reportCount).toBe(1);
     expect(inc.deviceCount).toBe(1);
     expect(inc.seq).toBe(baseSeq + 1);
@@ -93,17 +100,16 @@ describe('POST /scenarios/:id/reports', () => {
     const { incident } = ReportResponseSchema.parse(res.body);
     expect(incident!.type).toBe('congestion');
     expect(incident!.edgeIds).toEqual([
-      'fx006-fx025-0',
-      'fx024-fx025-0',
-      'fx024-fx044-0',
-      'fx025-fx006-0',
-      'fx025-fx024-0',
-      'fx044-fx024-0',
+      '10273617618-12125883925-0',
+      '12125883926-13922390231-0',
+      '1375251723-3878367684-0',
+      '13922390231-1936627903-0',
+      '3878367684-10273617618-0',
     ]);
   });
 
   it('422 NOT_ON_ROAD when the point is more than 30 m from any road', async () => {
-    const res = await post(report({ deviceId: 'device-aaaa', point: { lat: 19.12, lng: 72.87 } }));
+    const res = await post(report({ deviceId: 'device-aaaa', point: OFF_ROAD }));
     expect(res.status).toBe(422);
     expect(ApiErrorSchema.parse(res.body).error.code).toBe('NOT_ON_ROAD');
     expect(res.body.error.message).toBe('Not on a known road');

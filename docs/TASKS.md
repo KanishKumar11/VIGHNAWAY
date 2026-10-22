@@ -55,11 +55,11 @@ release.
 
 # Roadmap tasks (docs/ROADMAP.md)
 
-> **▶ Continue from here:** **P0-2.b**, in progress. The resume steps and the hash baseline are in
-> docs/ROADMAP_STATUS.md under "Paused work".
+> **▶ Continue from here:** **P1-2.b** (console /verify). P0-2 and P1-1 are done apart from screenshots and native-speaker
+> review. **P0-4.d (re-tune on the real graph) is the demo risk**: see docs/ROADMAP_STATUS.md "Real graph landed".
 
 Every unfinished roadmap item, split into small tasks that can each be verified on their own. The roadmap IDs
-(P0-1 … P3-7) are stable. A task ID is the roadmap ID plus a letter. The order and the reasons for it are in
+(P0-1 … P3-8) are stable. A task ID is the roadmap ID plus a letter. The order and the reasons for it are in
 docs/IMPLEMENTATION_PLAN.md, and the dependencies are in docs/DEPENDENCY_MAP.md.
 
 **Status values:**
@@ -130,7 +130,7 @@ Priority P0 · Status **needs decision** · Effort 1 h + dev-client rebuild · D
 ## P0-2 Localise the detailed engine sentences (decision D1)
 
 ### P0-2.a Contracts: structured text type
-Priority P0 · Status in progress (schema added; CONTRACTS.md pending) · Effort 1 h · Depends P0-0
+Priority P0 · Status done (CONTRACTS.md "Structured engine text") · Effort 1 h · Depends P0-0
 - **Files:** packages/contracts/src/evaluation.ts, docs/CONTRACTS.md
 - **Behaviour:**
   - `TextSchema = { key: string, params: Record<string, string | number | Text> }`.
@@ -143,7 +143,7 @@ Priority P0 · Status in progress (schema added; CONTRACTS.md pending) · Effort
 - **Acceptance:** Both clients typecheck unchanged; CONTRACTS.md documents the fields.
 
 ### P0-2.b Engine: one catalog, structured output, English unchanged
-Priority P0 · Status in progress (catalogs written; renderer and wiring pending, see ROADMAP_STATUS) · Effort 3–4 h · Depends P0-2.a
+Priority P0 · Status done (engine 72/72; parity and replay hashes identical to the baseline) · Effort 3–4 h · Depends P0-2.a
 - **Files:**
   - packages/engine/src/text/{catalog.en,catalog.hi,catalog.mr,render}.ts
   - packages/engine/src/explain.ts, plan.ts, present.ts, rules.ts
@@ -163,7 +163,7 @@ Priority P0 · Status in progress (catalogs written; renderer and wiring pending
   plan hashes are unchanged.
 
 ### P0-2.c Console renders engine text through the catalog
-Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
+Priority P0 · Status done (vitest 91/91; Playwright screenshots still to capture) · Effort 1–2 h · Depends P0-2.b
 - **Files:** apps/console/src/components/console/DemoTripPanel.tsx, RulesContent.tsx, Timeline, i18n
 - **Automated tests:** vitest renders the decision panel in hi and mr with no English engine sentence left; a snapshot of
   the key path.
@@ -172,7 +172,7 @@ Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
   shown in that language.
 
 ### P0-2.d Phone renders engine text through the catalog
-Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
+Priority P0 · Status done (jest: new test/engineText.test.tsx; preview screenshots still to capture) · Effort 1–2 h · Depends P0-2.b
 - **Files:** apps/mobile/src/i18n/engineText.ts (simplify to `renderText`), WhyCard, How it decides
 - **Automated tests:** jest in hi and mr for WhyCard, the banner label and How it decides.
 - **Manual tests:** preview screenshots `13-navigate-hindi`, plus a Why card in Marathi.
@@ -212,7 +212,7 @@ Priority P0 · Status todo · Effort 1.5 h · Depends —
 | P0-4.a | Run `python3 scripts/extract_graph.py` with Overpass access | blocked (network) |
 | P0-4.b | Review `graph.overlay.html` at the three crossings; check one-ways, bridges, tunnels and access tags | blocked (P0-4.a) |
 | P0-4.c | Fill `flood-prone.json` `osmWayIds` from documented sources; mark the assumptions | blocked |
-| P0-4.d | Re-tune `scenario.json` (`pnpm --filter @vighnaway/scenario-data tune`); regenerate the seeds; record the new route order | blocked |
+| P0-4.d | Re-tune the scenario on the real graph | **done**: new trip Ramesh Nagar → Holy Spirit Hospital; the Andheri Subway (OSM ways 1111987532/3) is named and marked flood-prone by `scripts/apply_flood_prone.py` (assumption, documented in flood-prone.json); engine now counts one data gap per flood-prone stretch and drops same-title routes from the list; replay, console follower and scenario-data tests agree; API test expectations updated, **not run** (redeploy, `db:seed` to load graph `osm-7efdf89a8094`, `pnpm --filter api test`) |
 
 ## P0-5 Rehearsals and fallback
 
@@ -246,6 +246,19 @@ Priority P0 · Status todo · Effort 1 h · Depends P0-5.a
 Priority P0 · Status **blocked**: needs the team · Effort 1.5 h
 - **Acceptance:** Three runs under 3 minutes, logged with times.
 
+### P0-5.e Judge Q&A, pilot-path slide, missing screenshots
+Priority P0 · Status todo · Effort 1.5 h · Depends P0-5.a
+- **Files:** docs/demo-script.md (Pitch owner), docs/design/ for screenshots.
+- **Behaviour:**
+  - A judge Q&A sheet with a two- or three-sentence answer to each of: why not Google Maps, how a report is judged true,
+    what happens with no reports, privacy, and what is simulated. Each answer points to the doc that backs it.
+  - One "path to a pilot" slide: the control room as operator, the data partners (SACHET or IMD, TomTom, municipal
+    flood-prone-spot lists), and the stated limits copied from docs/limitations.md.
+  - The P1-1 counterfactual screenshots (console and phone, both themes).
+- **Automated tests:** `findForbiddenWords` over the Q&A text and slide.
+- **Acceptance:** No answer promises safety, claims a result that was not measured, or hides that the scenario is
+  simulated.
+
 ## P0-6 API container and live data
 
 ### P0-6.a API Docker image builds and starts
@@ -265,7 +278,7 @@ Priority P0 (optional) · Status **blocked**: key and network · Effort 1 h
 ## P1-1 "Why not that route?" counterfactuals (decision D3)
 
 ### P1-1.a Engine: counterfactual per shown route
-Priority P1 · Status todo · Effort 3 h · Depends P0-2.b
+Priority P1 · Status done (engine tests incl. property test; perf bench unchanged) · Effort 3 h · Depends P0-2.b
 - **Files:** packages/engine/src/counterfactual.ts, plan.ts, rank.ts; packages/contracts/src/evaluation.ts
 - **Behaviour:** For every non-recommended route, `counterfactual` is one of:
   - **`blocked`:** lists each hard block. A faster ETA can never make it recommended while any block stands. If clearing
@@ -285,21 +298,21 @@ Priority P1 · Status todo · Effort 3 h · Depends P0-2.b
 - **Acceptance:** All tests pass; planTrip on the 3,900-node bench is still under 100 ms in Node.
 
 ### P1-1.b Console: "Why not this route?" in the decision panel and on map hover
-Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
+Priority P1 · Status in progress (decision panel and list view show it; vitest for each kind and screenshots to add) · Effort 2 h · Depends P1-1.a
 - **Automated tests:** vitest for each counterfactual kind.
 - **Manual tests:** Playwright screenshots of the route comparison, light and dark, and in Hindi.
 - **Acceptance:** Each alternative shows its counterfactual sentence. A blocked route never shows "would be faster" as a
   reason to take it.
 
 ### P1-1.c Phone: counterfactual line in the route comparison
-Priority P1 · Status todo · Effort 1.5 h · Depends P1-1.a
+Priority P1 · Status in progress (route comparison row shows it; jest and screenshot to add) · Effort 1.5 h · Depends P1-1.a
 - **Automated tests:** jest. **Manual tests:** preview `05-navigate-half` recaptured.
 - **Acceptance:** As for P1-1.b.
 
 ## P1-3 Judge-in-the-loop demo (decision D4)
 
 ### P1-3.a API: audience origin tag and operator bulk clear
-Priority P1 · Status todo · Effort 2 h · Depends —
+Priority P1 · Status written, NOT run: apps/api (migration 0003, reports.service, incidents.service.clearAudience, AudienceController) typechecks and lints and has test/audience.test.ts, but no Postgres was available here, so the tests have not run. Redeploy, run `pnpm --filter api test`, and note the API tests also expect the schematic fixture graph, which the real graph replaced · Effort 2 h · Depends —
 - **Files:**
   - packages/contracts (`ReportInput.origin?: 'app' | 'web' | 'audience'`; `API_PATHS.clearAudience`);
   - apps/api reports and incidents;
@@ -317,12 +330,12 @@ Priority P1 · Status todo · Effort 2 h · Depends —
 - **Acceptance:** Supertest suite green.
 
 ### P1-3.b Report page: audience mode via the QR link
-Priority P1 · Status todo · Effort 1 h · Depends P1-3.a
+Priority P1 · Status done in the page (sends origin audience from /report?audience=1, origin web otherwise; shows the "Demo audience report: simulated scenario" note) and the console queue chip ("Demo audience", vitest); stored once the API change is deployed · Effort 1 h · Depends P1-3.a
 - **Behaviour:** `/report?audience=1` sends `origin: 'audience'` and shows "Demo audience report: simulated scenario".
 - **Automated tests:** vitest. **Acceptance:** The origin is stored, and visible in the console queue as a chip.
 
 ### P1-3.c Console presenter panel: QR, live status ladder
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-3.b
+Priority P1 · Status done on the console side (vitest 8 tests): the presenter card shows the QR to /report?audience=1, the four steps, the live status ladder for the newest audience incident (fed by the existing socket events) and a confirmed "Clear audience reports". Needs the API change above deployed to work end to end · Effort 2–3 h · Depends P1-3.b
 - **Behaviour:**
   - Presenter mode shows a large QR code.
   - It shows a live ladder for the newest audience incident: Unverified, then Corroborated (2 devices), then Verified
@@ -345,7 +358,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends P1-3.c
 ## F-COV Evidence coverage input (decision D2; shared by P1-5 and P1-4)
 
 ### F-COV.a API publishes observations per edge
-Priority P1 · Status todo · Effort 2 h · Depends —
+Priority P1 · Status written, NOT run: `GET /incidents` returns `observations` (latest report per flood-prone edge, Road clear included, both directions) from incident_reports; it is current state, not replayable from /history (documented in CONTRACTS.md). Test in test/audience.test.ts. The console coverage panel does not consume it yet · Effort 2 h · Depends —
 - **Behaviour:**
   - The incidents payload gains `observations: { edgeId, lastObservedAtS, kind: 'hazard' | 'clear' }[]` for flood-prone
     edges.
@@ -371,7 +384,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.a
 ## P1-5 Evidence coverage map
 
 ### P1-5.a Engine: `evidenceCoverage(graph, observations, nowS)`
-Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.b
+Priority P1 · Status done on the data we have (engine test/coverage.test.ts, 8 tests; observations are derived from incidents, so a Road clear report that made no incident is not yet visible: that needs F-COV.a) · Effort 1.5 h · Depends F-COV.b
 - **Behaviour:** For each flood-prone road (edges grouped by name), the class is:
 
   | Class | Latest observation |
@@ -387,7 +400,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.b
   newest edge wins, and the oldest edge is reported as well).
 
 ### P1-5.b Console layer, legend, situation-brief line
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-5.a
+Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer and the view-menu toggle are NOT built yet (they touch both map renderers) · Effort 2–3 h · Depends P1-5.a
 - **Behaviour:**
   - A "Coverage" toggle in the view menu.
   - Roads are shaded with existing tokens; each class differs by pattern as well as colour (solid, long dash, short dash,
@@ -399,15 +412,50 @@ Priority P1 · Status todo · Effort 2–3 h · Depends P1-5.a
 - **Accessibility:** CVD test on the four classes; keyboard toggle.
 - **Acceptance:** A road with no reports is never drawn in the positive (clear) colour.
 
+## P1-6 Scenario scoreboard (batch replay)
+
+### P1-6.a Seeded scenario generator
+Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
+- **Files:** `scripts/` (Data and sim). Seeded randomness lives here only and never in packages/engine.
+- **Behaviour:** From a seed, produces a scenario: a trip chosen from a published list of origin and destination pairs, and
+  a timed list of incidents (type, status, edges, report times) in the same format `tune` replays. The default set is 20
+  seeds, committed with the output.
+- **Automated tests:** the same seed gives an identical scenario; every incident references edges that exist in the graph.
+
+### P1-6.b `pnpm scoreboard` runner and report
+Priority P1 · Status todo · Effort 2 h · Depends P1-6.a
+- **Behaviour:** For each scenario it replays the incidents through the engine at each step and records:
+  - whether the usual fastest route crosses a Verified or Corroborated hard block;
+  - the extra modelled minutes of the recommendation (median and worst);
+  - the number of recommendation changes;
+  - scenarios with no viable route;
+  - scenarios where the recommendation is slower and no hard block was avoided.
+
+  It writes docs/scoreboard.md and a JSON file. Every figure is labelled "Simulated scenarios on real roads; modelled
+  minutes", or "fixture" while P0-4.d is open.
+- **Automated tests:**
+  - two runs with the same seeds are byte-identical;
+  - the report includes the unfavourable scenarios;
+  - `findForbiddenWords` passes on the output, with no "saved lives", "safest" or percentage of safety.
+- **Docs:** scoring.md (a note on how the figures are measured), limitations.md (a hard block makes "the route avoids it"
+  true by construction, so it is not reported as a result).
+- **Acceptance:** The report states the usual route's exposure and the cost of avoiding it, and never claims a
+  real-world outcome.
+
+### P1-6.c Pitch slide
+Priority P1 · Status todo · Effort 0.5 h · Depends P1-6.b
+- **Behaviour:** One slide with the headline figures and the sentence "Simulated scenarios on real roads; seeds
+  published".
+
 ## P1-4 Ask the crowd at data gaps
 
 ### P1-4.a Engine: `gapQuestions(plan, observations, nowS)`
-Priority P1 · Status todo · Effort 1 h · Depends F-COV.b
+Priority P1 · Status done as `dataGapQuestions(plan, graph)` and `nextQuestion` (engine test/ask.test.ts, 4 tests). It covers the recommended route only, and the question sentence is a phone string, not an engine Text · Effort 1 h · Depends F-COV.b
 - **Behaviour:** Returns the data-gap roads on the recommended route and the usual fastest route, ordered by position.
   Each comes with a structured question text, "Is {road} flooded right now?".
 
 ### P1-4.b API: answer semantics, limits
-Priority P1 · Status todo · Effort 2 h · Depends F-COV.a
+Priority P1 · Status written, NOT run: report origin `prompt` is limited to one answer per road per device per 30 simulated minutes (409), and a prompt Road clear never resolves an incident (apps/api reports.service; tests in test/audience.test.ts). The phone sends origin `prompt` and shows a friendly message on 409 · Effort 2 h · Depends F-COV.a
 - **Behaviour:**
 
   | Answer | Effect |
@@ -422,7 +470,7 @@ Priority P1 · Status todo · Effort 2 h · Depends F-COV.a
   unchanged and sets `conflicting` per the existing rules; Yes creates an Unverified incident.
 
 ### P1-4.c Phone prompt, stationary only
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-4.a, P1-4.b
+Priority P1 · Status done on the phone (jest test/ask.test.tsx, 8 tests: gating, 30-minute limit, answers filed as ordinary reports, Hindi); an inline card in the Navigate sheet after Why this route. The "not moving" rule is: not while following a trip on the car or two-wheeler profile (always faster than walking), allowed on foot; no speed sensor is used. Offline answers go through the existing pending-report queue · Effort 2–3 h · Depends P1-4.a, P1-4.b
 - **Behaviour:**
   - The prompt shows only when the phone is not on a trip, or when it is stopped (vehicle speed below walking pace for
     30 s). It never shows in Drive mode.
@@ -432,14 +480,15 @@ Priority P1 · Status todo · Effort 2–3 h · Depends P1-4.a, P1-4.b
 - **Device tests:** blocked (P0-3).
 
 ### P1-4.d Web question page for the stationary QR flow
-Priority P1 · Status todo · Effort 1 h · Depends P1-4.b
-- **Behaviour:** `/report?ask={road}` shows the same question on the public page. This is the live-demo path.
+Priority P1 · Status page built (console vitest 9: link parsing, report mapping, Yes, Not sure, 409, network error, Hindi); the coverage-layer Playwright check needs the API deployed and P1-5 map layer · Effort 1 h · Depends P1-4.b
+- **Behaviour:** `/report?scenario={id}&ask={lat},{lng}&road={name}` shows the same question on the public page (a point in the demo area is required; the road name is plain text, capped at 80 characters). Yes files an Unverified flood (no depth), No files Road clear, Not sure files nothing; all with origin `prompt`, never personally observed. A 409 (already answered this road) is thanked, not shown as an error. This is the live-demo path.
+- **Files:** apps/console/src/lib/ask.ts, components/report/AskForm.tsx, app/report/page.tsx.
 - **Acceptance:** A Playwright answer of Yes then No updates the coverage layer from "No reports" to "Fresh".
 
 ## P1-2 Verifiable decision receipt (decision D5)
 
 ### P1-2.a Engine: receipt builder
-Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
+Priority P1 · Status done (engine test/receipt.test.ts, 7 tests) · Effort 2 h · Depends P1-1.a
 - **Behaviour:** `buildReceipt(input, plan)` returns:
   - **Versions:** `graphVersion`, `engineVersion`, `rulesHash` (a hash of SCORING_RULES), `profile`.
   - **Trip inputs:** origin, destination, `evaluatedAtS`.
@@ -453,7 +502,7 @@ Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
   - a change to any field changes it.
 
 ### P1-2.b Console `/verify`
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-2.a
+Priority P1 · Status done (vitest 7/7 incl. tampered token; Playwright check of a step-3 receipt still to do) · Effort 2–3 h · Depends P1-2.a
 - **Behaviour:**
   1. Fetches `/history`.
   2. Rebuilds incidents at the seq (`incidentsAtSeq`).
@@ -466,7 +515,7 @@ Priority P1 · Status todo · Effort 2–3 h · Depends P1-2.a
 - **Manual tests:** Playwright verification of a step-3 receipt.
 
 ### P1-2.c Share receipt (phone and console)
-Priority P1 · Status todo · Effort 1.5 h · Depends P1-2.b
+Priority P1 · Status done (console: Create receipt card with QR, copy and open; phone: share text carries the receipt hash and, with EXPO_PUBLIC_CONSOLE_URL, a verify link; only while planning, not while following a route; jest 3 tests) · Effort 1.5 h · Depends P1-2.b
 - **Behaviour:** A QR code and a link; the shared text includes "Simulated scenario" when `simulated`.
 - **Automated tests:** jest for the share text.
 
@@ -529,6 +578,99 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P2-7.a | Saved trip and leave time (MMKV). A background re-plan uses existing capabilities first; `expo-background-task` is a native install | jest for "notify only when the recommendation differs from the saved usual route" | 3 h |
 | P2-7.b | Device verification of background execution and notification permission | **blocked** (P0-3) | 1 h |
 
+## P2-8 Walking-concern reports (poorly lit, isolated)
+
+Display only: no task here changes routing, scoring or the parity hash. Decisions to confirm before P2-8.a (defaults
+shown): **W1** one incident type `walking_concern` with a `concern` field (`poorly_lit` | `isolated`), not two types;
+**W2** reuse the existing age and stale rules, and record in limitations.md that a persistent condition such as a dead
+street light is understated after 3 h.
+
+### P2-8.a Contracts and API: new type, no note, stricter limit
+Priority P2 · Status todo · Effort 2–3 h · Depends — (one contracts change at a time)
+- **Behaviour:**
+  - `INCIDENT_TYPES` gains `walking_concern`; `Incident` gains `concern: 'poorly_lit' | 'isolated' | null`;
+    labels "Poorly lit" and "Isolated stretch".
+  - `ReportInput` for this type rejects `description` and `severity`, so there is no free text.
+  - Per-device limit stricter than other types (default 3 per hour, 409 on the fourth).
+  - It enters through `ReportsService`, so snapping, corroboration by device and seq are unchanged. Only an operator sets
+    Verified.
+- **Automated tests:**
+  - schema accepts a valid report and rejects a note;
+  - two devices make it Corroborated, one device twice does not;
+  - the limit returns 409;
+  - the TomTom mapper is unaffected.
+- **Docs:** CONTRACTS.md, DATA_MODEL.md.
+
+### P2-8.b Engine keeps the new type out of routing
+Priority P2 · Status todo · Effort 1 h · Depends P2-8.a
+- **Behaviour:** Exhaustive switches handle `walking_concern` as "no routing effect"; explanations never list it as a
+  hazard on a route.
+- **Automated tests:** a plan with a Verified walking concern on the best route is identical to the plan without it;
+  parity and all replay hashes unchanged.
+- **Acceptance:** `pnpm --filter @vighnaway/engine test` passes with the hashes in ROADMAP_STATUS.md unchanged.
+
+### P2-8.c Console layer and queue
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+- **Behaviour:** A "Walking concerns" toggle in the view menu; markers differ by shape as well as colour; the queue lists
+  them with source, status and age; the operator uses the existing Verify, Resolve and Dismiss actions.
+- **Automated tests:** vitest for the filter, labels and the forbidden-words check (en, hi, mr).
+- **Manual tests:** screenshots in light and dark.
+- **Accessibility:** the CVD test still passes.
+- **Acceptance:** no label, legend or tooltip uses a safety word or shades an area.
+
+### P2-8.d Phone report sheet and map labels
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+- **Behaviour:** A "Walking" group in the report sheet with the two options and no note field; a map label reads
+  "Reported poorly lit · 2 reports · Unverified". Offline reports are saved as pending like any other.
+- **Automated tests:** jest for the sheet, the labels, the forbidden-words check and the offline queue.
+- **Device tests:** blocked (P0-3).
+- **Acceptance:** the sheet follows BUILD_PROMPT.md section 8.
+
+## P2-9 Prefer well-lit roads (walking preference)
+
+Decisions to confirm before P2-9.b (defaults shown): **W3** the incident penalty is 300 s × verification weight × age
+factor; **W4** a `lit=no` way costs +25% of its travel time in the ranking; both are tuned by replay on the real graph
+and recorded in scoring.md.
+
+### P2-9.a Data: keep the `lit` tag and report its coverage
+Priority P2 · Status todo · Effort 1–1.5 h · Depends — (Data and sim owns `scripts/` and the graph)
+- **Behaviour:** The extract keeps `lit` as `true | false | null` (unknown) on each edge; a script prints the share of
+  walkable edges with each value for the Andheri graph.
+- **Automated tests:** schema; a fixture with all three values.
+- **Acceptance:** the coverage numbers are written to docs/limitations.md. If `lit` is known on only a small share of
+  edges, the feature ships with that stated plainly, or is cut.
+- **Docs:** DATA_MODEL.md. The graph version changes, so the hash baselines are recomputed.
+
+### P2-9.b Engine: `preferLit` plan input and the two rules
+Priority P2 · Status todo · Effort 2–3 h · Depends P2-9.a, P2-8.a; not parallel with P2-3.b (both extend the plan input)
+- **Behaviour:**
+  - `preferLit?: boolean`, honoured for the foot profile only, default off.
+  - Ranking only: `lit === false` edges add 25% of travel time; open `walking_concern` incidents on the route add the
+    penalty from W3. The displayed ETA and every hard block are unchanged.
+  - Unknown `lit` edges are counted; confidence is Medium with "Lighting data missing on N segments".
+  - New sentences go through the structured-text catalog (en, hi, mr).
+- **Automated tests:**
+  - `lit=no`, unknown and `lit=yes` edges;
+  - the incident penalty at each status and at the age boundaries;
+  - a property test that the preference never makes a viable route non-viable;
+  - parity cases with the toggle on;
+  - with it off, every existing hash is identical.
+- **Docs:** scoring.md (regenerated with `pnpm docs:scoring`, flagged in the final report), CONTRACTS.md.
+
+### P2-9.c Receipt records the preference
+Priority P2 · Status todo · Effort 0.5 h · Depends P2-9.b, P1-2.a
+- **Behaviour:** `inputsHash` covers `preferLit`; `/verify` shows it among the inputs.
+- **Automated tests:** a receipt with the toggle on does not verify against inputs with it off.
+
+### P2-9.d Phone toggle and route card, console decision-panel line
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-9.b
+- **Behaviour:** A toggle on the walking profile, "Prefer well-lit roads"; the route card says "Preference: well-lit
+  roads" and counts segments with missing lighting data; the console decision panel shows the same line.
+- **Automated tests:** jest and vitest; the forbidden-words check on every new string and on shared route text.
+- **Manual tests:** screenshots, both themes.
+- **Device tests:** blocked (P0-3).
+- **Acceptance:** with the toggle off the screens are identical to today's.
+
 ## P3
 
 | Task | Behaviour | Status | Effort |
@@ -541,3 +683,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P3-5.a | Device reputation weight: an optional heuristic; never sets Verified; manipulation tests | todo (after P3-4) | 3–4 h |
 | P3-6.a | SMS gateway for outbound route text | blocked (provider credentials) | 3 h |
 | P3-7.a | Public read-only incidents page: status, source, age, provenance; no device ids or notes metadata | todo | 2 h |
+
+## Requests from other workstreams
+
+- **Console (from Mobile):** the phone no longer publishes `trip.position` when the start or destination was searched (ids `road:*` or `my-location:*`), because the console demo-trip panel only knows the scenario places. If the console should show those trips, it needs a place lookup by point rather than by scenario place id.

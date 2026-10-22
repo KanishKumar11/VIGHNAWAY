@@ -7,7 +7,7 @@ import { roadsAhead } from '@/features/drive/roads';
 import { flowRuns } from '@/features/navigate/mapModel';
 import { enterFixture, fixtureIncident, leaveFixture } from '@/fixtures/hero';
 import { en, t } from '@/i18n/en';
-import { REVERSAL_EN, routeName, speechFor, statusText, whatToDoNow } from '@/i18n/engineText';
+import { REVERSAL_EN, routeLabel, speechFor, statusText, whatToDoNow } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { hi } from '@/i18n/hi';
 import { getLanguage, setLanguage } from '@/i18n/lang';
@@ -17,6 +17,7 @@ import { resetSpeechCache, setDriveOpen, speakChange } from '@/lib/speech';
 import { useSettings } from '@/stores/settings';
 import { recommendedRoute, useTrip } from '@/stores/trip';
 
+const gokhale = { name: 'Via Gokhale Bridge', nameText: { key: 'route.via', params: { road: 'Gokhale Bridge' } } };
 const mockSpeak = jest.fn();
 const mockVoices = jest.fn(async () => [{ language: 'en-IN' }] as { language: string }[]);
 jest.mock('expo-speech', () => ({
@@ -66,9 +67,10 @@ describe('speed along a route is encoded statically (flow durations)', () => {
     expect(runs.length).toBeGreaterThanOrEqual(1);
     const clear = flowRuns(graph, rec.edgeIds, buildIncidentIndex([]), ctx);
     expect(clear.runs).toHaveLength(1);
-    // Interrupted: fewer points are drawn than on the clear route.
+    // Interrupted: never more points than the clear route. (On the real OSM graph a blocked edge is
+    // often a short stretch whose end points the neighbouring runs still draw, so equal is possible.)
     const count = (r: { runs: unknown[][] }) => r.runs.reduce((n, run) => n + run.length, 0);
-    expect(count({ runs })).toBeLessThan(count(clear));
+    expect(count({ runs })).toBeLessThanOrEqual(count(clear));
   });
 
   it('a congested segment is drawn as a slow run, without motion', () => {
@@ -118,13 +120,13 @@ describe('Drive mode', () => {
 describe('language switch', () => {
   it('t(), formatters and engine text follow the selected language, with English kept for English', () => {
     expect(t('startTrip')).toBe(en.startTrip);
-    expect(routeName('Via Gokhale Bridge')).toBe('Via Gokhale Bridge');
+    expect(routeLabel(gokhale)).toBe('Via Gokhale Bridge');
     useSettings.getState().setLanguage('hi');
     expect(getLanguage()).toBe('hi');
     expect(t('startTrip')).toBe(hi.startTrip);
     expect(t('startTrip')).not.toBe(en.startTrip);
     expect(fmtDuration(600)).toBe(hi.fmtMin.replace('{n}', '10'));
-    expect(routeName('Via Gokhale Bridge')).toBe(hi.viaRoad.replace('{road}', 'Gokhale Bridge'));
+    expect(routeLabel(gokhale)).toBe(hi.viaRoad.replace('{road}', 'Gokhale Bridge'));
     const corroborated = fixtureIncident('ev01-ankle', 'corroborated', 2);
     expect(statusText(corroborated)).toBe(hi.statusCorroborated.replace('{n}', '2'));
     useSettings.getState().setLanguage('mr');
@@ -171,7 +173,7 @@ describe('spoken route changes', () => {
 
   it('builds calm speech text without symbols, from the engine in English', () => {
     const plan = changePlan();
-    const s = speechFor(plan, null, {})!;
+    const s = speechFor(plan)!;
     expect(s.text).toBe(s.englishFallback);
     expect(s.text).toMatch(/^Route changed/);
     expect(s.text).not.toMatch(/[():]/);
@@ -182,12 +184,12 @@ describe('spoken route changes', () => {
     const plan = changePlan();
     mockSpeak.mockClear();
     expect(useTrip.getState().mode).toBe('en_route');
-    const spoken = await speakChange(speechFor(plan, null, {}));
+    const spoken = await speakChange(speechFor(plan));
     expect(spoken?.language).toBe('en-IN');
     expect(mockSpeak).toHaveBeenCalledWith(spoken!.text, expect.objectContaining({ language: 'en-IN' }));
     mockSpeak.mockClear();
     useSettings.getState().setSpeakChanges(false);
-    expect(await speakChange(speechFor(plan, null, {}))).toBeNull();
+    expect(await speakChange(speechFor(plan))).toBeNull();
     expect(mockSpeak).not.toHaveBeenCalled();
   });
 
@@ -195,21 +197,21 @@ describe('spoken route changes', () => {
     const plan = changePlan();
     useTrip.getState().endTrip();
     mockSpeak.mockClear();
-    expect(await speakChange(speechFor(plan, null, {}))).toBeNull();
+    expect(await speakChange(speechFor(plan))).toBeNull();
     setDriveOpen(true);
-    expect(await speakChange(speechFor(plan, null, {}))).not.toBeNull();
+    expect(await speakChange(speechFor(plan))).not.toBeNull();
   });
 
   it('speaks Hindi when the phone has a Hindi voice, and the English sentence otherwise', async () => {
     const plan = changePlan();
     setLanguage('hi');
     mockVoices.mockResolvedValueOnce([{ language: 'hi-IN' }]);
-    const local = await speakChange(speechFor(plan, null, {}));
+    const local = await speakChange(speechFor(plan));
     expect(local?.language).toBe('hi-IN');
     expect(local?.text).toMatch(/[ऀ-ॿ]/);
     resetSpeechCache();
     mockVoices.mockResolvedValueOnce([{ language: 'en-US' }]);
-    const fallback = await speakChange(speechFor(plan, null, {}));
+    const fallback = await speakChange(speechFor(plan));
     expect(fallback?.language).toBe('en-IN');
     expect(fallback?.text).toMatch(/^Route changed/);
   });

@@ -64,6 +64,21 @@
   --color-road-minor: var(--vw-road-minor);
   --color-railway: var(--vw-railway);
   --color-resolved: var(--vw-resolved);
+  --color-brand-from: var(--vw-brand-from);
+  --color-brand-via: var(--vw-brand-via);
+  --color-brand-to: var(--vw-brand-to);
+  --color-on-brand: var(--vw-on-brand);
+  --color-chrome-indigo: var(--vw-chrome-indigo);
+  --color-chrome-bg: var(--vw-chrome-bg);
+  --color-chrome-raised: var(--vw-chrome-raised);
+  --color-chrome-line: var(--vw-chrome-line);
+  --color-chrome-fill: var(--vw-chrome-fill);
+  --color-chrome-fill-strong: var(--vw-chrome-fill-strong);
+  --color-chrome-ink: var(--vw-chrome-ink);
+  --color-chrome-ink-muted: var(--vw-chrome-ink-muted);
+  --color-chrome-accent: var(--vw-chrome-accent);
+  --color-chrome-on-accent: var(--vw-chrome-on-accent);
+  --color-chrome-glow: var(--vw-chrome-glow);
   --color-scrim: var(--vw-scrim);
   --color-white: var(--vw-white);
   --color-transparent: transparent;
@@ -206,6 +221,111 @@
 /* Faint top highlight line on floating navy surfaces. */
 @utility hairline-top {
   box-shadow: inset 0 1px 0 var(--vw-shell-highlight);
+}
+
+/*
+ * Porcelain control room: three floating panels (queue, map, decision) and the timeline sit on a
+ * cool canvas with one consistent gap. Elevation comes from the theme's scrim, so dark keeps working.
+ */
+@utility panel-card {
+  /* Positioned, so absolutely placed descendants (sr-only labels) stay inside the panel's clip and never extend the page. */
+  position: relative;
+  background: color-mix(in srgb, var(--vw-shell-raised) 80%, transparent);
+  backdrop-filter: blur(var(--vw-space-lg)) saturate(1.6);
+  border: 1px solid color-mix(in srgb, var(--vw-shell-raised) 70%, var(--vw-shell-hairline));
+  border-radius: var(--vw-radius-sheet);
+  box-shadow: var(--shadow-md), inset 0 1px 0 var(--vw-shell-highlight);
+}
+/* Inset group inside a panel: a quiet sunken well for related facts. */
+@utility well {
+  background: var(--vw-panel-sunken);
+  border: 1px solid var(--vw-shell-hairline);
+  border-radius: var(--vw-radius-card);
+}
+/* Secondary control: filled, hairline edge, lifts on hover. Primary actions use bg-accent. */
+@utility ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vw-space-xs);
+  border-radius: var(--vw-radius-button);
+  border: 1px solid var(--vw-shell-hairline);
+  background: var(--vw-shell-raised);
+  color: var(--vw-ink-on-shell);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 150ms var(--vw-ease-out), border-color 150ms var(--vw-ease-out);
+  &:hover:not(:disabled) {
+    background: var(--vw-panel-sunken);
+    border-color: var(--vw-shell-hairline-strong);
+  }
+}
+/* Primary action: solid brand indigo, same box as `ctl` (1px edge), with a soft indigo shadow. */
+@utility ctl-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vw-space-xs);
+  border-radius: var(--vw-radius-button);
+  border: 1px solid var(--vw-brand-from);
+  background: var(--vw-brand-from);
+  color: var(--vw-on-brand);
+  font-weight: 600;
+  box-shadow: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-brand-glow);
+  transition: filter 150ms var(--vw-ease-out);
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
+}
+/* Quiet text action in the header. */
+@utility ctl-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vw-space-xs);
+  border-radius: var(--vw-radius-button);
+  color: var(--vw-ink-on-shell-muted);
+  font-weight: 500;
+  transition: background-color 150ms var(--vw-ease-out), color 150ms var(--vw-ease-out);
+  &:hover {
+    background: var(--vw-panel-sunken);
+    color: var(--vw-ink-on-shell);
+  }
+}
+/* Page canvas: a faint accent wash at the top that settles into the shell colour. */
+.vw-canvas {
+  background: var(--vw-shell);
+}
+.vw-header {
+  background: color-mix(in srgb, var(--vw-shell-raised) 88%, transparent);
+  backdrop-filter: blur(var(--vw-space-md)) saturate(1.4);
+  border-bottom: 1px solid var(--vw-shell-hairline);
+  box-shadow: inset 0 1px 0 var(--vw-shell-highlight), 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-sm) * -1) var(--vw-shadow-2);
+}
+/* Brand surfaces and text: solid brand indigo. Brand moments only (logo, wordmark, progress). */
+.vw-brand-fill {
+  background: var(--vw-brand-from);
+  color: var(--vw-on-brand);
+}
+.vw-brand-text {
+  color: var(--vw-brand-from);
+}
+/* Small brand bar that leads a panel title. */
+.vw-title-bar {
+  display: inline-block;
+  width: var(--vw-space-xxs);
+  height: var(--vw-space-md);
+  border-radius: var(--vw-radius-chip);
+  background: var(--vw-brand-from);
+}
+/* Hero card on the decision panel: solid deep indigo. */
+.vw-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--vw-radius-sheet);
+  background: var(--vw-chrome-indigo);
+  border: 1px solid var(--vw-chrome-line);
+  box-shadow: 0 var(--vw-space-md) var(--vw-space-xl) calc(var(--vw-space-sm) * -1) var(--vw-brand-glow), inset 0 1px 0 var(--vw-chrome-fill-strong);
+  color: var(--vw-chrome-ink);
 }
 
 /* ---------- Motion (durations from tokens.motion; all instant under reduced motion) ---------- */

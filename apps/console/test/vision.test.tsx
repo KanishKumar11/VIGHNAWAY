@@ -64,7 +64,7 @@ describe('decision replay', () => {
     const after = replayTrip(env, h, 200);
     expect(after.seq).toBe(2);
     expect(after.incidents[0]!.status).toBe('corroborated');
-    expect(recommendedRoute(after.trip.plan)?.name).toBe('Via Gokhale Bridge');
+    expect(recommendedRoute(after.trip.plan)?.name).toBe('Via G K Gokhale Flyover');
     expect(after.trip.change?.fromRouteName).toBe('Via Andheri Subway');
     expect(after.trip.change?.triggerIncidentId).toBe('inc-flood');
     // Deterministic: the same moment gives the same plan.
@@ -231,8 +231,8 @@ describe('languages', () => {
 
   it('"What to do now" is the engine sentence in English and a translated sentence in Hindi', () => {
     const replay = replayTrip(env, history(), 200);
-    expect(whatToDoNow(replay.trip.plan, 'Kokilaben Dhirubhai Ambani Hospital')).toMatch(/^Take Gokhale Bridge to Kokilaben Dhirubhai Ambani Hospital, \d+ min\.$/);
+    expect(whatToDoNow(replay.trip.plan, 'Holy Spirit Hospital')).toMatch(/^Take G K Gokhale Flyover to Holy Spirit Hospital, \d+ min\.$/);
     setCurrentLang('hi');
-    expect(whatToDoNow(replay.trip.plan, 'Kokilaben Dhirubhai Ambani Hospital')).toMatch(/^Gokhale Bridge से Kokilaben Dhirubhai Ambani Hospital जाएँ, \d+ मिनट।$/);
+    expect(whatToDoNow(replay.trip.plan, 'Holy Spirit Hospital')).toMatch(/^Holy Spirit Hospital के लिए G K Gokhale Flyover से जाएँ, \d+ मिनट।$/);
   });
 });

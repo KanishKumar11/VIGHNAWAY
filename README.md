@@ -76,6 +76,7 @@ vighnaway.app. Full list with comments: [`.env.example`](.env.example) and each 
 | `DEVICE_HASH_SALT` | API | Salt for hashing device ids and IPs |
 | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_KEY`, `NEXT_PUBLIC_REPORT_URL` | Console | API URL, referrer-restricted browser key, QR target |
 | `EXPO_PUBLIC_API_URL` | Mobile | Default API URL (editable in Settings) |
+| `EXPO_PUBLIC_CONSOLE_URL` | Mobile | Public console address; shared routes then carry a decision-receipt link to its /verify page (optional) |
 | `GOOGLE_MAPS_ANDROID_KEY`, `GOOGLE_MAPS_IOS_KEY` | Mobile build | Native map keys (package + SHA-1 restricted) |
 | `USE_CLEARTEXT` | Mobile build | `1` when the demo API is plain HTTP on the LAN |
 | `API_BASE_URL`, `PUBLIC_SITE_URL`, `REPORT_URL` | preflight, deploy | Origins for checks, CORS and the QR code |

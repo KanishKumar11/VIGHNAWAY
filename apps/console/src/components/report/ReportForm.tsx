@@ -142,7 +142,7 @@ export function buildReportInput(f: {
 type Phase = 'form' | 'sending' | 'success' | 'sent';
 
 /** scenarioId: where the report goes (the QR on the console names the scenario it shows). */
-export function ReportForm({ scenarioId = SCENARIO_ID }: { scenarioId?: string }) {
+export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { scenarioId?: string; audience?: boolean }) {
   const ids = useId();
   const reduced = useReducedMotion();
   const [type, setType] = useState<ReportType | null>(null);
@@ -205,6 +205,8 @@ export function ReportForm({ scenarioId = SCENARIO_ID }: { scenarioId?: string }
       return;
     }
     const input = buildReportInput({ type, depth, congestion, severity, impassable, point, note, observed, deviceId: deviceId || getDeviceId() });
+    // Where the report came from labels and limits it; it is never evidence.
+    input.origin = audience ? 'audience' : 'web';
     const parsed = ReportInputSchema.safeParse(input);
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
@@ -277,6 +279,11 @@ export function ReportForm({ scenarioId = SCENARIO_ID }: { scenarioId?: string }
   const fieldErrors = (['type', 'congestion', 'description', 'point'] as const).filter((k) => errors[k]).length;
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-9 px-5 pt-6">
+      {audience && (
+        <p data-testid="audience-note" className="-mb-3 rounded-card border border-control-border bg-panel-sunken px-4 py-2.5 text-meta font-semibold text-ink">
+          {t.report.audienceNote}
+        </p>
+      )}
       <p className="text-body text-ink-muted">{t.report.intro}</p>
 
       <Section eyebrow={t.report.step(1, 3)} label={t.report.typeLabel} error={errors.type} id={`${ids}-type`}>

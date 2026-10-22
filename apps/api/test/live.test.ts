@@ -22,15 +22,15 @@ beforeEach(async () => {
 
 const trip = (simTimeS: number): TripPosition => ({
   scenarioId: SID,
-  routeId: 'fx018-fx001-0',
-  coordinate: { lat: 19.112, lng: 72.88 },
+  routeId: '10005632789-623038359-0',
+  coordinate: { lat: 19.11556, lng: 72.85039 },
   headingDeg: 270,
   simTimeS,
-  edgeId: 'fx018-fx001-0',
+  edgeId: '10005632789-623038359-0',
   edgeFraction: 0.25,
   profile: 'car',
-  destinationId: 'hosp-kokilaben',
-  edgeIds: ['fx018-fx001-0'],
+  destinationId: 'hosp-holy-spirit',
+  edgeIds: ['10005632789-623038359-0'],
   travelledEdgeCount: 0,
   status: 'en_route',
 });

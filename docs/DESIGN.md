@@ -39,7 +39,7 @@ off-white panels. Amber and red appear only when something is wrong.
 | radius | sheet 20, card 14, chip 999, button 12 | |
 | sheet peek | 280 (grows with content at large font sizes) | Navigate sheet's lowest snap point |
 
-**Type:** Inter. ETA 32/38 bold with tabular numerals; titles 18/24 semibold; body 15/22; metadata
+**Type:** Manrope on the phone (changed from Inter at the owner's request; the console keeps Inter). ETA 32/38 bold with tabular numerals; titles 18/24 semibold; body 15/22; metadata
 13/18 medium (never smaller). Console base 18 px, titles 24, clock 40 bold tabular. Respect system
 font scaling; layouts wrap instead of clipping.
 
@@ -160,7 +160,7 @@ that shows cause and effect.
 - **Restrained gradients are allowed** for depth only: a soft radial vignette on the map field, a
   faint teal glow under the recommended route, skeleton shimmer. Still no glassmorphism or frosted
   blur, no rainbow or decorative gradients, no gradient text.
-- **Type:** Inter Variable for UI; JetBrains Mono for instrument readouts (clock, ETA digits,
+- **Type:** Manrope for the phone UI (Inter Variable on the console); JetBrains Mono for instrument readouts (clock, ETA digits,
   distances, ages, eyebrow labels in caps with `letterSpacing.eyebrow`). ETA hero uses
   `type.display` (48) with tabular figures.
 - **One hero per screen.** The console's hero is the map; the decision card is the one cream
@@ -275,3 +275,119 @@ Rules:
   look alike. Evidence colours escalate amber → orange → red with the ring language.
 - The brand gradient is for brand moments only, never for status, routes or text.
 - Status chips use the `*Surface` background with `*Ink` text; markers use the solid colour.
+
+## 13. v4: Console light theme "Porcelain"
+
+The web control room has its own light palette, `consoleThemes.light` in `@vighnaway/tokens`
+(`packages/tokens/src/themes.ts`). The phone keeps `themes.light` (warm paper, DESIGN_VISION 4.1);
+`consoleThemes.dark` is the shared dark theme. Keys are identical in every theme, and
+`packages/tokens/test/contrast.test.ts` runs the same WCAG AA pairs against Porcelain.
+
+- **What changed:** only the environment. A cool porcelain canvas (`shell` `#EDF0F5`, map field
+  `shellDeep` `#E4E9F1`) under white floating panels (`shellRaised` `#FFFFFF`), cool hairlines
+  (`#E2E7EF`), ink `#0B1324`, muted ink `#475569`, subtle ink `#566176`, cooler road tints and a
+  navy-tinted scrim, which the shadows derive from.
+- **What did not:** the accent (`#0F766E`), the route colours and every status treatment
+  (recommended, warning, critical, resolved) are the DESIGN_VISION 4.1 and 4.3 values, so meaning
+  reads the same on the phone and the console.
+- **Map:** `consoleGoogleMapStyles.light` (`googleMapStyleConsoleLight`) matches the palette; the
+  schematic view uses the same keys.
+- **Chrome (`consoleChrome`):** a fixed deep-navy palette (`chromeBg` `#0B1426`, `chromeRaised`
+  `#111C33`, ink `#F8FAFC` / `#CBD5E1`, luminous teal `chromeAccent` `#2DD4BF`), the same in light
+  and dark. It is used for the decision hero card (`.vw-hero`) only. Status colours never sit on
+  it: the changed-at chip brings its own surface. Pairs are checked by `chromeContrastPairs`.
+- **Layout:** the console is three floating panels (incident queue, map, decision) and the
+  timeline card on the canvas, 16 px apart, radius `sheet`. The queue opens with four summary
+  tiles (Corroborated, Unverified, Verified, Closed); empty groups collapse to screen-reader
+  headings only. Shared surfaces and controls live in
+  `apps/console/src/app/globals.css` (`panel-card`, `well`, `ctl`, `ctl-primary`, `ctl-quiet`).
+- **Command bar (`.vw-header`):** a frosted white bar with a hairline, a soft shadow and a thin
+  accent light on its lower edge, also used by /rules and /debug. Nothing in it wraps: below
+  1440 px the wordmark, the connection word and the nav labels collapse to icons (with titles
+  and aria-labels); from 1900 px the clock also shows its context (simulation label, rain alert).
+  The scenario switch names the mode, so the stand-alone Simulated badge appears only when there
+  is no switch. The clock's zone abbreviation comes from the scenario's `timezone`
+  (`lib/timezone.ts`), not a typed label.
+- **Narrow windows:** below 1440 px the side rails narrow (320 / 384 px) and, below 1600 px, the
+  timeline's transport buttons are icon-only and its middle time labels are hidden.
+- **Map zoom:** a trackpad pinch (ctrl + wheel) over the map is cancelled at the map stage
+  (`hooks/useContainPinchZoom.ts`) so the map zooms and the page does not; browser zoom still
+  works everywhere else.
+- **Route strip:** crossing labels sit in one row (first and last, with a `+N` count between), so
+  long road names can no longer overlap. Screen-reader text still lists every crossing.
+
+## 14. v5: Phone theme "Royal blue" and the small sheet
+
+**Theme.** The phone uses `phoneThemes` in `@vighnaway/tokens` (`packages/tokens/src/themes.ts`):
+a blue accent and recommended route on a cool white page (light) or a graphite page (dark). The
+console keeps `themes` / `consoleThemes` (teal, Porcelain). Warning, critical and resolved hues are
+unchanged, so hazards read the same. The key names `tealSoft` / `tealGlow` are historical and hold the
+blue tints. `contrast.test.ts` and `cvd.test.ts` run the phone themes through the same WCAG AA and
+colour-vision checks. The Google basemap uses natural colours (`phoneGoogleMapStyles`: green parks and
+hills, blue water, warm land, white roads, amber highways; a dark equivalent), with generic points of
+interest hidden so routes and incident markers stay the focus. It is a map, not satellite imagery. Not yet changed: the native splash and app icon colours in `app.config.ts`
+(they need an Android rebuild) and the Expo status-bar colours they set.
+
+- Light: sky-tinted page `#EEF3FF`, white panels with blue-tinted cards (`#F3F7FF`) and wells (`#E8F0FF`), ink `#0A1330`, accent and recommended route `#2563EB`, indigo secondary `#7C3AED` (`brandAlt`), richer warning and critical surfaces.
+- Dark: deep indigo-navy page `#0A1020`, blue-tinted panels `#121A33` / `#1B2750`, ink `#F4F7FF`, accent `#4F8CFF` (dark label), route `#5B9BFF`, violet secondary `#A78BFA`.
+
+**Type.** Manrope on the phone (the console keeps Inter); Hindi and Marathi still use Noto Sans Devanagari.
+
+**Small sheet.** The lowest sheet stop is sized by the small card only (`layout.sheetSnapMini` is its floor),
+not by the whole recommendation. See UX_FLOWS section 3 for what each stop shows.
+
+### 13.1 Alignment grid (console)
+
+Measured in the browser at 1280, 1440, 1600 and 1920 px; keep these when changing layout.
+
+- **One edge:** the page padding and the gap between panels are 16 px. The command bar's content
+  starts and ends on the panels' outer edges (brand tile on the left panel's edge, the operator
+  button on the right panel's edge).
+- **One control height:** every command-bar control (scenario switch, nav links, connection chip,
+  toolbar, operator button) is 40 px tall and shares one centre line; the clock capsule is 48 px
+  on the same line. Transport buttons are all 44 px (`ctl-primary` carries the same 1 px edge as
+  `ctl`, with no outer ring, so Play is not larger than Step and Reset).
+- **One inset inside panels:** both rails use 20 px (`px-5`) for titles, summary tiles, group
+  labels, cards and footers, so left and right edges match top to bottom.
+- **Map overlays:** every overlay sits 16 px from the map's edges, 36 px chips (Traffic top left,
+  "Map data © Google" top right, Legend bottom left). Over Google's basemap the legend is lifted
+  clear of Google's logo and attribution row, which must stay visible.
+- **Timeline:** one grid with two rows. Row 1 holds the transport and the scrubber, row 2 the
+  status line and the latest changes on a shared baseline.
+- **Containment:** `panel-card` is positioned, so `sr-only` (absolute) labels stay inside a
+  panel's clip. Without it they extended the page by several hundred pixels and caused stray
+  scrollbars; the document must always equal the viewport (`scrollHeight == clientHeight`).
+
+### 13.2 Brand colour (console)
+
+`consoleBrand` in `@vighnaway/tokens`. The console uses one solid brand colour, indigo
+`#4F46E5` (`brandFrom`), with white text at AA (`brandContrastPairs`). No gradients anywhere. It
+is used only for brand moments and primary actions: the logo tile, the wordmark
+(`.vw-brand-text`), primary buttons (`ctl-primary`), the clock badge (`.vw-brand-fill`), panel
+title bars (`.vw-title-bar`) and timeline progress. Never for status, routes, markers or body
+text. The hero card (`.vw-hero`) is solid deep indigo `chromeIndigo` `#1E1B4B`. The page canvas
+is the plain `shell` colour; panels are frosted white (80%, blurred). The `brandVia`, `brandTo`
+and aurora tokens remain in the package but are unused by the console. This goes beyond
+DESIGN_VISION 4.4's "no extra accent hues", at the product owner's request, and is confined to
+brand surfaces.
+
+## 15. v6: Premium layout system (phone)
+
+Replaces the "rules, not cards" grouping of DESIGN_VISION 3.3 on the phone. Every screen is built
+from the kit in `apps/mobile/src/components/ui.tsx`, so gutters, radii and rows line up everywhere:
+
+- **ScreenHeader:** a large title (`text.headline`, 28/34 bold) on the page colour with one round
+  leading button (menu on drawer screens, back or close on stacked ones) and an optional trailing
+  badge. No header bar or hairline. The drawer navigator's own header is off.
+- **Section and Card:** a label (with an optional count pill) above one rounded card (radius
+  `sheet`, white panel, hairline, soft shadow) that groups related rows; a hint sits under it.
+- **Row:** a 36 dp icon tile (tinted by tone), title and subtitle, then a trailing value, switch,
+  radio or chevron; at least 56 dp tall, 16 dp gutter, dividers inset to the text.
+- **Brand hero:** the accent fills one surface per screen at most: the drawer's brand card and the
+  Drive mode ETA card (text in `onAccent`).
+- **Routes:** every route is one card holding its head line, comparison bar, reason, why-not line,
+  strip and crossing summary; the recommended card has an accent border.
+
+Screens on the kit: drawer, Settings, Activity, How it decides, Routes and incidents, Drive mode,
+Debug. Navigate keeps its map layout (top bar, small sheet) and uses the same cards in the sheet.
+

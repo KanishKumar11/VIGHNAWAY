@@ -2,87 +2,44 @@ import { formatSimClock, PROFILES, type Profile } from '@vighnaway/contracts';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, Switch, TextInput, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
-import { Bike, Car, CircleCheck, Footprints, MapIcon, Moon, ServerOff, Smartphone, Sun, TypeIcon, Volume2, type LucideIcon } from '@/components/icons';
+import { Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
-import { enterUp, PressScale } from '@/components/motion';
+import { GUTTER, Radio as RadioMark, Row, ScreenHeader, Section } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
 import { Segmented } from '@/components/Segmented';
 import { appVersion } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { LANGUAGES, type Language } from '@/i18n/lang';
 import { api } from '@/lib/api';
-import { useReduceMotion } from '@/lib/motion';
 import { KEYS, storage } from '@/lib/storage';
 import { useActivity } from '@/stores/activity';
 import { useIncidents } from '@/stores/incidents';
 import { useScenario } from '@/stores/scenario';
 import { useSettings, type Appearance, type DataMode } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
-import { createStyles, fontFamily, hairline, layout, radius, spacing, text, useColors } from '@/theme';
+import { createStyles, layout, radius, spacing, text, useColors } from '@/theme';
 
 const PROFILE_LABEL = { car: 'profileCar', two_wheeler: 'profileTwoWheeler', foot: 'profileFoot' } as const;
 const PROFILE_ICON = { car: Car, two_wheeler: Bike, foot: Footprints } as const;
 
-function Section({ title, children, index, bare }: { title: string; children: React.ReactNode; index: number; bare?: boolean }) {
-  const styles = useStyles();
-  const reduce = useReduceMotion();
-  return (
-    <Animated.View entering={enterUp(index, reduce)} style={styles.section}>
-      <AppText variant="label" tone="muted" accessibilityRole="header" style={styles.sectionTitle}>
-        {title}
-      </AppText>
-      {bare ? children : <View style={styles.group}>{children}</View>}
-    </Animated.View>
-  );
-}
-
-/** One data-mode option: radio, name, badge and what it means. */
-function ModeRow({ mode, selected, onPress }: { mode: DataMode; selected: boolean; onPress: () => void }) {
-  const styles = useStyles();
-  const live = mode === 'live';
-  return (
-    <PressScale
-      haptic="selection"
-      scaleTo={0.985}
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      accessibilityLabel={t(live ? 'modeLive' : 'modeSimulated')}
-      testID={`mode-${mode}`}
-      style={[styles.modeRow, selected && styles.modeRowSelected]}
-    >
-      <View style={[styles.radio, selected && styles.radioOn]}>{selected ? <View style={styles.radioDot} /> : null}</View>
-      <View style={styles.flex}>
-        <View style={styles.modeHead}>
-          <AppText style={styles.strong}>{t(live ? 'modeLive' : 'modeSimulated')}</AppText>
-          {live ? <LiveBadge onShell={false} compact /> : <SimulatedBadge onShell={false} compact />}
-        </View>
-        <AppText variant="meta" tone="muted">
-          {t(live ? 'modeLiveHint' : 'modeSimulatedHint')}
-        </AppText>
-      </View>
-    </PressScale>
-  );
-}
-
 const LANG_NATIVE: Record<Language, StringKey> = { en: 'langEn', hi: 'langHi', mr: 'langMr' };
 const LANG_ENGLISH: Record<Language, StringKey> = { en: 'languageEnglish', hi: 'languageHindi', mr: 'languageMarathi' };
 
-/** A labelled switch with its explanation underneath. */
-function SwitchRow({ icon: Icon, label, hint, value, onChange, testID }: { icon: LucideIcon; label: string; hint: string; value: boolean; onChange: (v: boolean) => void; testID?: string }) {
+/** A switch row: icon tile, label and its explanation, the switch on the right. */
+function SwitchRow({ icon, label, hint, value, onChange, testID, first }: { icon: LucideIcon; label: string; hint: string; value: boolean; onChange: (v: boolean) => void; testID?: string; first?: boolean }) {
   const tc = useColors();
-  const styles = useStyles();
   return (
-    <View style={styles.switchBlock}>
-      <View style={styles.switchRow}>
-        <Icon size={18} color={tc.ink} />
-        <AppText style={styles.flex}>{label}</AppText>
+    <Row
+      icon={icon}
+      title={label}
+      subtitle={hint}
+      first={first}
+      trailing={
         <Switch
           value={value}
           onValueChange={onChange}
@@ -92,11 +49,8 @@ function SwitchRow({ icon: Icon, label, hint, value, onChange, testID }: { icon:
           thumbColor={tc.white}
           testID={testID}
         />
-      </View>
-      <AppText variant="meta" tone="muted">
-        {hint}
-      </AppText>
-    </View>
+      }
+    />
   );
 }
 
@@ -199,14 +153,19 @@ export default function SettingsScreen() {
     }
   };
 
+  const modes: DataMode[] = liveOffered === 'yes' || dataMode === 'live' ? ['simulated', 'live'] : ['simulated'];
+
   return (
-    <SafeAreaView edges={['left', 'right']} style={styles.root}>
+    <View style={styles.root}>
       <ThemedStatusBar />
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}
       >
+        <View style={styles.headerBleed}>
+          <ScreenHeader title={t('drawerSettings')} />
+        </View>
         <Section title={t('settingsProfile')} index={0} bare>
           <Segmented
             accessibilityLabel={t('settingsProfile')}
@@ -215,7 +174,7 @@ export default function SettingsScreen() {
             options={PROFILES.map((p) => ({ value: p, label: t(PROFILE_LABEL[p]), icon: PROFILE_ICON[p] }))}
           />
         </Section>
-        <Section title={t('settingsAppearance')} index={1} bare>
+        <Section title={t('settingsAppearance')} index={1} bare hint={t('appearanceHint')}>
           <Segmented
             accessibilityLabel={t('settingsAppearance')}
             value={appearance}
@@ -226,116 +185,107 @@ export default function SettingsScreen() {
               { value: 'dark', label: t('appearanceDark'), icon: Moon, testID: 'appearance-dark' },
             ]}
           />
-          <AppText variant="meta" tone="muted" style={styles.modeNote}>
-            {t('appearanceHint')}
-          </AppText>
         </Section>
-        <Section title={t('settingsMode')} index={1}>
-          <View accessibilityRole="radiogroup" accessibilityLabel={t('settingsMode')} style={styles.modes}>
-            <ModeRow mode="simulated" selected={dataMode === 'simulated'} onPress={() => chooseMode('simulated')} />
-            {liveOffered === 'yes' || dataMode === 'live' ? (
-              <ModeRow mode="live" selected={dataMode === 'live'} onPress={() => chooseMode('live')} />
-            ) : (
-              <AppText variant="meta" tone="muted" style={styles.modeNote}>
-                {t(liveOffered === 'checking' ? 'modeChecking' : 'modeLiveUnavailable')}
-              </AppText>
-            )}
-          </View>
-        </Section>
-        <Section title={t('settingsLanguage')} index={2}>
-          <View accessibilityRole="radiogroup" accessibilityLabel={t('settingsLanguage')}>
-            {LANGUAGES.map((l, i) => {
-              const selected = language === l;
+        <Section
+          title={t('settingsMode')}
+          index={2}
+          hint={modes.length === 1 && dataMode !== 'live' ? t(liveOffered === 'checking' ? 'modeChecking' : 'modeLiveUnavailable') : null}
+        >
+          <View accessibilityRole="radiogroup" accessibilityLabel={t('settingsMode')}>
+            {modes.map((m, i) => {
+              const selected = dataMode === m;
+              const live = m === 'live';
               return (
-                <PressScale
-                  key={l}
-                  haptic="selection"
-                  scaleTo={0.985}
-                  onPress={() => !selected && useSettings.getState().setLanguage(l)}
+                <Row
+                  key={m}
+                  first={i === 0}
+                  icon={live ? Radio : FlaskConical}
+                  iconTone={selected ? 'accent' : 'neutral'}
+                  title={t(live ? 'modeLive' : 'modeSimulated')}
+                  subtitle={t(live ? 'modeLiveHint' : 'modeSimulatedHint')}
+                  selected={selected}
+                  onPress={() => chooseMode(m)}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={t(LANG_NATIVE[l]) === t(LANG_ENGLISH[l]) ? t(LANG_NATIVE[l]) : `${t(LANG_NATIVE[l])}, ${t(LANG_ENGLISH[l])}`}
-                  testID={`language-${l}`}
-                  style={[styles.langRow, i > 0 && styles.divider]}
+                  accessibilityLabel={t(live ? 'modeLive' : 'modeSimulated')}
+                  testID={`mode-${m}`}
+                  trailing={<RadioMark on={selected} />}
                 >
-                  <View style={[styles.radio, selected && styles.radioOn]}>{selected ? <View style={styles.radioDot} /> : null}</View>
-                  <AppText style={[styles.flex, selected && styles.strong]}>{t(LANG_NATIVE[l])}</AppText>
-                  {/* The name in the current UI language, when it differs from the language's own name. */}
-                  {t(LANG_NATIVE[l]) !== t(LANG_ENGLISH[l]) ? (
-                    <AppText variant="meta" tone="muted">
-                      {t(LANG_ENGLISH[l])}
-                    </AppText>
-                  ) : null}
-                </PressScale>
+                  <View style={styles.badgeRow}>{live ? <LiveBadge onShell={false} compact /> : <SimulatedBadge onShell={false} compact />}</View>
+                </Row>
               );
             })}
           </View>
-          <AppText variant="meta" tone="muted">
-            {t('settingsLanguageHint')}
-          </AppText>
         </Section>
-        <Section title={t('settingsAccessibility')} index={3}>
-          <SwitchRow
-            icon={TypeIcon}
-            label={t('largerText')}
-            hint={t('largerTextHint')}
-            value={largerText}
-            onChange={(v) => useSettings.getState().setLargerText(v)}
-            testID="larger-text"
-          />
-          <View style={styles.rule} />
-          <SwitchRow
-            icon={Volume2}
-            label={t('speakChanges')}
-            hint={t('speakChangesHint')}
-            value={speakChanges}
-            onChange={(v) => useSettings.getState().setSpeakChanges(v)}
-            testID="speak-changes"
-          />
-        </Section>
-        <Section title={t('settingsMap')} index={4}>
-          <SwitchRow
-            icon={MapIcon}
-            label={t('googleTraffic')}
-            hint={t('googleTrafficHint')}
-            value={googleTraffic}
-            onChange={(v) => useSettings.getState().setGoogleTraffic(v)}
-          />
-        </Section>
-        <Section title={t('settingsServer')} index={5}>
-          <TextInput
-            value={draftUrl}
-            onChangeText={(v) => {
-              setDraftUrl(v);
-              setTestResult(null);
-            }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={t('serverPlaceholder')}
-            placeholderTextColor={tc.inkMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            style={[styles.input, focused && styles.inputFocused]}
-            accessibilityLabel={t('settingsServer')}
-            onSubmitEditing={save}
-          />
-          <View style={styles.row}>
-            <Button label={t('serverSave')} onPress={save} style={styles.save} />
-            <Button label={testing ? t('serverTesting') : t('serverTest')} kind="secondary" loading={testing} onPress={() => void test()} style={styles.flex} />
+        <Section title={t('settingsLanguage')} index={3} hint={t('settingsLanguageHint')}>
+          <View accessibilityRole="radiogroup" accessibilityLabel={t('settingsLanguage')}>
+            {LANGUAGES.map((l, i) => {
+              const selected = language === l;
+              const native = t(LANG_NATIVE[l]);
+              const english = t(LANG_ENGLISH[l]);
+              return (
+                <Row
+                  key={l}
+                  first={i === 0}
+                  icon={Languages}
+                  iconTone={selected ? 'accent' : 'neutral'}
+                  title={native}
+                  subtitle={native !== english ? english : null}
+                  selected={selected}
+                  onPress={() => !selected && useSettings.getState().setLanguage(l)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={native === english ? native : `${native}, ${english}`}
+                  testID={`language-${l}`}
+                  trailing={<RadioMark on={selected} />}
+                />
+              );
+            })}
           </View>
-          {testResult ? (
-            <View style={[styles.result, testResult.ok ? styles.resultOk : styles.resultBad]} accessibilityLiveRegion="polite">
-              {testResult.ok ? <CircleCheck size={16} color={tc.positiveInk} /> : <ServerOff size={16} color={tc.dangerInk} />}
-              <AppText variant="meta" tone={testResult.ok ? 'positive' : 'danger'} style={styles.flex}>
-                {testResult.text}
-              </AppText>
-            </View>
-          ) : null}
         </Section>
-        <Section title={t('settingsOffline')} index={6}>
-          <AppText>{cachedAtSimS !== null ? t('cachedAt', { clock: formatSimClock(clockStartsAt, cachedAtSimS) }) : t('cachedNone')}</AppText>
-          <Button label={t('clearCache')} kind="danger" onPress={clearCache} />
+        <Section title={t('settingsAccessibility')} index={4}>
+          <SwitchRow first icon={TypeIcon} label={t('largerText')} hint={t('largerTextHint')} value={largerText} onChange={(v) => useSettings.getState().setLargerText(v)} testID="larger-text" />
+          <SwitchRow icon={Volume2} label={t('speakChanges')} hint={t('speakChangesHint')} value={speakChanges} onChange={(v) => useSettings.getState().setSpeakChanges(v)} testID="speak-changes" />
+        </Section>
+        <Section title={t('settingsMap')} index={5}>
+          <SwitchRow first icon={MapIcon} label={t('googleTraffic')} hint={t('googleTrafficHint')} value={googleTraffic} onChange={(v) => useSettings.getState().setGoogleTraffic(v)} />
+        </Section>
+        <Section title={t('settingsServer')} index={6}>
+          <View style={styles.cardBody}>
+            <TextInput
+              value={draftUrl}
+              onChangeText={(v) => {
+                setDraftUrl(v);
+                setTestResult(null);
+              }}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder={t('serverPlaceholder')}
+              placeholderTextColor={tc.inkMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              style={[styles.input, focused && styles.inputFocused]}
+              accessibilityLabel={t('settingsServer')}
+              onSubmitEditing={save}
+            />
+            <View style={styles.buttons}>
+              <Button label={t('serverSave')} onPress={save} style={styles.flex} />
+              <Button label={testing ? t('serverTesting') : t('serverTest')} kind="secondary" loading={testing} onPress={() => void test()} style={styles.flex} />
+            </View>
+            {testResult ? (
+              <View style={[styles.result, testResult.ok ? styles.resultOk : styles.resultBad]} accessibilityLiveRegion="polite">
+                {testResult.ok ? <CircleCheck size={16} color={tc.positiveInk} /> : <ServerOff size={16} color={tc.dangerInk} />}
+                <AppText variant="meta" tone={testResult.ok ? 'positive' : 'danger'} style={styles.flex}>
+                  {testResult.text}
+                </AppText>
+              </View>
+            ) : null}
+          </View>
+        </Section>
+        <Section title={t('settingsOffline')} index={7}>
+          <Row first icon={HardDrive} iconTone="neutral" title={cachedAtSimS !== null ? t('cachedAt', { clock: formatSimClock(clockStartsAt, cachedAtSimS) }) : t('cachedNone')} />
+          <View style={styles.cardBody}>
+            <Button label={t('clearCache')} kind="danger" onPress={clearCache} />
+          </View>
         </Section>
         <Pressable onPress={onVersionTap} accessibilityRole="text" style={styles.version}>
           <AppText variant="label" tone="muted">
@@ -343,58 +293,34 @@ export default function SettingsScreen() {
           </AppText>
         </Pressable>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const useStyles = createStyles((tc) => ({
   root: { flex: 1, backgroundColor: tc.shell },
-  content: { padding: spacing.md, gap: spacing.lg },
-  section: { gap: spacing.xs },
-  sectionTitle: { paddingHorizontal: spacing.xxs },
-  // Sections are grouped by a rule and spacing, not wrapped in cards (DESIGN_VISION 3.3).
-  group: { gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: hairline, borderTopColor: tc.shellHairlineStrong },
-  rule: { height: hairline, backgroundColor: tc.panelHairline },
-  row: { flexDirection: 'row', gap: spacing.xs },
+  content: { gap: spacing.lg },
+  // The header pads itself with the gutter: undo the content padding for it.
+  headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
   flex: { flex: 1 },
-  save: { paddingHorizontal: spacing.lg },
-  dim: { color: tc.inkMuted },
-  langRow: { flexDirection: 'row', alignItems: 'center', minHeight: layout.minTouch, gap: spacing.sm },
-  divider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
+  badgeRow: { flexDirection: 'row', marginTop: spacing.xxs },
+  cardBody: { padding: GUTTER, gap: spacing.sm },
+  buttons: { flexDirection: 'row', gap: spacing.xs },
   input: {
     ...text.mono,
     fontSize: text.body.fontSize,
     color: tc.ink,
     minHeight: layout.minTouch,
     borderWidth: 1,
-    borderColor: tc.controlBorder,
-    borderRadius: radius.button,
+    borderColor: tc.panelLine,
+    borderRadius: radius.card,
     paddingHorizontal: spacing.sm,
-    backgroundColor: tc.panel,
+    backgroundColor: tc.panelSunken,
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },
   inputFocused: { borderColor: tc.focus, borderWidth: 2 },
-  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.button },
+  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.card },
   resultOk: { backgroundColor: tc.positiveSoft },
   resultBad: { backgroundColor: tc.dangerSurface },
   version: { minHeight: layout.minTouch, alignItems: 'center', justifyContent: 'center' },
-  strong: { fontFamily: fontFamily.semibold },
-  modes: { gap: spacing.xs },
-  modeRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    padding: spacing.sm,
-    borderRadius: radius.button,
-    borderWidth: 1,
-    borderColor: tc.panelLine,
-  },
-  modeRowSelected: { borderColor: tc.ink, borderWidth: 1.5, backgroundColor: tc.panel },
-  modeHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexWrap: 'wrap', marginBottom: 2 },
-  modeNote: { paddingHorizontal: spacing.xxs },
-  radio: { width: spacing.md + 2, height: spacing.md + 2, borderRadius: radius.chip, borderWidth: 2, borderColor: tc.controlBorder, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-  radioOn: { borderColor: tc.ink },
-  radioDot: { width: spacing.xs, height: spacing.xs, borderRadius: radius.chip, backgroundColor: tc.ink },
-  switchBlock: { gap: spacing.xxs },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: layout.minTouch },
 }));

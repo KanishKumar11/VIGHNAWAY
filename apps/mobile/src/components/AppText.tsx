@@ -16,6 +16,7 @@ export type TextTone =
   | 'positive'
   | 'live'
   | 'inverse'
+  | 'onAccent'
   | 'accent'
   | 'recommended';
 
@@ -42,6 +43,8 @@ export function toneColor(tc: ThemeColors, _name: ThemeName, tone: TextTone): st
       return tc.liveInk;
     case 'inverse':
       return tc.panel;
+    case 'onAccent':
+      return tc.onAccent;
     case 'accent':
       return tc.accentInk;
     case 'recommended':
@@ -60,7 +63,7 @@ const DEVANAGARI = /[\u0900-\u097F]/;
 
 /**
  * Text with a type token and a colour tone from the active theme. Scales with the system font
- * size, plus the in-app "Larger text" setting; Hindi and Marathi swap Inter for Noto Sans
+ * size, plus the in-app "Larger text" setting; Hindi and Marathi swap Manrope for Noto Sans
  * Devanagari at the same weight.
  */
 export function AppText({ variant = 'body', tone = 'ink', style, ...rest }: AppTextProps) {

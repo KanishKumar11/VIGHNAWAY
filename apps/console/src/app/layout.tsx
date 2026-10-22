@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { themes } from '@vighnaway/tokens';
+import { consoleThemes as themes } from '@vighnaway/tokens';
 import { t } from '@/i18n';
 import { tokenCss } from '@/lib/theme';
 import { themeBootScript } from '@/lib/themeMode';

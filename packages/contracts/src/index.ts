@@ -7,3 +7,4 @@ export * from './evaluation';
 export * from './events';
 export * from './api';
 export * from './copy';
+export * from './auth';

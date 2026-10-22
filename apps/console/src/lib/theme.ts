@@ -1,4 +1,4 @@
-import { colors, elevation, fontFamily, letterSpacing, marker, motion, radius, spacing, themes, type as typeScale, type ThemeName } from '@vighnaway/tokens';
+import { colors, consoleBrand, consoleChrome, consoleThemes as themes, elevation, fontFamily, letterSpacing, marker, motion, radius, spacing, type as typeScale, type ThemeName } from '@vighnaway/tokens';
 
 /**
  * CSS custom properties generated from @vighnaway/tokens at runtime, using the same names as the
@@ -58,6 +58,8 @@ export function tokenCssVariables(): Record<string, string> {
   // Devanagari (Hindi, Marathi) falls back to Noto Sans Devanagari, bundled locally.
   vars['--vw-font-web'] = fontFamily.web.replace("'Inter Variable',", "'Inter Variable', 'Noto Sans Devanagari Variable',");
   vars['--vw-font-web-mono'] = fontFamily.webMono;
+  for (const [k, v] of Object.entries(consoleChrome)) vars[`--vw-${kebab(k)}`] = v;
+  for (const [k, v] of Object.entries(consoleBrand)) vars[`--vw-${kebab(k)}`] = v;
   vars['--vw-marker-size'] = `${marker.size}px`;
   vars['--vw-marker-glyph'] = `${marker.glyphSize}px`;
   vars['--vw-marker-ring'] = `${marker.ringWidth}px`;

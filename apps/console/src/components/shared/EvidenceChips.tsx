@@ -77,8 +77,8 @@ export function SimulatedBadge({ onShell = false, className }: { onShell?: boole
   return (
     <span
       className={cn(
-        'inline-flex h-6 items-center gap-1.5 rounded-chip border border-control-border px-2 text-meta font-semibold',
-        onShell ? 'text-ink-on-shell' : 'bg-panel-raised text-ink',
+        'inline-flex h-6 items-center gap-1.5 rounded-chip border border-shell-line bg-panel-sunken px-2.5 text-meta font-semibold whitespace-nowrap',
+        onShell ? 'text-ink-on-shell' : 'text-ink',
         className,
       )}
     >
@@ -111,6 +111,12 @@ export function EvidenceChips({ incident, nowS }: { incident: Incident; nowS: nu
         <span className={cn(chip, 'bg-warn-surface text-warn-ink')} title={t.queue.staleHint}>
           <Clock aria-hidden className="size-3.5" />
           {t.queue.stale}
+        </span>
+      )}
+      {incident.audienceOnly && (
+        <span className={cn(chip, 'bg-panel-sunken text-ink-on-shell')} data-testid="audience-chip">
+          <UserRound aria-hidden className="size-3.5" />
+          {t.audience.chip}
         </span>
       )}
       {incident.conflicting && (

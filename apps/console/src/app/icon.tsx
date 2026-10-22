@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { themes } from '@vighnaway/tokens';
+import { consoleThemes as themes } from '@vighnaway/tokens';
 
 const t = themes.light;
 

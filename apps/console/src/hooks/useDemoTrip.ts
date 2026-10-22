@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { rt } from '@/i18n/engineText';
 import { createTrip, incidentsTrip, positionTrip, tickTrip, type TripEnv, type TripState } from '@/lib/demoTrip';
 import { graphFor, scenarioFor } from '@/lib/scenario';
 import { useScenarioStore } from '@/stores/scenario';
@@ -58,7 +59,7 @@ export function useDemoTripController(): void {
       const ran = !before || trip.plan !== before.plan;
       useTripStore.getState().set(trip, ran && typeof performance !== 'undefined' ? performance.now() - t0 : null);
       if (trip.change && trip.change.id !== before?.change?.id) {
-        useLiveStore.getState().addTicker({ key: `change-${k}-${trip.change.id}`, atS: trip.change.atS, text: trip.change.message });
+        useLiveStore.getState().addTicker({ key: `change-${k}-${trip.change.id}`, atS: trip.change.atS, text: rt(trip.change.messageText, trip.change.message) });
       }
     };
 

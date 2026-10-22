@@ -1,11 +1,11 @@
-import * as SMS from 'expo-sms';
 import { Share } from 'react-native';
 import { formatSimClock, type Incident, type PlanResult, type RouteEvaluation } from '@vighnaway/contracts';
 import type { Graph } from '@vighnaway/engine';
 import { t } from '@/i18n/en';
-import { evidenceText, routeName } from '@/i18n/engineText';
+import { evidenceText, routeLabel } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { roadSequence } from './engine';
+import type { PhoneReceipt } from './receipt';
 
 export interface ShareInput {
   plan: PlanResult;
@@ -18,6 +18,8 @@ export interface ShareInput {
   etaS: number;
   /** Live data mode: "Live data" instead of the simulated-scenario label. */
   live?: boolean;
+  /** Decision receipt for this route, when one can be made (not while following a route). */
+  receipt?: PhoneReceipt | null;
 }
 
 /** Hazards on the other routes that the recommended route does not pass. */
@@ -43,27 +45,25 @@ export function buildShareText(input: ShareInput): string {
   const avoided = hazardsAvoided(plan, route, input.incidents);
   const lines = [
     t(input.live ? 'shareHeaderLive' : 'shareHeader'),
-    t('shareRouteLine', { name: routeName(route.name) }),
+    t('shareRouteLine', { name: routeLabel(route) }),
     t('shareTo', { place: input.placeName }),
     t('shareEta', { eta: fmtDuration(input.etaS) }),
     `${t('shareTurns')} ${roads.join(' > ')}`,
     avoided.length ? `${t('shareAvoids')} ${avoided.join('; ')}` : t('shareAvoidsNone'),
     t(input.live ? 'shareEvaluatedLive' : 'shareEvaluated', { clock: formatSimClock(input.clockStartsAt, plan.evaluatedAtS) }),
+    ...(input.receipt
+      ? [t('shareReceipt', { hash: input.receipt.hash }), ...(input.receipt.url ? [t('shareReceiptLink', { url: input.receipt.url })] : [])]
+      : []),
     t(input.live ? 'shareFooterLive' : 'shareFooter'),
   ];
   return lines.join('\n');
 }
 
-/** Opens the SMS composer when available, otherwise the system share sheet. */
+/**
+ * Opens the system share sheet, so the traveller chooses where the route goes (WhatsApp, Messages,
+ * email, copy...) instead of one app opening on its own.
+ */
 export async function shareText(message: string): Promise<boolean> {
-  try {
-    if (await SMS.isAvailableAsync()) {
-      await SMS.sendSMSAsync([], message);
-      return true;
-    }
-  } catch {
-    // fall through to the share sheet
-  }
   try {
     await Share.share({ message, title: t('shareTitle') });
     return true;

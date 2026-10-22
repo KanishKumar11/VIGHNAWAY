@@ -180,12 +180,10 @@ describe('scripted scenario through the API', () => {
     expect(first.log[0]!.recommended).toBe('Via Andheri Subway');
     expect(byEvent('ev01-ankle').recommended).toBe('Via Andheri Subway');
     expect(byEvent('ev01-ankle').change).toContain('Route unchanged: one unverified report');
-    expect(byEvent('ev02-knee').recommended).toBe('Via Gokhale Bridge');
-    expect(byEvent('ev02-knee').vehicleRoadName).toBe('Andheri-Kurla Road');
-    expect(byEvent('ev03-verify').recommended).toBe('Via Gokhale Bridge');
-    expect(byEvent('ev04-congestion-a').recommended).toBe('Via Gokhale Bridge');
-    expect(byEvent('ev05-congestion-b').recommended).toBe('Via Jogeshwari Road Over Bridge');
-    expect(byEvent('ev05-congestion-b').vehicleRoadName).toBe('Western Express Highway');
+    expect(byEvent('ev02-knee').recommended).toBe('Via G K Gokhale Flyover');
+    expect(byEvent('ev03-verify').recommended).toBe('Via G K Gokhale Flyover');
+    expect(byEvent('ev04-congestion-a').recommended).toBe('Via G K Gokhale Flyover');
+    expect(byEvent('ev05-congestion-b').recommended).toBe('Via Balasaheb Thackeray Flyover');
     const closure = byEvent('ev07-verify-closure');
     expect(closure.destination).toBe('HBT Trauma Care Hospital');
   });

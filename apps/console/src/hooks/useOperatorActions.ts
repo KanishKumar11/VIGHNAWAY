@@ -77,3 +77,20 @@ export function useSimAction() {
     },
   });
 }
+
+/** Clear audience reports: dismisses every open incident that only demo-audience reports support. */
+export function useClearAudience() {
+  return useMutation({
+    mutationFn: async () => {
+      if (isReplaying()) throw new ApiError('CONFLICT', t.replay.readOnly, 409);
+      const token = useOperator.getState().token;
+      if (!token) throw new ApiError('UNAUTHORIZED', t.operator.rejected, 401);
+      return api.clearAudience(useScenarioStore.getState().id, token);
+    },
+    onSuccess: (resp) => toast.success(t.audience.cleared(resp.cleared)),
+    onError: (e) => {
+      toast.error(t.audience.clearFailed(errorMessage(e)));
+      handleAuth(e);
+    },
+  });
+}

@@ -115,6 +115,23 @@ export const mr: Record<TextKey, string> = {
   'change.new.better': 'मार्ग बदलला. आता दुसरा मार्ग स्पष्टपणे चांगला आहे. नवा मार्ग {via}, {eta}.',
   'change.reversal': '{base} पुढे जाणारा कोणताही मार्ग जाण्याजोगा नाही. {reversal}.',
 
+  'cf.blocked.notEnough': '{hazards} हटल्यावरही दुसराच मार्ग सुचवला जाईल.',
+  'cf.hazard.one': '{hazard|lower} हटले तर हा मार्ग सुचवला जाईल.',
+  'cf.hazard.many': 'हे हटले तर हा मार्ग सुचवला जाईल: {hazards}.',
+  'cf.time': 'हा मार्ग {n} मिनिटे जास्त वेगवान झाला तर सुचवला जाईल.',
+  'cf.none.hazards': 'नोंदवलेले धोके हटले तरी हा मार्ग सुचवला जाणार नाही.',
+  'cf.none.time': 'फक्त वेळ वाचल्याने हा मार्ग सुचवला जाणार नाही.',
+  'cf.join': '{head}; {tail}',
+
+  'cov.road.fresh': '{road}: गेल्या 30 मिनिटांत नोंद आली',
+  'cov.road.ageing': '{road}: शेवटची नोंद {age} पूर्वी',
+  'cov.road.stale': '{road}: शेवटची नोंद {age} पूर्वी, 3 तासांपेक्षा जुनी',
+  'cov.road.none': '{road}: नोंद नाही',
+  'cov.brief.none': 'प्रत्येक पूरप्रवण रस्त्यावरून गेल्या तासात नोंद आली आहे',
+  'cov.brief.one': '1 पूरप्रवण रस्त्यावरून गेल्या तासात नोंद नाही',
+  'cov.brief.many': '{n} पूरप्रवण रस्त्यांवरून गेल्या तासात नोंद नाही',
+  'cov.brief.noRoads': 'नकाशावर पूरप्रवण रस्ते नाहीत',
+
   'notice.unchanged.one': 'मार्ग बदलला नाही: एक न पडताळलेली नोंद',
   'notice.unchanged.many': 'मार्ग बदलला नाही: {n} न पडताळलेल्या नोंदी',
   'notice.unchanged.hazard': 'मार्ग बदलला नाही: {hazard|lowerall} वळसा घेण्याइतका मोठा नाही',

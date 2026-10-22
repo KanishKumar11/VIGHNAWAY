@@ -28,7 +28,7 @@ or hosted router is involved.
 | `unverifiedBlockPenaltyS` | 1800 | An unverified closure, unverified knee-or-deeper flood, or unverified impassable report adds 1,800 s to ranking and a visible warning; the route stays viable. |
 | `ankleFloodSeverity` | medium | Ankle-deep water is a medium-severity penalty (300 s x weight x age) for every open status; the route stays viable. |
 | `defaultFloodDepth` | knee | A flood report with no depth is treated as knee depth (conservative). |
-| `dataGap` | penaltyS: 120; windowS: 3600 | While a rain alert is active, each flood-prone edge with no report in the last 60 simulated minutes adds 120 s to ranking only. A report exactly 60 min old still counts as recent. It never creates an incident and is shown as "No recent reports on <road>". |
+| `dataGap` | penaltyS: 120; windowS: 3600 | While a rain alert is active, each continuous stretch of flood-prone edges with no report on any of its edges in the last 60 simulated minutes adds 120 s to ranking only. A report exactly 60 min old still counts as recent. It never creates an incident and is shown as "No recent reports on <road>". |
 | `switching` | minGainFraction: 0.1; minGainS: 120 | Keep the current recommendation unless it is not viable, or another viable route is cheaper by more than the larger of 120 s and 10% of the current cost. A gain exactly equal to the threshold does not switch. |
 | `tieBreak` | cost, distance, routeId | Ties are broken by lower cost, then shorter distance, then the lexicographically smaller route id. Costs and ETAs are rounded to whole seconds before comparing. |
 | `confidence` | lowGapS: 60; mediumGapS: 180 | Low: a conflicting incident on the route, viability relying on a stale report, the next viable route within 60 s of ranking cost, or a forced reversal. Medium: an unverified incident on the route, a data gap on the route, no alert information while the route uses flood-prone edges, or the next viable route within 60 to 180 s. High otherwise, including when no other viable route exists. |
@@ -98,6 +98,27 @@ onto the reverse of the current edge is banned while any forward plan is viable.
 may it return a reversal, labelled "Turn back only where it is safe to do so", with confidence Low. A lower
 modelled cost never makes a reversal acceptable. If the vehicle is already on a newly blocked edge,
 the plan is shown from the next junction ahead with a prominent warning.
+
+## How counterfactuals are computed ("Why not that route?")
+
+Every shown route that is not recommended carries a `counterfactual`: the smallest change that would
+make it the recommendation. Nothing is estimated. Each claim is checked by re-ranking all candidate
+routes with the same rules (including the switching rule above), so it can never disagree with the
+decision. "Cleared" means the incident is resolved: it stops counting as a hazard but still counts as
+a recent report for the data-gap rule.
+
+- **blocked**: the route is not viable while its blocking incidents stand. A faster ETA never makes
+  it recommended. `wouldBeRecommended` says whether clearing all of them would.
+- **hazards**: clearing one active hazard flips the ranking (hazards tried one at a time in incident
+  id order; that single hazard is the smallest change), else clearing all of them together does
+  ("if these were cleared": no claim of minimality).
+- **time**: the smallest whole-second cut in the route's ranking cost that makes it the
+  recommendation, found by search over the same ranking, so it already includes the threshold
+  (gain > 120 s and gain x 10 > current cost when a route is being followed). Shown rounded
+  up to whole minutes, as "if it were N min faster".
+- **none_sufficient**: clearing its hazards, or saving any time, would not make it recommended.
+
+The explanation is part of the plan hash (`counterfactual`); only its text rendering is not.
 
 ## Candidates
 

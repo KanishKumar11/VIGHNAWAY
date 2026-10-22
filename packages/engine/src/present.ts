@@ -1,9 +1,10 @@
 import type { Incident, PlanResult, RouteEvaluation } from '@vighnaway/contracts';
-import { formatDuration } from '@vighnaway/contracts';
+import type { Text } from '@vighnaway/contracts';
 import type { Graph } from './graph';
 import type { EvalContext, IncidentIndex } from './incidents';
 import { buildIncidentIndex, incidentEffect } from './incidents';
-import { SCORING_RULES } from './rules';
+import { durationText, tx, viaRoadText } from './text/build';
+import { renderText } from './text/render';
 
 /**
  * Presentation helpers: derived from engine results, never used to decide anything.
@@ -58,19 +59,23 @@ export function flowDurationMs(seg: Pick<RouteSegmentFlow, 'speedKmh' | 'blocked
 
 /**
  * One plain sentence telling the user what to do now, for stressed or glancing users and for
- * spoken announcements. Derived from the plan only.
+ * spoken announcements, as structured text. Derived from the plan only.
  */
-export function nextAction(plan: PlanResult, destinationName?: string): string {
+export function nextActionText(plan: PlanResult, destinationName?: string): Text {
   const rec: RouteEvaluation | undefined = plan.routes.find((r) => r.routeId === plan.recommendedRouteId);
-  if (plan.isReversal) return `${SCORING_RULES.reversal.value}, then follow the new route.`;
+  if (plan.isReversal) return tx('next.reversal', { reversal: tx('reversal') });
   if (!rec) {
-    if (plan.reachable) return `No viable route. Head to ${plan.reachable.placeName}, ${formatDuration(plan.reachable.etaS)} away. In an emergency, call 112.`;
-    return 'No viable route. Stay where you are if you can. In an emergency, call 112.';
+    if (plan.reachable) return tx('next.noViable.reach', { place: plan.reachable.placeName, eta: durationText(plan.reachable.etaS) });
+    return tx('next.noViable');
   }
-  const via = rec.name.replace(/^Via /, '');
-  const eta = formatDuration(rec.etaS + plan.leadInS);
-  return destinationName ? `Take ${via} to ${destinationName}, ${eta}.` : `Take ${via}, ${eta}.`;
+  const via = viaRoadText(rec.name, rec.nameText);
+  const eta = durationText(rec.etaS + plan.leadInS);
+  return destinationName ? tx('next.take', { via, place: destinationName, eta }) : tx('next.takeShort', { via, eta });
 }
+
+/** The same sentence in English. */
+export const nextAction = (plan: PlanResult, destinationName?: string): string =>
+  renderText(nextActionText(plan, destinationName), 'en');
 
 /**
  * Text for a spoken route-change announcement: short, calm, no symbols, numbers spelled as words

@@ -165,7 +165,7 @@ C(r) = \sum_{e \in r} t_e \, m_e + \sum_{i \in H(r)} P(s_i) \, w(v_i) \, f(a_i) 
 | Severity penalty P, seconds | low 60, medium 300, high 900 | Ranking only, never the shown ETA |
 | Verification weight w | verified 1.0, corroborated 0.75, unverified 0.4, resolved or dismissed 0 | Scales the penalty |
 | Age factor f | 1.0 under 30 min, falling linearly to 0.6 at 3 h | Older reports labelled Stale, never dropped |
-| Data-gap penalty U | 120 s per flood-prone edge with no report in the last 60 min while a rain alert is active | Ranking only |
+| Data-gap penalty U | 120 s per continuous stretch of flood-prone edges with no report on any of its edges in the last 60 min while a rain alert is active | Ranking only |
 | Impassable | Hard block if verified or corroborated; otherwise +1,800 s and a warning | Viability |
 | Water depth | Ankle: penalty; knee or deeper: hard block once verified or corroborated | Viability, same for every profile |
 | Switching rule | Keep the current recommendation unless it is not viable, or another route is cheaper by more than the larger of 120 s and 10% of the current cost | Stability |

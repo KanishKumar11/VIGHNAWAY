@@ -38,8 +38,10 @@ If we only have a fixed amount of time, build these, in this order:
 | --- | --- |
 | **4 hours** | P0-1 → P0-2 → P1-1 (Why not that route?) |
 | **8 hours** | the 4-hour plan → P1-2 (decision receipt) → P1-3 (judge-in-the-loop) |
-| **16 hours** | the 8-hour plan → P1-4 (ask the crowd) → P1-5 (evidence coverage map) → P2-1 (after-action report) |
+| **16 hours** | the 8-hour plan → P1-4 (ask the crowd) → P1-5 (evidence coverage map) → P1-6 (scenario scoreboard) → P2-1 (after-action report) |
 | **24+ hours** | the 16-hour plan → P2-2 (offline QR relay) → P2-3 (step-free profile) → P2-4 (hospital load spreading) |
+
+P2-8 and P2-9 (walking concerns and the well-lit preference) come after the 24+ hour plan and are cut before P2-5.
 
 The device and credential items (P0-3 to P0-6) run in parallel whenever the person or hardware is available. They are
 not coding time for an agent.
@@ -86,7 +88,13 @@ not coding time for an agent.
 
 ### P0-5 Rehearsals and backup video (T22)
 - **What:** three timed runs under 3 minutes, logged in docs/demo-script.md, plus a screen recording as a fallback.
-- **Effort:** 1.5 h · **Demo value:** ★★★ · **Owners:** Pitch, QA
+- **Also:** the pitch material that answers questions judges are likely to ask:
+  - a judge Q&A sheet with short answers to "why not Google Maps?", "how do you know a report is true?", "what if there
+    are no reports?", "what about privacy?" and "what is simulated?";
+  - a "path to a pilot" slide: the control room as the operator, the data partners (SACHET or IMD alerts, TomTom,
+    municipal flood-prone-spot lists) and the stated limits, taken from docs/limitations.md;
+  - the P1-1 screenshots that are still missing.
+- **Effort:** 1.5 h for the rehearsals, plus 1.5 h for the material · **Demo value:** ★★★ · **Owners:** Pitch, QA
 - **Needs:** the team, and the judging criteria so the script can be weighted to them.
 
 ### P0-6 API Docker image and live TomTom key (T03)
@@ -172,6 +180,34 @@ not coding time for an agent.
 - **Effort:** 2 h · **Demo value:** ★★ · **Owners:** Console
 - **Tokens:** reuse the warn and danger scales and add no new hues; the CVD test must still pass.
 
+### P1-6 Scenario scoreboard (batch replay)
+- **What:** `pnpm scoreboard` replays a published set of seeded, simulated monsoon scenarios on the real Andheri graph and
+  writes docs/scoreboard.md plus a JSON file. For each scenario it compares the usual fastest route with what the engine
+  recommends as evidence arrives.
+- **What it reports:**
+  - how often the usual route crosses a Verified or Corroborated hard block;
+  - the extra modelled minutes the recommendation costs, as a median and a worst case;
+  - how many times the recommendation changed;
+  - scenarios with no viable route, and scenarios where the detour costs more than it is worth.
+- **Why it wins:** it turns "it reroutes around floods" into a number a judge can question. It also shows the limits.
+- **What it must not do:**
+  - claim the engine "avoids hazards 20 out of 20 times". Hard blocks make that true by construction, so it proves
+    nothing. The honest figures are the usual route's exposure, the cost of avoiding it, and the cases with no way
+    round;
+  - claim lives saved, safety percentages or real-world results. Every figure is labelled "Simulated scenarios on real
+    roads; modelled minutes";
+  - hide unfavourable scenarios. The scenario set and seeds are published and include ones where the detour is worse.
+- **How:** seeded randomness lives only in the scenario generator under `scripts/`, never in the engine, so the same
+  seeds give a byte-identical report.
+- **Effort:** 3–4 h · **Demo value:** ★★ · **Owners:** Data and sim (generator and script), Engine (reviews the metrics),
+  Pitch (one slide)
+- **Needs:** P0-4.d (the re-tuned scenario on the real graph); it runs on the fixture before that, with the output
+  marked as fixture.
+- **Done when:**
+  - two runs with the same seeds give identical output;
+  - the report includes at least one scenario where the recommendation is slower with no hazard avoided;
+  - the forbidden-words check passes on the output.
+
 ---
 
 ## P2: strong additions
@@ -227,6 +263,52 @@ not coding time for an agent.
 - **Effort:** 4 h · **Demo value:** ★★ · **Owners:** Mobile
 - **Needs:** P0-3 (background tasks only work on a device).
 
+### P2-8 Walking-concern reports (poorly lit, isolated)
+- **What:** two new report types in the report sheet, "Poorly lit" and "Isolated stretch". They are ordinary incidents
+  on a road, with a source and a status, and appear on both maps as factual labels, for example "Reported poorly lit ·
+  2 reports · 40 min ago · Unverified".
+- **Why it wins:** people walking after dark, women most often, can add and read first-hand evidence about a road. No
+  area is ever rated. The incident pipeline already handles expiry, corroboration and operator review.
+- **Rules (these are the safeguards, not options):**
+  - the report describes a road and a condition, never a neighbourhood or a group of people;
+  - no safety wording ("safe", "unsafe", "dangerous") and no area shading or score;
+  - the app never asks for or stores gender, age or identity; the device hash is the only identifier;
+  - no free-text note on these types, so a report cannot name a person or premises;
+  - a stricter per-device limit than other report types;
+  - only an operator sets Verified; an operator can dismiss or resolve.
+- **Scope:** display only. This item changes no route. The routing effect belongs to P2-9 and applies only when the user
+  turns that preference on, so the engine, scoring rules and parity hash stay unchanged here.
+- **Effort:** 5–6 h · **Demo value:** ★★ · **Owners:** API (contracts, reports), Engine (reviews contracts and keeps the
+  new type out of routing), Console (layer and queue), Mobile (report sheet and map labels)
+- **Docs:** CONTRACTS.md (new incident and report type), DATA_MODEL.md, UX_FLOWS.md, limitations.md.
+- **Done when:**
+  - two browsers report "Poorly lit" on one road and the console shows Corroborated;
+  - the planner's recommendation and the parity hash are unchanged;
+  - `findForbiddenWords` passes on the new strings in en, hi and mr;
+  - the per-device limit and the note rejection are covered by API tests.
+
+### P2-9 Prefer well-lit roads (walking preference)
+- **What:** an opt-in toggle on the walking profile, "Prefer well-lit roads". It adds two declared, ranking-only rules to
+  SCORING_RULES, so the displayed ETA is untouched:
+  - a way tagged `lit=no` in OpenStreetMap costs 25% extra of its travel time in the ranking;
+  - an open walking-concern incident on the route costs 300 s × verification weight × age factor.
+- **Never:** a hard block, a "safer" label or a safety percentage. The card says "Preference: well-lit roads".
+  Where the `lit` tag is missing, nothing changes, the missing segments are counted, and confidence reads "Lighting data
+  missing on N segments" (the same pattern as P2-3).
+- **Off by default,** so the demo and the parity hash are unchanged until the toggle is on. The preference is a plan
+  input, so the decision receipt (P1-2) records it.
+- **Effort:** 6 h · **Demo value:** ★★ · **Owners:** Data (keep `lit` in the extract), Engine (rules, profile input,
+  parity cases), Mobile (toggle and card), Console (decision panel line)
+- **Needs:** P2-8 for the incident half. The `lit` half can ship first. A coverage check of the `lit` tag in the Andheri
+  graph, because if it is thin the feature says so rather than pretending.
+- **Docs:** scoring.md (regenerated from rules.ts), CONTRACTS.md (plan input), DATA_MODEL.md (`lit` edge attribute),
+  limitations.md.
+- **Done when:**
+  - engine tests cover `lit=no`, unknown and `lit=yes` edges, plus the incident penalty at each status;
+  - a property test shows the preference never makes a route non-viable;
+  - with the toggle off, all existing parity and replay hashes are identical;
+  - the shared route text carries no safety wording.
+
 ---
 
 ## P3: nice to have, or after the hackathon
@@ -240,6 +322,7 @@ not coding time for an agent.
 | P3-5 | Device reputation for corroboration (reports later confirmed raise weight) | 4 h | Must stay a documented heuristic; never sets Verified |
 | P3-6 | SMS route text for feature phones (outbound) | 3 h | Needs an SMS gateway; the share path exists today |
 | P3-7 | Public read-only incident page (no operator controls) for citizens without the app | 2 h | Same labels and statuses as the console |
+| P3-8 | Share my trip: an expiring, revocable link a contact opens to follow the phone's position | 6 h + device | Needs a privacy decision first (consent, expiry, what is stored). Position and destination name only, never the route. In the demo the position is the simulated vehicle and is labelled so |
 
 ## Not doing (and why)
 
@@ -249,4 +332,7 @@ not coding time for an agent.
 | A flood or safety "score" or percentage | Forbidden by the non-negotiables; confidence stays a decision-table label |
 | Photo uploads on reports | Needs moderation and storage, and carries privacy risk; notes stay plain text |
 | ML flood prediction | No validated data; it would present guesses as evidence |
+| Safe or unsafe areas, or a safety score, for women or anyone | No evidence source can support it; it is the forbidden safety claim in another form, and a wrong label stigmatises a place or gives false reassurance. P2-8 and P2-9 show reports and a stated preference instead |
+| Crime-statistics overlay | Sparse, delayed and biased by under-reporting; shading areas from it would read as a verdict |
+| Collecting gender or identity to tailor safety features | Not needed, and it adds privacy risk; the features work the same for everyone |
 | A hosted routing API for the decision | Decisions must come from packages/engine |

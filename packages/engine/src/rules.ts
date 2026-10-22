@@ -93,7 +93,7 @@ export const SCORING_RULES = {
   ),
   dataGap: r(
     { penaltyS: 120, windowS: 60 * 60 },
-    'While a rain alert is active, each flood-prone edge with no report in the last 60 simulated minutes adds 120 s to ranking only. A report exactly 60 min old still counts as recent. It never creates an incident and is shown as "No recent reports on <road>".',
+    'While a rain alert is active, each continuous stretch of flood-prone edges with no report on any of its edges in the last 60 simulated minutes adds 120 s to ranking only. A report exactly 60 min old still counts as recent. It never creates an incident and is shown as "No recent reports on <road>".',
   ),
   switching: r(
     { minGainS: 120, minGainFraction: 0.1 },

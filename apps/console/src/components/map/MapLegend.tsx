@@ -82,8 +82,10 @@ export function MapLegend({
   extraAttribution?: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  // Docked map stage: the legend and the attribution sit in its corners, below the camera's inset.
-  const style = compact ? { left: 8, bottom: 8 } : { left: 16, bottom: 14 };
+  // Docked map stage: every overlay sits 16px from the stage's edges (8px when compact). Over the Google
+  // basemap the legend is lifted clear of Google's logo and attribution row, which must stay visible.
+  const edge = compact ? 8 : 16;
+  const style = { left: edge, bottom: schematic ? edge : edge + 36 };
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
       <div className="pointer-events-auto absolute flex flex-col items-start gap-2" style={style}>
@@ -145,7 +147,7 @@ export function MapLegend({
         </button>
       </div>
       {!compact && (schematic || extraAttribution) && (
-        <p className="absolute max-w-md rounded-button bg-shell-deep px-2 py-1 text-right text-meta text-ink-on-shell-muted" style={{ right: 12, bottom: 12 }}>
+        <p className="absolute max-w-md rounded-button bg-shell-deep px-2 py-1 text-right text-meta text-ink-on-shell-muted" style={{ right: 16, bottom: 16 }}>
           {schematic && ATTRIBUTION}
           {extraAttribution && (
             <>

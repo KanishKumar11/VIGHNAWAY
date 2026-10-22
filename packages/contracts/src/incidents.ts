@@ -105,6 +105,11 @@ export const IncidentSchema = z.object({
   seq: z.number().int().min(0),
   /** Set only for source 'live_feed'. */
   feed: FeedRefSchema.nullable().optional(),
+  /**
+   * True while every supporting report came from the demo audience (report origin 'audience'), so the
+   * console can list them apart and clear them in one action. Absent otherwise.
+   */
+  audienceOnly: z.boolean().optional(),
 });
 export type Incident = z.infer<typeof IncidentSchema>;
 

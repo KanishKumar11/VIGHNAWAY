@@ -22,6 +22,20 @@
       "when": 1792657553887,
       "tag": "0002_incident_feed",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792740000000,
+      "tag": "0003_audience_origin",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792743600000,
+      "tag": "0004_auth",
+      "breakpoints": true
     }
   ]
 }

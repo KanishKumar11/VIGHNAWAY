@@ -24,6 +24,9 @@ import { etaDeltaBars } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import { requestNotificationPermission } from '@/lib/notifications';
 import { buildShareText, shareText } from '@/lib/share';
+import { phoneReceipt } from '@/lib/receipt';
+import { AskCard } from '@/features/ask/AskCard';
+import { CONSOLE_URL } from '@/config/env';
 import { useActivity } from '@/stores/activity';
 import { connectionMode, useConnection } from '@/stores/connection';
 import { useIncidentList, useIncidents } from '@/stores/incidents';
@@ -45,8 +48,10 @@ import {
   EvaluatingCard,
   IncidentRow,
   maxDisplayedRoutes,
+  MiniChange,
   NoViableCard,
   PeekCard,
+  PeekMore,
   RouteDetail,
   RouteRow,
   SectionLabel,
@@ -55,17 +60,22 @@ import { TopBar } from './TopBar';
 
 const HANDLE_HEIGHT = spacing.lg;
 
-/** Sheet body: peek (banner + recommendation), half (comparison), full (why, evidence, activity). */
+/**
+ * Sheet body. Small (default): ETA, route name, Start and a one-line change notice, so most of the
+ * map is visible. Half: status, next step, reason, banner and the comparison. Full: why, evidence, activity.
+ */
 function SheetBody({
   onPeekLayout,
   onCompareLayout,
   onDetails,
+  onHalf,
   onIncidentPress,
   onDrive,
 }: {
   onPeekLayout: (h: number) => void;
   onCompareLayout: (h: number) => void;
   onDetails: () => void;
+  onHalf: () => void;
   onIncidentPress: (i: Incident) => void;
   onDrive: () => void;
 }) {
@@ -79,6 +89,7 @@ function SheetBody({
   const banner = useTrip((s) => s.banner);
   const evaluating = useTrip((s) => s.evaluating);
   const destinationId = useTrip((s) => s.destinationId);
+  const originId = useTrip((s) => s.originId);
   const minuteS = useSim((s) => Math.floor(s.simTimeS / 60) * 60);
   const simPlaying = useSim((s) => s.state === 'playing' || s.clockSource === 'local');
   const live = useConnection((s) => connectionMode(s.net, s.socket) === 'live');
@@ -137,11 +148,25 @@ function SheetBody({
       clockStartsAt: scenario.clockStartsAt,
       etaS,
       live: liveMode,
+      // A receipt re-plans from the trip origin, so it is only attached while planning, not while following a route.
+      receipt:
+        mode === 'en_route'
+          ? null
+          : phoneReceipt({
+              scenario,
+              graph,
+              incidents: Object.values(byId),
+              seq: useIncidents.getState().lastSeq,
+              nowS: plan.evaluatedAtS,
+              originId,
+              destinationId,
+              consoleUrl: CONSOLE_URL,
+            }),
     });
     void shareText(message).then((ok) => {
       if (!ok) useToast.getState().show(t('shareFailed'), 'warn');
     });
-  }, [plan, rec, dest, graph, byId, scenario, etaS, liveMode]);
+  }, [plan, rec, dest, graph, byId, scenario, etaS, liveMode, mode, originId, destinationId]);
 
   // Live mode has no simulation clock: the trip follows the phone, or stays a planned route.
   const hint = liveMode
@@ -162,15 +187,7 @@ function SheetBody({
   return (
     <>
       <View onLayout={(e) => onPeekLayout(e.nativeEvent.layout.height)} style={styles.peekWrap}>
-        {banner && !noViableBanner ? (
-          <ChangeBanner
-            banner={banner}
-            incident={banner.incidentId ? byId[banner.incidentId] : null}
-            nowS={minuteS}
-            onDetails={onDetails}
-            onDismiss={() => useTrip.getState().dismissBanner()}
-          />
-        ) : null}
+        {banner && !noViableBanner ? <MiniChange banner={banner} onPress={onHalf} onDismiss={() => useTrip.getState().dismissBanner()} /> : null}
         {showEvaluating ? (
           <EvaluatingCard routes={plan?.routes.length || maxDisplayedRoutes} incidents={incidents.length} />
         ) : mode === 'arrived' ? (
@@ -178,24 +195,34 @@ function SheetBody({
         ) : plan?.noViableRoute ? (
           <NoViableCard plan={plan} onGoTo={changeDestination} cause={noViableBanner ? banner?.message : undefined} onDetails={onDetails} />
         ) : rec ? (
-          <PeekCard
-            route={rec}
-            etaS={etaS}
-            enRoute={enRoute}
-            arriveClock={arriveClock}
-            nextStep={plan ? whatToDoNow(plan, dest?.name) : undefined}
-            // The banner already explains the change: the reason line steps aside until it is dismissed.
-            compact={!!banner}
-            onStart={() => void beginTrip()}
-            onEnd={endTrip}
-            onShare={onShare}
-            onDrive={onDrive}
-            hint={hint}
-          />
+          <PeekCard route={rec} etaS={etaS} enRoute={enRoute} onStart={() => void beginTrip()} onEnd={endTrip} />
         ) : enRoute ? (
           <AppText variant="eta">{t('etaLeft', { eta: fmtDuration(etaS) })}</AppText>
         ) : null}
       </View>
+      {rec && !showEvaluating && mode !== 'arrived' && !plan?.noViableRoute ? (
+        <View style={styles.more}>
+          {banner && !noViableBanner ? (
+            <ChangeBanner
+              banner={banner}
+              incident={banner.incidentId ? byId[banner.incidentId] : null}
+              nowS={minuteS}
+              onDetails={onDetails}
+              onDismiss={() => useTrip.getState().dismissBanner()}
+            />
+          ) : null}
+          <PeekMore
+            route={rec}
+            arriveClock={arriveClock}
+            nextStep={plan ? whatToDoNow(plan, dest?.name) : undefined}
+            // The banner already explains the change: the reason line steps aside until it is dismissed.
+            compact={!!banner}
+            onShare={onShare}
+            onDrive={onDrive}
+            hint={hint}
+          />
+        </View>
+      ) : null}
       {plan && plan.routes.length > 0 && !showEvaluating ? (
         <View style={styles.half} onLayout={(e) => onCompareLayout(e.nativeEvent.layout.height)}>
           {rec && mode !== 'arrived' && !plan.noViableRoute ? (
@@ -212,6 +239,7 @@ function SheetBody({
         </View>
       ) : null}
       {rec && !showEvaluating ? <WhyCard route={rec} /> : null}
+      {plan && rec && !showEvaluating && mode !== 'arrived' ? <AskCard plan={plan} graph={graph} /> : null}
       <View style={styles.section}>
         <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
         {routeIncidents.length ? (
@@ -254,14 +282,13 @@ export function NavigateScreen() {
   const [peekContent, setPeekContent] = useState(0);
   const [compareH, setCompareH] = useState(0);
   const [headerBottom, setHeaderBottom] = useState(insets.top + layout.minTouch * 2 + spacing.lg);
-  const [sheetTop, setSheetTop] = useState(winH - layout.sheetSnapPeek - insets.bottom);
+  const [sheetTop, setSheetTop] = useState(winH - layout.sheetSnapMini - insets.bottom);
   const [sheetIndex, setSheetIndex] = useState(0);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [destOpen, setDestOpen] = useState(false);
   const [overlayH, setOverlayH] = useState(layout.minTouch * 2);
   const scenario = useScenario((s) => s.scenario);
   const graphFile = useScenario((s) => s.graphFile);
-  const destinationId = useTrip((s) => s.destinationId);
   const noViable = useTrip((s) => !!s.plan?.noViableRoute);
   const plan = useTrip((s) => s.plan);
   const simTimeS = useSim((s) => Math.floor(s.simTimeS / 60) * 60);
@@ -270,7 +297,8 @@ export function NavigateScreen() {
   const mapReady = useUi((s) => s.mapStatus === 'ready');
   const googleTraffic = useSettings((s) => s.googleTraffic);
 
-  const peek = Math.max(layout.sheetSnapPeek, peekContent + HANDLE_HEIGHT + spacing.md) + insets.bottom;
+  // The lowest stop is only as tall as the small decision, so the map stays open by default.
+  const peek = Math.max(layout.sheetSnapMini, peekContent + HANDLE_HEIGHT + spacing.sm) + insets.bottom;
   // Half shows the comparison rows in full; it never drops below 50% or crowds the header.
   const container = winH - insets.top;
   // ...but always leaves a band of map under the header.
@@ -468,6 +496,7 @@ export function NavigateScreen() {
             onPeekLayout={setPeekContent}
             onCompareLayout={setCompareH}
             onDetails={() => sheetRef.current?.snapToIndex(2)}
+            onHalf={() => sheetRef.current?.snapToIndex(1)}
             onIncidentPress={openIncident}
             onDrive={() => openRoute('/drive')}
           />
@@ -477,12 +506,7 @@ export function NavigateScreen() {
       <EvidenceSheet ref={evidenceRef} incident={evidence} plan={plan} nowS={simTimeS} clockStartsAt={scenario.clockStartsAt} onDismiss={closeEvidence} />
       <DestinationSheet
         ref={destRef}
-        places={scenario.places.filter((p) => p.kind === 'hospital' || p.kind === 'shelter')}
-        selectedId={destinationId}
-        onSelect={(id) => {
-          closeDest();
-          changeDestination(id);
-        }}
+        onChosen={closeDest}
         onDismiss={() => setDestOpen(false)}
       />
     </View>
@@ -528,8 +552,9 @@ const useStyles = createStyles((tc) => ({
   handle: { backgroundColor: tc.panelLine, width: spacing.xl + spacing.xxs, height: spacing.xxs + 1 },
   sheetContent: { paddingHorizontal: spacing.md, paddingTop: spacing.xxs, gap: spacing.lg },
   peekWrap: { gap: spacing.xs },
+  more: { gap: spacing.sm, paddingTop: spacing.sm },
   section: { gap: spacing.sm },
   half: { gap: spacing.lg },
-  rows: { gap: spacing.xxs },
+  rows: { gap: spacing.sm },
   attributionBlock: { gap: spacing.xxs, paddingTop: spacing.sm, borderTopWidth: hairline, borderTopColor: tc.panelHairline },
 }));

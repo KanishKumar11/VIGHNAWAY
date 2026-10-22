@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { formatDuration } from '@vighnaway/contracts';
 import { planTrip } from '@vighnaway/engine';
 import { andheriGraph, andheriScenario } from '@vighnaway/scenario-data';
-import { ChangeBanner, NoViableCard, PeekCard, RouteDetail } from '@/features/navigate/SheetParts';
+import { ChangeBanner, MiniChange, NoViableCard, PeekCard, PeekMore, RouteDetail } from '@/features/navigate/SheetParts';
 import { getGraph } from '@/lib/engine';
 import { recommendedRoute } from '@/stores/trip';
 
@@ -25,38 +25,48 @@ function initialPlan() {
 const noop = () => undefined;
 
 describe('sheet peek', () => {
-  it('shows the recommendation, ETA, reason and confidence word (never a percentage)', async () => {
-    const plan = initialPlan();
-    const rec = recommendedRoute(plan)!;
-    await render(<PeekCard route={rec} etaS={rec.etaS} enRoute={false} onStart={noop} onEnd={noop} onShare={noop} hint={null} />);
-    // Eyebrow and route name are separate lines in v2 (DESIGN.md 11.5).
-    expect(screen.getByText('Recommended')).toBeTruthy();
+  it('the small card is only the ETA, the route name and Start', async () => {
+    const rec = recommendedRoute(initialPlan())!;
+    await render(<PeekCard route={rec} etaS={rec.etaS} enRoute={false} onStart={noop} onEnd={noop} />);
     expect(screen.getByText(rec.name)).toBeTruthy();
     expect(screen.getByTestId('peek-eta')).toHaveTextContent(formatDuration(rec.etaS));
+    expect(screen.getByText('Start trip')).toBeTruthy();
+    // Reason, next step, confidence, share and drive wait in the opened sheet.
+    expect(screen.queryByTestId('peek-reason')).toBeNull();
+    expect(screen.queryByTestId('what-to-do-now')).toBeNull();
+    expect(screen.queryByLabelText('Share route')).toBeNull();
+  });
+
+  it('shows the recommendation, reason and confidence word in the opened sheet (never a percentage)', async () => {
+    const plan = initialPlan();
+    const rec = recommendedRoute(plan)!;
+    await render(<PeekMore route={rec} onShare={noop} hint={null} />);
+    expect(screen.getByText('Recommended')).toBeTruthy();
     expect(screen.getByTestId('peek-reason')).toHaveTextContent(rec.explanation.reason);
     const word = { high: 'High', medium: 'Medium', low: 'Low' }[rec.explanation.confidence];
     expect(screen.getByText(word)).toBeTruthy();
     expect(screen.queryByText(/%/)).toBeNull();
-    expect(screen.getByText('Start trip')).toBeTruthy();
-    // Share is a secondary icon action that keeps its spoken label.
     expect(screen.getByLabelText('Share route')).toBeTruthy();
   });
 
   it('shows the remaining ETA and End trip en route', async () => {
     const rec = recommendedRoute(initialPlan())!;
-    await render(<PeekCard route={rec} etaS={600} enRoute onStart={noop} onEnd={noop} onShare={noop} hint="Waiting" />);
+    await render(<PeekCard route={rec} etaS={600} enRoute onStart={noop} onEnd={noop} />);
     expect(screen.getByTestId('peek-eta')).toHaveTextContent('10 min left');
     expect(screen.getByText('End trip')).toBeTruthy();
+  });
+
+  it('shows the hint in the opened sheet', async () => {
+    const rec = recommendedRoute(initialPlan())!;
+    await render(<PeekMore route={rec} onShare={noop} hint="Waiting" />);
     expect(screen.getByText('Waiting')).toBeTruthy();
   });
 });
 
-describe('sheet peek: what to do now', () => {
-  it('shows the next action under the ETA, labelled for screen readers', async () => {
+describe('opened sheet: what to do now', () => {
+  it('shows the next action, labelled for screen readers', async () => {
     const rec = recommendedRoute(initialPlan())!;
-    await render(
-      <PeekCard route={rec} etaS={rec.etaS} enRoute={false} nextStep="Take Andheri Subway, 14 min." onStart={noop} onEnd={noop} onShare={noop} onDrive={noop} hint={null} />,
-    );
+    await render(<PeekMore route={rec} nextStep="Take Andheri Subway, 14 min." onShare={noop} onDrive={noop} hint={null} />);
     expect(screen.getByText('What to do now')).toBeTruthy();
     expect(screen.getByLabelText('What to do now: Take Andheri Subway, 14 min.')).toBeTruthy();
     expect(screen.getByLabelText('Drive mode')).toBeTruthy();
@@ -123,5 +133,28 @@ describe('no viable route', () => {
     expect(screen.getByText('Go to HBT Trauma Care Hospital')).toBeTruthy();
     expect(screen.getByText('In an emergency, call 112.')).toBeTruthy();
     expect(screen.getByText('Call 112')).toBeTruthy();
+  });
+});
+
+describe('change notice in the small sheet', () => {
+  it('is one line with the title and Details, opens the sheet when pressed and can be dismissed', async () => {
+    const onPress = jest.fn();
+    const onDismiss = jest.fn();
+    await render(
+      <MiniChange
+        banner={{ id: 1, tone: 'change', title: 'Route changed', message: 'Route changed. Flooding at Andheri Subway.', tradeOff: '+5 min', atS: 180 }}
+        onPress={onPress}
+        onDismiss={onDismiss}
+      />,
+    );
+    expect(screen.getByText('Route changed')).toBeTruthy();
+    expect(screen.getByText('Details')).toBeTruthy();
+    // The cause and trade-off wait in the opened sheet; the notice itself is spoken in full.
+    expect(screen.queryByText('+5 min')).toBeNull();
+    expect(screen.getByLabelText('Route changed. Route changed. Flooding at Andheri Subway.')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Route changed. Route changed. Flooding at Andheri Subway.'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });

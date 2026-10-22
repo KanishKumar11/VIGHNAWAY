@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Incident, IncidentsResponse, IncidentUpserted, SimReset, SimState, TripPosition } from '@vighnaway/contracts';
+import type { Incident, IncidentsResponse, IncidentUpserted, ObservationPayload, SimReset, SimState, TripPosition } from '@vighnaway/contracts';
 import {
   applyJoinAck,
   applyReset,
@@ -34,6 +34,8 @@ export interface LiveState {
   resetCount: number;
   serverGraphVersion: string | null;
   ticker: TickerItem[];
+  /** Latest report per flood-prone edge from the server, Road clear included (from the last snapshot). */
+  observations: ObservationPayload[];
   /** Optimistic operator actions, shown until confirmed or rolled back. Never used for routing. */
   optimistic: Record<string, Incident>;
   /** Server responses to operator actions, shown until the stream delivers that seq. */
@@ -93,7 +95,7 @@ export const createLiveStore = (scenarioId: string = SCENARIO_ID) =>
     tripPosition: null,
     resetCount: 0,
     serverGraphVersion: null,
-    ticker: [],
+    ticker: [], observations: [],
     optimistic: {},
     confirmed: {},
     pulses: {},
@@ -108,6 +110,7 @@ export const createLiveStore = (scenarioId: string = SCENARIO_ID) =>
         simTimeS: Math.max(runChanged ? 0 : s.simTimeS, resp.simTimeS),
         confirmed: pruneConfirmed(s.confirmed, sync.incidents),
         pulses: bump(s.pulses, newlyVerified(s.sync.incidents, sync.incidents)),
+        ...(resp.observations ? { observations: resp.observations } : {}),
         ...(runChanged ? { resetCount: s.resetCount + 1, tripPosition: null, ticker: [], simTimeS: resp.simTimeS } : {}),
       });
     },
@@ -136,7 +139,7 @@ export const createLiveStore = (scenarioId: string = SCENARIO_ID) =>
         simTimeS: 0,
         tripPosition: null,
         resetCount: s.resetCount + 1,
-        ticker: [],
+        ticker: [], observations: [],
         optimistic: {},
         confirmed: {},
       });
@@ -146,7 +149,7 @@ export const createLiveStore = (scenarioId: string = SCENARIO_ID) =>
       const s = get();
       const { state, reset } = applyJoinAck(s.sync, ack);
       if (reset) {
-        set({ sync: state, resetCount: s.resetCount + 1, tripPosition: null, ticker: [], optimistic: {}, confirmed: {}, simTimeS: 0 });
+        set({ sync: state, resetCount: s.resetCount + 1, tripPosition: null, ticker: [], observations: [], optimistic: {}, confirmed: {}, simTimeS: 0 });
       }
       return reset;
     },
@@ -205,7 +208,7 @@ export const createLiveStore = (scenarioId: string = SCENARIO_ID) =>
         resetCount: s.resetCount + 1,
         apiReachable: null,
         serverGraphVersion: null,
-        ticker: [],
+        ticker: [], observations: [],
         optimistic: {},
         confirmed: {},
         pulses: {},

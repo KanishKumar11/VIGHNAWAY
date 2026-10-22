@@ -61,7 +61,7 @@ describe('TomTom mapping (pure)', () => {
     expect(jamEdges.length).toBeGreaterThan(0);
     for (const id of jamEdges) {
       const e = andheriGraph.edges.find((x) => x.id === id)!;
-      expect(e.name).toBe('Old Nagardas Road');
+      expect(e.name).toBe('G K Gokhale Flyover');
       expect(jamEdges).not.toContain(e.reverseId); // one direction only
     }
     const closedEdges = matchEdges(mapTomTomIncident(parsed[1]!.data!)!, edges, 25);
@@ -123,7 +123,7 @@ describe('TomTom live traffic feed (API)', () => {
       expect(i.feed?.provider).toBe('tomtom');
     }
     const jam = incs.find((i) => i.feed?.externalId === 'TT-JAM-1')!;
-    expect(jam).toMatchObject({ type: 'congestion', congestion: 'standstill', status: 'corroborated', roadName: 'Old Nagardas Road' });
+    expect(jam).toMatchObject({ type: 'congestion', congestion: 'standstill', status: 'corroborated', roadName: 'G K Gokhale Flyover' });
     expect(incs.find((i) => i.feed?.externalId === 'TT-CLOSED-2')).toMatchObject({ type: 'closure', status: 'corroborated' });
     expect(incs.find((i) => i.feed?.externalId === 'TT-ACC-3')).toMatchObject({ type: 'accident', status: 'unverified' });
 
@@ -188,7 +188,9 @@ describe('TomTom live traffic feed (API)', () => {
       hasAlertInformation: andheriLiveScenario.hasAlertInformation,
     });
     const rec = plan.routes.find((r) => r.routeId === plan.recommendedRouteId)!;
-    expect(rec.name).not.toBe('Via Andheri Subway');
+    // The recommended route never uses an edge the closure covers.
+    const closed = incs.find((i) => i.type === 'closure' && i.source === 'live_feed')!;
+    expect(rec.edgeIds.some((id) => closed.edgeIds.includes(id))).toBe(false);
     expect(rec.explanation.reason).toMatch(/Reported by TomTom live traffic/);
     expect(alertContext([], false, nowS).rainAlertActive).toBe(false);
   });

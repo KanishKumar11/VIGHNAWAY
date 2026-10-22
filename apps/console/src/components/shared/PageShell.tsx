@@ -13,6 +13,7 @@ const NAV = () =>
   [
     ['/console', t.nav.console],
     ['/rules', t.nav.rules],
+    ['/verify', t.nav.verify],
     ['/debug', t.nav.debug],
     ['/report', t.nav.report],
   ] as const;
@@ -21,11 +22,11 @@ const NAV = () =>
 export function PageShell({ title, eyebrow, intro, active, children }: { title: string; eyebrow?: string; intro?: ReactNode; active?: string; children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-shell text-base text-ink-on-shell">
-      <div className="sticky top-0 z-30 border-b border-shell-line bg-shell-raised">
-        <header className="mx-auto flex h-16 max-w-[calc(var(--spacing)*300)] items-center gap-4 px-5">
+      <div className="vw-header sticky top-0 z-30">
+        <header className="mx-auto flex h-18 max-w-[calc(var(--spacing)*300)] items-center gap-4 px-5">
           <Link href="/console" className="flex items-center gap-3">
-            <BrandMark className="size-8" />
-            <span className="text-body font-semibold tracking-wordmark">{t.app.name}</span>
+            <BrandMark className="size-9 drop-shadow-sm" />
+            <span className="vw-brand-text text-body font-extrabold tracking-wordmark">{t.app.name}</span>
           </Link>
           <SimulatedBadge onShell />
           <nav className="ml-auto flex gap-1 text-body">
@@ -36,7 +37,7 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
                 aria-current={active === href ? 'page' : undefined}
                 className={cn(
                   'rounded-button px-3 py-1.5 font-medium transition-colors',
-                  active === href ? 'bg-panel-sunken text-ink-on-shell' : 'text-ink-on-shell-muted hover:text-ink-on-shell',
+                  active === href ? 'bg-panel-sunken text-ink-on-shell' : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
                 )}
               >
                 {label}

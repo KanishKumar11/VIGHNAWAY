@@ -1,9 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
 import {
+  type ClearAudienceResponse,
   type HistoryResponse,
   type Incident,
   type IncidentsResponse,
+  type ObservationPayload,
   isOpenStatus,
   type OperatorAction,
   type OperatorActionResponse,
@@ -56,6 +58,7 @@ export function toIncident(row: IncidentRow): Incident {
     note: row.note,
     seq: row.seq,
     ...(row.feed ? { feed: row.feed as Incident['feed'] } : {}),
+    ...(row.audienceOnly ? { audienceOnly: true } : {}),
   };
 }
 
@@ -75,7 +78,7 @@ export class IncidentsService {
    * reset, or when it is ahead of the server (the client's state belongs to another database).
    */
   async snapshot(scenarioId: string, sinceSeq: number | undefined): Promise<IncidentsResponse> {
-    const { row, list, full } = await this.db.transaction(
+    const { row, list, full, observations } = await this.db.transaction(
       async (tx) => {
         const row = await this.scenarios.requireRow(scenarioId, tx);
         const full = sinceSeq === undefined || sinceSeq < row.resetSeq || sinceSeq > row.seq;
@@ -83,7 +86,8 @@ export class IncidentsService {
           ? eq(incidents.scenarioId, scenarioId)
           : and(eq(incidents.scenarioId, scenarioId), gt(incidents.seq, sinceSeq!));
         const list = await tx.select().from(incidents).where(where).orderBy(asc(incidents.id));
-        return { row, list, full };
+        const observations = await this.observations(tx, scenarioId, row.graphVersion);
+        return { row, list, full, observations };
       },
       { isolationLevel: 'repeatable read', accessMode: 'read only' },
     );
@@ -94,7 +98,67 @@ export class IncidentsService {
       runId: row.runId,
       simTimeS: await this.clock.nowS(scenarioId),
       incidents: list.map(toIncident),
+      observations,
     };
+  }
+
+  /**
+   * Latest observation per flood-prone edge from any report, Road clear included (it creates no
+   * incident). Both directions of a two-way road are listed. Lets clients tell "no reports" from
+   * "reports say clear"; it never removes a hazard penalty or a block.
+   */
+  private async observations(tx: Tx, scenarioId: string, graphVersion: string): Promise<ObservationPayload[]> {
+    const rows = await tx.execute<{ edge_id: string; reverse_id: string | null; at_s: number; type: string }>(sql`
+      SELECT DISTINCT ON (r.snapped_edge_id) r.snapped_edge_id AS edge_id, e.reverse_id AS reverse_id,
+             r.received_at_s AS at_s, r.type AS type
+      FROM incident_reports r
+      JOIN road_edges e ON e.id = r.snapped_edge_id AND e.graph_version = ${graphVersion}
+      WHERE r.scenario_id = ${scenarioId} AND e.flood_prone
+      ORDER BY r.snapped_edge_id, r.received_at_s DESC, r.id DESC`);
+    const out: ObservationPayload[] = [];
+    for (const r of rows) {
+      const base = { lastObservedAtS: Number(r.at_s), kind: r.type === 'road_clear' ? ('clear' as const) : ('hazard' as const) };
+      out.push({ edgeId: r.edge_id, ...base });
+      if (r.reverse_id) out.push({ edgeId: r.reverse_id, ...base });
+    }
+    return out.sort((a, b) => (a.edgeId < b.edgeId ? -1 : a.edgeId > b.edgeId ? 1 : 0));
+  }
+
+  /**
+   * POST /scenarios/:id/audience/clear: dismisses every open incident that only demo-audience reports
+   * support, one logged change each, then broadcasts them. Scripted and mixed-origin incidents stay.
+   */
+  async clearAudience(scenarioId: string): Promise<ClearAudienceResponse> {
+    const nowS = await this.clock.nowS(scenarioId);
+    const note = 'Demo audience reports cleared';
+    const changes = await this.db.transaction(async (tx) => {
+      await this.scenarios.lock(tx, scenarioId);
+      const rows = await tx
+        .select()
+        .from(incidents)
+        .where(and(eq(incidents.scenarioId, scenarioId), eq(incidents.audienceOnly, true), inArray(incidents.status, ['unverified', 'corroborated', 'verified'])))
+        .orderBy(asc(incidents.id));
+      const out: IncidentChange[] = [];
+      for (const row of rows) {
+        const { seq: _seq, ...draft } = row;
+        out.push(
+          await this.recordChange(
+            tx,
+            { ...draft, status: 'dismissed', closedAtS: nowS, updatedAtS: nowS },
+            {
+              kind: 'dismissed',
+              actor: 'operator',
+              atS: nowS,
+              payload: { action: 'dismiss', note, eventId: null, bulk: 'audience' },
+              summaryOpts: { note },
+            },
+          ),
+        );
+      }
+      return out;
+    });
+    this.publish(changes);
+    return { cleared: changes.length, incidentIds: changes.map((c) => c.incident.id) };
   }
 
   async findRow(q: Db | Tx, scenarioId: string, id: string): Promise<IncidentRow | null> {

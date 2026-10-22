@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "preflight": "node scripts/preflight.mjs",
     "docs:scoring": "pnpm --filter @vighnaway/engine run docs:scoring",
-    "graph:fixture": "pnpm --filter @vighnaway/scenario-data run build:fixture"
+    "graph:fixture": "pnpm --filter @vighnaway/scenario-data run build:fixture",
+    "scoreboard": "pnpm --filter @vighnaway/scenario-data scoreboard"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

@@ -1,6 +1,6 @@
 'use client';
 
-import { themes } from '@vighnaway/tokens';
+import { consoleThemes as themes } from '@vighnaway/tokens';
 import { ChevronUp, QrCode } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -28,7 +28,7 @@ export function QrCard({ defaultOpen = false }: { defaultOpen?: boolean }) {
         aria-label={open ? t.qr.collapse : t.qr.expand}
         className="flex w-full items-center gap-3 px-5 py-3 text-left"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-button bg-panel-sunken text-ink-on-shell">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-button bg-teal-soft text-accent-ink">
           <QrCode aria-hidden className="size-5" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
@@ -49,7 +49,7 @@ export function QrCard({ defaultOpen = false }: { defaultOpen?: boolean }) {
             className="flex items-start gap-4 px-5 pb-4"
           >
             {/* QR codes scan best dark on light, in both themes. */}
-            <div className="shrink-0 rounded-card border border-control-border bg-white p-2.5">
+            <div className="shrink-0 rounded-card border border-shell-line bg-white p-2.5 shadow-sm">
               {url ? (
                 <QRCodeSVG value={url} size={132} fgColor={themes.light.ink} bgColor={themes.light.white} level="M" marginSize={0} title={t.qr.title} />
               ) : (
