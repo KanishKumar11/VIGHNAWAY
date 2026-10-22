@@ -84,6 +84,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(drawer)" />
                 <Stack.Screen name="first-run" options={{ animation: 'fade' }} />
                 <Stack.Screen name="report" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="relay" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="drive" options={{ animation: 'fade' }} />
                 <Stack.Screen name="map-list" options={{ animation: 'slide_from_right' }} />
               </Stack>

@@ -126,12 +126,25 @@ export const api = {
    */
   report: async (baseUrl: string, id: string, input: ReportInput, token?: string | null): Promise<ReportResponse> => {
     // A report is tiny but the phone may be on a very slow link: wait longer than a read before queueing it.
-    const send = (tk?: string | null) => request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body: input, token: tk, timeoutMs: REPORT_TIMEOUT_MS });
-    if (!token) return send();
+    const sendBody = (body: ReportInput, tk?: string | null) => request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body, token: tk, timeoutMs: REPORT_TIMEOUT_MS });
+    const sendAuthed = async (body: ReportInput) => {
+      if (!token) return sendBody(body);
+      try {
+        return await sendBody(body, token);
+      } catch (e) {
+        if (e instanceof ApiRequestError && e.status === 401) return sendBody(body);
+        throw e;
+      }
+    };
     try {
-      return await send(token);
+      return await sendAuthed(input);
     } catch (e) {
-      if (e instanceof ApiRequestError && e.status === 401) return send();
+      // A server from before offline relay (strict body) or a claimed observed time it will not take: the id and
+      // the claim are labels only, so send the report without them rather than lose it.
+      if (e instanceof ApiRequestError && e.status === 400 && (input.clientReportId !== undefined || input.observedAtS !== undefined)) {
+        const { clientReportId: _id, observedAtS: _at, ...bare } = input;
+        return sendAuthed(bare);
+      }
       throw e;
     }
   },

@@ -17,12 +17,20 @@ interface ReportsState {
   pending: PendingReport[];
   enqueue: (r: PendingReport) => void;
   remove: (localId: string) => void;
+  /** Reports queued before offline codes existed get a client id now, so they can be shown as a code too. */
+  stampMissingIds: (newId: () => string) => void;
 }
 
 export const usePendingReports = create<ReportsState>()((set, get) => ({
   pending: storage.getJSON<PendingReport[]>(KEYS.pendingReports) ?? [],
   enqueue: (r) => {
     const pending = [...get().pending, r];
+    set({ pending });
+    storage.setJSON(KEYS.pendingReports, pending);
+  },
+  stampMissingIds: (newId) => {
+    if (get().pending.every((p) => p.input.clientReportId)) return;
+    const pending = get().pending.map((p) => (p.input.clientReportId ? p : { ...p, input: { ...p.input, clientReportId: newId() } }));
     set({ pending });
     storage.setJSON(KEYS.pendingReports, pending);
   },

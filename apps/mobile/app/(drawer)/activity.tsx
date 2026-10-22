@@ -1,8 +1,10 @@
 import { formatSimClock } from '@vighnaway/contracts';
+import { router } from 'expo-router';
 import { FlatList, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { Button } from '@/components/Button';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Activity as ActivityIcon, CircleCheck, Clock, Flag, Info, Route, TriangleAlert, type LucideIcon } from '@/components/icons';
 import { Illustration } from '@/components/Illustration';
@@ -11,6 +13,7 @@ import { Card, GUTTER, ScreenHeader } from '@/components/ui';
 import { t } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
 import { useActivity, type ActivityKind } from '@/stores/activity';
+import { usePendingReports } from '@/stores/reports';
 import { useScenario } from '@/stores/scenario';
 import { createStyles, hairline, radius, spacing, useColors } from '@/theme';
 
@@ -46,6 +49,7 @@ export default function ActivityScreen() {
   const insets = useSafeAreaInsets();
   const reduce = useReduceMotion();
   const entries = useActivity((s) => s.entries);
+  const waiting = usePendingReports((s) => s.pending.length);
   const clockStartsAt = useScenario((s) => s.scenario.clockStartsAt);
   return (
     <View style={styles.root}>
@@ -56,6 +60,14 @@ export default function ActivityScreen() {
         ListHeaderComponent={
           <View style={styles.headerBleed}>
             <ScreenHeader title={t('drawerActivity')} subtitle={entries.length ? t('activitySubtitle') : null} />
+            {waiting > 0 ? (
+              <View style={styles.relay}>
+                <AppText tone="muted" style={styles.flex}>
+                  {t('relayWaiting', { count: waiting })}
+                </AppText>
+                <Button label={t('relayOpen')} kind="secondary" onPress={() => router.push('/relay')} testID="activity-relay" />
+              </View>
+            ) : null}
           </View>
         }
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}
@@ -104,6 +116,7 @@ const useStyles = createStyles((tc) => ({
   root: { flex: 1, backgroundColor: tc.shell },
   list: {},
   headerBleed: { marginHorizontal: -GUTTER },
+  relay: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: GUTTER, paddingBottom: spacing.sm },
   // The timeline reads as one card: the first and last rows round its corners.
   row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'stretch', paddingHorizontal: GUTTER, backgroundColor: tc.panel, borderLeftWidth: hairline, borderRightWidth: hairline, borderColor: tc.panelLine },
   rowFirst: { paddingTop: GUTTER, borderTopWidth: hairline, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet },

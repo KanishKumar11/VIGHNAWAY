@@ -135,6 +135,12 @@ export const incidentReports = pgTable(
     origin: text('origin').notNull().default('app'),
     /** Signed-in reporter (users.id), or null for an anonymous report. Thanks and history only; never evidence. */
     userId: text('user_id'),
+    /** Device-made UUID (P2-2): a repeat gets the original receipt. */
+    clientReportId: text('client_report_id'),
+    /** The device's claim of when it observed this (display only; receivedAtS is authoritative). */
+    observedAtS: integer('observed_at_s'),
+    /** The outcome returned in the receipt, kept so a repeat can return it again. */
+    outcome: text('outcome'),
     receivedAtS: integer('received_at_s').notNull(),
     snappedEdgeId: text('snapped_edge_id').notNull(),
     distanceToRoadM: doublePrecision('distance_to_road_m').notNull(),
@@ -145,6 +151,41 @@ export const incidentReports = pgTable(
     index('incident_reports_scenario_device_idx').on(t.scenarioId, t.deviceHash),
     index('incident_reports_incident_idx').on(t.incidentId),
     index('incident_reports_user_idx').on(t.userId),
+    uniqueIndex('incident_reports_client_id_uq').on(t.scenarioId, t.clientReportId),
+  ],
+);
+
+/**
+ * Live-mode reports that landed outside every mapped road (P2: report from anywhere). Kept apart from
+ * incident_reports on purpose: that table's rows all have a snapped edge and feed incidents and routing;
+ * these never do. They keep the point and time so they can be triaged, or re-snapped if a graph is added.
+ */
+export const offmapReports = pgTable(
+  'offmap_reports',
+  {
+    id: text('id').primaryKey(),
+    scenarioId: text('scenario_id').notNull(),
+    type: text('type').notNull(),
+    depth: text('depth'),
+    congestion: text('congestion'),
+    severity: text('severity'),
+    impassable: boolean('impassable').notNull().default(false),
+    observedPersonally: boolean('observed_personally').notNull(),
+    description: text('description'),
+    deviceHash: text('device_hash').notNull(),
+    ipHash: text('ip_hash'),
+    source: text('source').notNull(),
+    origin: text('origin').notNull().default('app'),
+    userId: text('user_id'),
+    clientReportId: text('client_report_id'),
+    observedAtS: integer('observed_at_s'),
+    receivedAtS: integer('received_at_s').notNull(),
+    geom: pointGeom('geom').notNull(),
+  },
+  (t) => [
+    index('offmap_reports_geom_gist').using('gist', t.geom),
+    index('offmap_reports_scenario_time_idx').on(t.scenarioId, t.receivedAtS),
+    uniqueIndex('offmap_reports_client_id_uq').on(t.scenarioId, t.clientReportId),
   ],
 );
 

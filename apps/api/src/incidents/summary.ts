@@ -62,6 +62,9 @@ export function summarize(kind: ChangeKind, i: Incident, opts: { note?: string |
     case 'dismissed':
       line = `${where} marked ${status} by operator${opts.simulatedOperator ? ' (simulated)' : ''}`;
       break;
+    case 'off_map':
+      line = `Report saved off-map near ${i.roadName ?? 'an unmapped road'}: no mapped road, no route change`;
+      break;
     case 'clear_noted':
       line = `Road clear reported near ${i.roadName ?? 'an unnamed road'}`;
       break;

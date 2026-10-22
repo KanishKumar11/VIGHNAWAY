@@ -50,6 +50,20 @@
       "when": 1792837200000,
       "tag": "0006_hospital_states",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792840800000,
+      "tag": "0007_report_client_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792844400000,
+      "tag": "0008_offmap_reports",
+      "breakpoints": true
     }
   ]
 }

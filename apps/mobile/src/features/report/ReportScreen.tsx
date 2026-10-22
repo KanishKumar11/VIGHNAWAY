@@ -208,7 +208,7 @@ export function ReportScreen() {
     if (!draft.point && fallbackPoint) setDraft((d) => ({ ...d, point: fallbackPoint }));
   }, [draft.point, fallbackPoint]);
   // The road the report lands on (null = no mapped road nearby, so it cannot be sent).
-  // Reports exist for the Andheri map only (the API checks them against it), whichever map is showing.
+  // Snapping uses the Andheri map (the only graph the API routes on). Live mode sends a report that misses it as off-map.
   const andheri = graphForRegion('andheri');
   const snap = useMemo(() => (draft.point ? snapToRoad(getGraph(andheri, 'car'), draft.point) : null), [draft.point, andheri]);
 
@@ -269,15 +269,16 @@ export function ReportScreen() {
       if (first) announce(first);
       return;
     }
-    // The API only takes points on a mapped road: say so now rather than after a queued retry.
-    if (!snap) {
+    // The demo scenario only takes points on a mapped road: say so now rather than after a queued retry.
+    // Live mode takes a report from anywhere; off a mapped road it is saved as off-map and changes no route.
+    if (!snap && !liveMode) {
       setErrors({ form: t('reportOffRoad') });
       haptic.warning();
       announce(t('reportOffRoad'));
       return;
     }
     setStatus('sending');
-    const outcome = await submitReport({ ...result.input, point: snap.point }, photo ? { data: photo.data } : null);
+    const outcome = await submitReport({ ...result.input, point: snap?.point ?? result.input.point }, photo ? { data: photo.data } : null);
     if (outcome.kind === 'error') {
       setStatus('editing');
       setErrors({ form: outcome.message });
@@ -288,11 +289,12 @@ export function ReportScreen() {
     setStatus('sent');
     if (outcome.kind === 'sent') haptic.success();
     const photoFailed = outcome.kind === 'sent' && outcome.photo === 'failed';
-    const toastText = outcome.kind !== 'sent' ? t('toastPending') : photoFailed ? t('toastPhotoFailed') : outcome.photo === 'sent' ? t('toastSentPhoto') : t('toastSent');
+    const toastText = outcome.kind !== 'sent' ? t('toastPending') : outcome.offMap ? t('toastSentOffMap') : photoFailed ? t('toastPhotoFailed') : outcome.photo === 'sent' ? t('toastSentPhoto') : t('toastSent');
     const toast = () => useToast.getState().show(toastText, outcome.kind === 'sent' ? (photoFailed ? 'warn' : 'positive') : 'neutral');
     if (reduce) toast();
     else setTimeout(toast, motion.reportSent * 2);
-    setTimeout(() => router.dismiss(), reduce ? 600 : 1800);
+    if (outcome.kind === 'pending') setTimeout(() => router.replace('/relay'), reduce ? 600 : 1800);
+    else setTimeout(() => router.dismiss(), reduce ? 600 : 1800);
   };
 
   const noteLen = draft.note.trim().length;
@@ -409,7 +411,7 @@ export function ReportScreen() {
                   </AppText>
                   <AppText variant="mono">{draft.point.lng.toFixed(5)}</AppText>
                   <AppText variant="meta" tone={snap ? 'muted' : 'warn'} testID="location-road">
-                    {snap ? (snap.roadName ? t('reportOnRoad', { road: snap.roadName }) : t('reportOnRoadUnnamed')) : t('reportOffRoadShort')}
+                    {snap ? (snap.roadName ? t('reportOnRoad', { road: snap.roadName }) : t('reportOnRoadUnnamed')) : t(liveMode ? 'reportOffMapShort' : 'reportOffRoadShort')}
                   </AppText>
                 </View>
               </View>
