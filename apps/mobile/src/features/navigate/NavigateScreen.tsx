@@ -24,6 +24,9 @@ import { etaDeltaBars } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import { requestNotificationPermission } from '@/lib/notifications';
 import { buildShareText, shareText } from '@/lib/share';
+import { phoneReceipt } from '@/lib/receipt';
+import { AskCard } from '@/features/ask/AskCard';
+import { CONSOLE_URL } from '@/config/env';
 import { useActivity } from '@/stores/activity';
 import { connectionMode, useConnection } from '@/stores/connection';
 import { useIncidentList, useIncidents } from '@/stores/incidents';
@@ -86,6 +89,7 @@ function SheetBody({
   const banner = useTrip((s) => s.banner);
   const evaluating = useTrip((s) => s.evaluating);
   const destinationId = useTrip((s) => s.destinationId);
+  const originId = useTrip((s) => s.originId);
   const minuteS = useSim((s) => Math.floor(s.simTimeS / 60) * 60);
   const simPlaying = useSim((s) => s.state === 'playing' || s.clockSource === 'local');
   const live = useConnection((s) => connectionMode(s.net, s.socket) === 'live');
@@ -144,11 +148,25 @@ function SheetBody({
       clockStartsAt: scenario.clockStartsAt,
       etaS,
       live: liveMode,
+      // A receipt re-plans from the trip origin, so it is only attached while planning, not while following a route.
+      receipt:
+        mode === 'en_route'
+          ? null
+          : phoneReceipt({
+              scenario,
+              graph,
+              incidents: Object.values(byId),
+              seq: useIncidents.getState().lastSeq,
+              nowS: plan.evaluatedAtS,
+              originId,
+              destinationId,
+              consoleUrl: CONSOLE_URL,
+            }),
     });
     void shareText(message).then((ok) => {
       if (!ok) useToast.getState().show(t('shareFailed'), 'warn');
     });
-  }, [plan, rec, dest, graph, byId, scenario, etaS, liveMode]);
+  }, [plan, rec, dest, graph, byId, scenario, etaS, liveMode, mode, originId, destinationId]);
 
   // Live mode has no simulation clock: the trip follows the phone, or stays a planned route.
   const hint = liveMode
@@ -221,6 +239,7 @@ function SheetBody({
         </View>
       ) : null}
       {rec && !showEvaluating ? <WhyCard route={rec} /> : null}
+      {plan && rec && !showEvaluating && mode !== 'arrived' ? <AskCard plan={plan} graph={graph} /> : null}
       <View style={styles.section}>
         <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
         {routeIncidents.length ? (

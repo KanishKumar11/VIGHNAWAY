@@ -1,0 +1,3360 @@
+{
+ "graphVersion": "fixture-1f7635ec4925",
+ "source": "schematic-fixture",
+ "attribution": "Schematic road fixture drawn for testing, not OpenStreetMap data. Positions are approximate.",
+ "generatedBy": "packages/scenario-data/scripts/build-fixture.ts",
+ "bbox": {
+  "south": 19.106669,
+  "west": 72.822559,
+  "north": 19.146843999999998,
+  "east": 72.883128
+ },
+ "nodes": [
+  {
+   "id": "fx001",
+   "lat": 19.113463,
+   "lng": 72.87067
+  },
+  {
+   "id": "fx002",
+   "lat": 19.114186,
+   "lng": 72.864965
+  },
+  {
+   "id": "fx003",
+   "lat": 19.115814,
+   "lng": 72.852606
+  },
+  {
+   "id": "fx004",
+   "lat": 19.116176,
+   "lng": 72.849754
+  },
+  {
+   "id": "fx005",
+   "lat": 19.13155,
+   "lng": 72.82551
+  },
+  {
+   "id": "fx006",
+   "lat": 19.119703,
+   "lng": 72.849944
+  },
+  {
+   "id": "fx007",
+   "lat": 19.119431,
+   "lng": 72.84462
+  },
+  {
+   "id": "fx008",
+   "lat": 19.122235,
+   "lng": 72.839296
+  },
+  {
+   "id": "fx009",
+   "lat": 19.126305,
+   "lng": 72.833591
+  },
+  {
+   "id": "fx010",
+   "lat": 19.129922,
+   "lng": 72.828362
+  },
+  {
+   "id": "fx011",
+   "lat": 19.140232,
+   "lng": 72.854507
+  },
+  {
+   "id": "fx012",
+   "lat": 19.140142,
+   "lng": 72.851845
+  },
+  {
+   "id": "fx013",
+   "lat": 19.140142,
+   "lng": 72.850324
+  },
+  {
+   "id": "fx014",
+   "lat": 19.140142,
+   "lng": 72.847282
+  },
+  {
+   "id": "fx015",
+   "lat": 19.140955,
+   "lng": 72.869719
+  },
+  {
+   "id": "fx016",
+   "lat": 19.140594,
+   "lng": 72.860212
+  },
+  {
+   "id": "fx017",
+   "lat": 19.132726,
+   "lng": 72.824559
+  },
+  {
+   "id": "fx018",
+   "lat": 19.112106,
+   "lng": 72.881128
+  },
+  {
+   "id": "fx019",
+   "lat": 19.131098,
+   "lng": 72.862113
+  },
+  {
+   "id": "fx020",
+   "lat": 19.13155,
+   "lng": 72.867818
+  },
+  {
+   "id": "fx021",
+   "lat": 19.131279,
+   "lng": 72.864965
+  },
+  {
+   "id": "fx022",
+   "lat": 19.133087,
+   "lng": 72.827887
+  },
+  {
+   "id": "fx023",
+   "lat": 19.134444,
+   "lng": 72.829788
+  },
+  {
+   "id": "fx024",
+   "lat": 19.124496,
+   "lng": 72.853366
+  },
+  {
+   "id": "fx025",
+   "lat": 19.121873,
+   "lng": 72.851275
+  },
+  {
+   "id": "fx026",
+   "lat": 19.13562,
+   "lng": 72.840246
+  },
+  {
+   "id": "fx027",
+   "lat": 19.134896,
+   "lng": 72.834542
+  },
+  {
+   "id": "fx028",
+   "lat": 19.120064,
+   "lng": 72.85156
+  },
+  {
+   "id": "fx029",
+   "lat": 19.116357,
+   "lng": 72.847852
+  },
+  {
+   "id": "fx030",
+   "lat": 19.116357,
+   "lng": 72.84519
+  },
+  {
+   "id": "fx031",
+   "lat": 19.125852,
+   "lng": 72.845
+  },
+  {
+   "id": "fx032",
+   "lat": 19.131731,
+   "lng": 72.845618
+  },
+  {
+   "id": "fx033",
+   "lat": 19.116357,
+   "lng": 72.844002
+  },
+  {
+   "id": "fx034",
+   "lat": 19.119431,
+   "lng": 72.844325
+  },
+  {
+   "id": "fx035",
+   "lat": 19.140142,
+   "lng": 72.846502
+  },
+  {
+   "id": "fx036",
+   "lat": 19.121331,
+   "lng": 72.844525
+  },
+  {
+   "id": "fx037",
+   "lat": 19.144844,
+   "lng": 72.846997
+  },
+  {
+   "id": "fx038",
+   "lat": 19.111383,
+   "lng": 72.843479
+  },
+  {
+   "id": "fx039",
+   "lat": 19.127842,
+   "lng": 72.838345
+  },
+  {
+   "id": "fx040",
+   "lat": 19.115181,
+   "lng": 72.856884
+  },
+  {
+   "id": "fx041",
+   "lat": 19.140322,
+   "lng": 72.856884
+  },
+  {
+   "id": "fx042",
+   "lat": 19.130827,
+   "lng": 72.856884
+  },
+  {
+   "id": "fx043",
+   "lat": 19.144844,
+   "lng": 72.856884
+  },
+  {
+   "id": "fx044",
+   "lat": 19.126757,
+   "lng": 72.856884
+  },
+  {
+   "id": "fx045",
+   "lat": 19.108669,
+   "lng": 72.856884
+  }
+ ],
+ "edges": [
+  {
+   "id": "fx001-fx002-0",
+   "from": "fx001",
+   "to": "fx002",
+   "reverseId": "fx002-fx001-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 604.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.87067,
+     19.113463
+    ],
+    [
+     72.864965,
+     19.114186
+    ]
+   ]
+  },
+  {
+   "id": "fx001-fx018-0",
+   "from": "fx001",
+   "to": "fx018",
+   "reverseId": "fx018-fx001-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1109.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.87067,
+     19.113463
+    ],
+    [
+     72.881128,
+     19.112106
+    ]
+   ]
+  },
+  {
+   "id": "fx002-fx001-0",
+   "from": "fx002",
+   "to": "fx001",
+   "reverseId": "fx001-fx002-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 604.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.864965,
+     19.114186
+    ],
+    [
+     72.87067,
+     19.113463
+    ]
+   ]
+  },
+  {
+   "id": "fx002-fx040-0",
+   "from": "fx002",
+   "to": "fx040",
+   "reverseId": "fx040-fx002-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 856.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.864965,
+     19.114186
+    ],
+    [
+     72.856884,
+     19.115181
+    ]
+   ]
+  },
+  {
+   "id": "fx003-fx004-0",
+   "from": "fx003",
+   "to": "fx004",
+   "reverseId": "fx004-fx003-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 302.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.852606,
+     19.115814
+    ],
+    [
+     72.849754,
+     19.116176
+    ]
+   ]
+  },
+  {
+   "id": "fx003-fx040-0",
+   "from": "fx003",
+   "to": "fx040",
+   "reverseId": "fx040-fx003-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 455,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.852606,
+     19.115814
+    ],
+    [
+     72.854507,
+     19.115497
+    ],
+    [
+     72.856884,
+     19.115181
+    ]
+   ]
+  },
+  {
+   "id": "fx004-fx003-0",
+   "from": "fx004",
+   "to": "fx003",
+   "reverseId": "fx003-fx004-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 302.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.849754,
+     19.116176
+    ],
+    [
+     72.852606,
+     19.115814
+    ]
+   ]
+  },
+  {
+   "id": "fx004-fx029-0",
+   "from": "fx004",
+   "to": "fx029",
+   "reverseId": "fx029-fx004-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 200.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.849754,
+     19.116176
+    ],
+    [
+     72.847852,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx005-fx010-0",
+   "from": "fx005",
+   "to": "fx010",
+   "reverseId": "fx010-fx005-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 350.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.82551,
+     19.13155
+    ],
+    [
+     72.828362,
+     19.129922
+    ]
+   ]
+  },
+  {
+   "id": "fx005-fx017-0",
+   "from": "fx005",
+   "to": "fx017",
+   "reverseId": "fx017-fx005-0",
+   "wayId": "fx-way-120",
+   "name": "Rao Saheb Achyutrao Patwardhan Marg",
+   "highway": "service",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 164.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.82551,
+     19.13155
+    ],
+    [
+     72.824559,
+     19.132726
+    ]
+   ]
+  },
+  {
+   "id": "fx005-fx022-0",
+   "from": "fx005",
+   "to": "fx022",
+   "reverseId": "fx022-fx005-0",
+   "wayId": "fx-way-119",
+   "name": "New Link Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 302.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.82551,
+     19.13155
+    ],
+    [
+     72.827887,
+     19.133087
+    ]
+   ]
+  },
+  {
+   "id": "fx006-fx007-0",
+   "from": "fx006",
+   "to": "fx007",
+   "reverseId": "fx007-fx006-0",
+   "wayId": "fx-way-106",
+   "name": "Gokhale Bridge",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 560.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.849944,
+     19.119703
+    ],
+    [
+     72.848137,
+     19.119567
+    ],
+    [
+     72.846521,
+     19.119477
+    ],
+    [
+     72.84462,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx006-fx025-0",
+   "from": "fx006",
+   "to": "fx025",
+   "reverseId": "fx025-fx006-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 279,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.849944,
+     19.119703
+    ],
+    [
+     72.850704,
+     19.120878
+    ],
+    [
+     72.851275,
+     19.121873
+    ]
+   ]
+  },
+  {
+   "id": "fx006-fx028-0",
+   "from": "fx006",
+   "to": "fx028",
+   "reverseId": "fx028-fx006-0",
+   "wayId": "fx-way-108",
+   "name": "Station Road East",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 174.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.849944,
+     19.119703
+    ],
+    [
+     72.85156,
+     19.120064
+    ]
+   ]
+  },
+  {
+   "id": "fx007-fx006-0",
+   "from": "fx007",
+   "to": "fx006",
+   "reverseId": "fx006-fx007-0",
+   "wayId": "fx-way-106",
+   "name": "Gokhale Bridge",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 560.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.84462,
+     19.119431
+    ],
+    [
+     72.846521,
+     19.119477
+    ],
+    [
+     72.848137,
+     19.119567
+    ],
+    [
+     72.849944,
+     19.119703
+    ]
+   ]
+  },
+  {
+   "id": "fx007-fx034-0",
+   "from": "fx007",
+   "to": "fx034",
+   "reverseId": "fx034-fx007-0",
+   "wayId": "fx-way-107",
+   "name": "Gokhale Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 31,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.84462,
+     19.119431
+    ],
+    [
+     72.844325,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx008-fx009-0",
+   "from": "fx008",
+   "to": "fx009",
+   "reverseId": "fx009-fx008-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 751,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.839296,
+     19.122235
+    ],
+    [
+     72.833591,
+     19.126305
+    ]
+   ]
+  },
+  {
+   "id": "fx008-fx034-0",
+   "from": "fx008",
+   "to": "fx034",
+   "reverseId": "fx034-fx008-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 613.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.839296,
+     19.122235
+    ],
+    [
+     72.844325,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx009-fx008-0",
+   "from": "fx009",
+   "to": "fx008",
+   "reverseId": "fx008-fx009-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 751,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.833591,
+     19.126305
+    ],
+    [
+     72.839296,
+     19.122235
+    ]
+   ]
+  },
+  {
+   "id": "fx009-fx010-0",
+   "from": "fx009",
+   "to": "fx010",
+   "reverseId": "fx010-fx009-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 680.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.833591,
+     19.126305
+    ],
+    [
+     72.828362,
+     19.129922
+    ]
+   ]
+  },
+  {
+   "id": "fx010-fx005-0",
+   "from": "fx010",
+   "to": "fx005",
+   "reverseId": "fx005-fx010-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 350.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.828362,
+     19.129922
+    ],
+    [
+     72.82551,
+     19.13155
+    ]
+   ]
+  },
+  {
+   "id": "fx010-fx009-0",
+   "from": "fx010",
+   "to": "fx009",
+   "reverseId": "fx009-fx010-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 680.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.828362,
+     19.129922
+    ],
+    [
+     72.833591,
+     19.126305
+    ]
+   ]
+  },
+  {
+   "id": "fx010-fx039-0",
+   "from": "fx010",
+   "to": "fx039",
+   "reverseId": "fx039-fx010-0",
+   "wayId": "fx-way-117",
+   "name": "Veera Desai Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1074,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.828362,
+     19.129922
+    ],
+    [
+     72.838345,
+     19.127842
+    ]
+   ]
+  },
+  {
+   "id": "fx011-fx012-0",
+   "from": "fx011",
+   "to": "fx012",
+   "reverseId": "fx012-fx011-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 550.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.854507,
+     19.140232
+    ],
+    [
+     72.854127,
+     19.141769
+    ],
+    [
+     72.853176,
+     19.142041
+    ],
+    [
+     72.852606,
+     19.140503
+    ],
+    [
+     72.851845,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx011-fx041-0",
+   "from": "fx011",
+   "to": "fx041",
+   "reverseId": "fx041-fx011-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 334.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.854507,
+     19.140232
+    ],
+    [
+     72.855268,
+     19.140775
+    ],
+    [
+     72.856219,
+     19.141227
+    ],
+    [
+     72.856884,
+     19.140322
+    ]
+   ]
+  },
+  {
+   "id": "fx012-fx011-0",
+   "from": "fx012",
+   "to": "fx011",
+   "reverseId": "fx011-fx012-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 550.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.851845,
+     19.140142
+    ],
+    [
+     72.852606,
+     19.140503
+    ],
+    [
+     72.853176,
+     19.142041
+    ],
+    [
+     72.854127,
+     19.141769
+    ],
+    [
+     72.854507,
+     19.140232
+    ]
+   ]
+  },
+  {
+   "id": "fx012-fx013-0",
+   "from": "fx012",
+   "to": "fx013",
+   "reverseId": "fx013-fx012-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 368.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.851845,
+     19.140142
+    ],
+    [
+     72.851465,
+     19.141498
+    ],
+    [
+     72.850704,
+     19.141227
+    ],
+    [
+     72.850324,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx013-fx012-0",
+   "from": "fx013",
+   "to": "fx012",
+   "reverseId": "fx012-fx013-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 368.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.850324,
+     19.140142
+    ],
+    [
+     72.850704,
+     19.141227
+    ],
+    [
+     72.851465,
+     19.141498
+    ],
+    [
+     72.851845,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx013-fx014-0",
+   "from": "fx013",
+   "to": "fx014",
+   "reverseId": "fx014-fx013-0",
+   "wayId": "fx-way-111",
+   "name": "Jogeshwari Road Over Bridge",
+   "highway": "tertiary",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 319.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.850324,
+     19.140142
+    ],
+    [
+     72.849069,
+     19.140142
+    ],
+    [
+     72.847282,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx014-fx013-0",
+   "from": "fx014",
+   "to": "fx013",
+   "reverseId": "fx013-fx014-0",
+   "wayId": "fx-way-111",
+   "name": "Jogeshwari Road Over Bridge",
+   "highway": "tertiary",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 319.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.847282,
+     19.140142
+    ],
+    [
+     72.849069,
+     19.140142
+    ],
+    [
+     72.850324,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx014-fx035-0",
+   "from": "fx014",
+   "to": "fx035",
+   "reverseId": "fx035-fx014-0",
+   "wayId": "fx-way-112",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 81.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.847282,
+     19.140142
+    ],
+    [
+     72.846502,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx015-fx016-0",
+   "from": "fx015",
+   "to": "fx016",
+   "reverseId": "fx016-fx015-0",
+   "wayId": "fx-way-113",
+   "name": "Jogeshwari-Vikhroli Link Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 999.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.869719,
+     19.140955
+    ],
+    [
+     72.860212,
+     19.140594
+    ]
+   ]
+  },
+  {
+   "id": "fx016-fx015-0",
+   "from": "fx016",
+   "to": "fx015",
+   "reverseId": "fx015-fx016-0",
+   "wayId": "fx-way-113",
+   "name": "Jogeshwari-Vikhroli Link Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 999.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.860212,
+     19.140594
+    ],
+    [
+     72.869719,
+     19.140955
+    ]
+   ]
+  },
+  {
+   "id": "fx016-fx041-0",
+   "from": "fx016",
+   "to": "fx041",
+   "reverseId": "fx041-fx016-0",
+   "wayId": "fx-way-113",
+   "name": "Jogeshwari-Vikhroli Link Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 350.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.860212,
+     19.140594
+    ],
+    [
+     72.856884,
+     19.140322
+    ]
+   ]
+  },
+  {
+   "id": "fx017-fx005-0",
+   "from": "fx017",
+   "to": "fx005",
+   "reverseId": "fx005-fx017-0",
+   "wayId": "fx-way-120",
+   "name": "Rao Saheb Achyutrao Patwardhan Marg",
+   "highway": "service",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 164.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.824559,
+     19.132726
+    ],
+    [
+     72.82551,
+     19.13155
+    ]
+   ]
+  },
+  {
+   "id": "fx018-fx001-0",
+   "from": "fx018",
+   "to": "fx001",
+   "reverseId": "fx001-fx018-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1109.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.881128,
+     19.112106
+    ],
+    [
+     72.87067,
+     19.113463
+    ]
+   ]
+  },
+  {
+   "id": "fx019-fx021-0",
+   "from": "fx019",
+   "to": "fx021",
+   "reverseId": "fx021-fx019-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 300.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.862113,
+     19.131098
+    ],
+    [
+     72.864965,
+     19.131279
+    ]
+   ]
+  },
+  {
+   "id": "fx019-fx042-0",
+   "from": "fx019",
+   "to": "fx042",
+   "reverseId": "fx042-fx019-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 550.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.862113,
+     19.131098
+    ],
+    [
+     72.856884,
+     19.130827
+    ]
+   ]
+  },
+  {
+   "id": "fx020-fx021-0",
+   "from": "fx020",
+   "to": "fx021",
+   "reverseId": "fx021-fx020-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 301.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.867818,
+     19.13155
+    ],
+    [
+     72.864965,
+     19.131279
+    ]
+   ]
+  },
+  {
+   "id": "fx021-fx019-0",
+   "from": "fx021",
+   "to": "fx019",
+   "reverseId": "fx019-fx021-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 300.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.864965,
+     19.131279
+    ],
+    [
+     72.862113,
+     19.131098
+    ]
+   ]
+  },
+  {
+   "id": "fx021-fx020-0",
+   "from": "fx021",
+   "to": "fx020",
+   "reverseId": "fx020-fx021-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 301.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.864965,
+     19.131279
+    ],
+    [
+     72.867818,
+     19.13155
+    ]
+   ]
+  },
+  {
+   "id": "fx022-fx005-0",
+   "from": "fx022",
+   "to": "fx005",
+   "reverseId": "fx005-fx022-0",
+   "wayId": "fx-way-119",
+   "name": "New Link Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 302.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.827887,
+     19.133087
+    ],
+    [
+     72.82551,
+     19.13155
+    ]
+   ]
+  },
+  {
+   "id": "fx022-fx023-0",
+   "from": "fx022",
+   "to": "fx023",
+   "reverseId": "fx023-fx022-0",
+   "wayId": "fx-way-119",
+   "name": "New Link Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 250.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.827887,
+     19.133087
+    ],
+    [
+     72.829788,
+     19.134444
+    ]
+   ]
+  },
+  {
+   "id": "fx023-fx022-0",
+   "from": "fx023",
+   "to": "fx022",
+   "reverseId": "fx022-fx023-0",
+   "wayId": "fx-way-119",
+   "name": "New Link Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 250.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.829788,
+     19.134444
+    ],
+    [
+     72.827887,
+     19.133087
+    ]
+   ]
+  },
+  {
+   "id": "fx023-fx027-0",
+   "from": "fx023",
+   "to": "fx027",
+   "reverseId": "fx027-fx023-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 749.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.829788,
+     19.134444
+    ],
+    [
+     72.831214,
+     19.134173
+    ],
+    [
+     72.83188,
+     19.134896
+    ],
+    [
+     72.833116,
+     19.136705
+    ],
+    [
+     72.834542,
+     19.134896
+    ]
+   ]
+  },
+  {
+   "id": "fx024-fx025-0",
+   "from": "fx024",
+   "to": "fx025",
+   "reverseId": "fx025-fx024-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 371.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.853366,
+     19.124496
+    ],
+    [
+     72.852606,
+     19.123863
+    ],
+    [
+     72.852226,
+     19.122958
+    ],
+    [
+     72.851275,
+     19.121873
+    ]
+   ]
+  },
+  {
+   "id": "fx024-fx044-0",
+   "from": "fx024",
+   "to": "fx044",
+   "reverseId": "fx044-fx024-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 636.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.853366,
+     19.124496
+    ],
+    [
+     72.854127,
+     19.1254
+    ],
+    [
+     72.854697,
+     19.126305
+    ],
+    [
+     72.854412,
+     19.127028
+    ],
+    [
+     72.855268,
+     19.127571
+    ],
+    [
+     72.855933,
+     19.127028
+    ],
+    [
+     72.856884,
+     19.126757
+    ]
+   ]
+  },
+  {
+   "id": "fx025-fx004-0",
+   "from": "fx025",
+   "to": "fx004",
+   "reverseId": null,
+   "wayId": "fx-way-105",
+   "name": "Parsi Panchayat Road",
+   "highway": "residential",
+   "oneway": true,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 655.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.851275,
+     19.121873
+    ],
+    [
+     72.850704,
+     19.118798
+    ],
+    [
+     72.850134,
+     19.117261
+    ],
+    [
+     72.849754,
+     19.116176
+    ]
+   ]
+  },
+  {
+   "id": "fx025-fx006-0",
+   "from": "fx025",
+   "to": "fx006",
+   "reverseId": "fx006-fx025-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 279,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.851275,
+     19.121873
+    ],
+    [
+     72.850704,
+     19.120878
+    ],
+    [
+     72.849944,
+     19.119703
+    ]
+   ]
+  },
+  {
+   "id": "fx025-fx024-0",
+   "from": "fx025",
+   "to": "fx024",
+   "reverseId": "fx024-fx025-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 371.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.851275,
+     19.121873
+    ],
+    [
+     72.852226,
+     19.122958
+    ],
+    [
+     72.852606,
+     19.123863
+    ],
+    [
+     72.853366,
+     19.124496
+    ]
+   ]
+  },
+  {
+   "id": "fx026-fx027-0",
+   "from": "fx026",
+   "to": "fx027",
+   "reverseId": "fx027-fx026-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 804.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.840246,
+     19.13562
+    ],
+    [
+     72.838345,
+     19.136253
+    ],
+    [
+     72.837204,
+     19.137428
+    ],
+    [
+     72.835683,
+     19.135258
+    ],
+    [
+     72.834542,
+     19.134896
+    ]
+   ]
+  },
+  {
+   "id": "fx026-fx035-0",
+   "from": "fx026",
+   "to": "fx035",
+   "reverseId": "fx035-fx026-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 852.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.840246,
+     19.13562
+    ],
+    [
+     72.841387,
+     19.137338
+    ],
+    [
+     72.842623,
+     19.138152
+    ],
+    [
+     72.84443,
+     19.139418
+    ],
+    [
+     72.846502,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx027-fx023-0",
+   "from": "fx027",
+   "to": "fx023",
+   "reverseId": "fx023-fx027-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 749.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.834542,
+     19.134896
+    ],
+    [
+     72.833116,
+     19.136705
+    ],
+    [
+     72.83188,
+     19.134896
+    ],
+    [
+     72.831214,
+     19.134173
+    ],
+    [
+     72.829788,
+     19.134444
+    ]
+   ]
+  },
+  {
+   "id": "fx027-fx026-0",
+   "from": "fx027",
+   "to": "fx026",
+   "reverseId": "fx026-fx027-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 804.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.834542,
+     19.134896
+    ],
+    [
+     72.835683,
+     19.135258
+    ],
+    [
+     72.837204,
+     19.137428
+    ],
+    [
+     72.838345,
+     19.136253
+    ],
+    [
+     72.840246,
+     19.13562
+    ]
+   ]
+  },
+  {
+   "id": "fx028-fx006-0",
+   "from": "fx028",
+   "to": "fx006",
+   "reverseId": "fx006-fx028-0",
+   "wayId": "fx-way-108",
+   "name": "Station Road East",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 174.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.85156,
+     19.120064
+    ],
+    [
+     72.849944,
+     19.119703
+    ]
+   ]
+  },
+  {
+   "id": "fx028-fx036-0",
+   "from": "fx028",
+   "to": "fx036",
+   "reverseId": "fx036-fx028-0",
+   "wayId": "fx-way-109",
+   "name": "Andheri Station Footbridge",
+   "highway": "footway",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 756.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.85156,
+     19.120064
+    ],
+    [
+     72.847377,
+     19.12115
+    ],
+    [
+     72.844525,
+     19.121331
+    ]
+   ]
+  },
+  {
+   "id": "fx029-fx004-0",
+   "from": "fx029",
+   "to": "fx004",
+   "reverseId": "fx004-fx029-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 200.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.847852,
+     19.116357
+    ],
+    [
+     72.849754,
+     19.116176
+    ]
+   ]
+  },
+  {
+   "id": "fx029-fx030-0",
+   "from": "fx029",
+   "to": "fx030",
+   "reverseId": "fx030-fx029-0",
+   "wayId": "fx-way-101",
+   "name": "Andheri Subway",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": true,
+   "layer": -1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 279.7,
+   "floodProne": true,
+   "geometry": [
+    [
+     72.847852,
+     19.116357
+    ],
+    [
+     72.846569,
+     19.116357
+    ],
+    [
+     72.84519,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx030-fx029-0",
+   "from": "fx030",
+   "to": "fx029",
+   "reverseId": "fx029-fx030-0",
+   "wayId": "fx-way-101",
+   "name": "Andheri Subway",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": true,
+   "layer": -1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 279.7,
+   "floodProne": true,
+   "geometry": [
+    [
+     72.84519,
+     19.116357
+    ],
+    [
+     72.846569,
+     19.116357
+    ],
+    [
+     72.847852,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx030-fx033-0",
+   "from": "fx030",
+   "to": "fx033",
+   "reverseId": "fx033-fx030-0",
+   "wayId": "fx-way-102",
+   "name": "Andheri Subway Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 124.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.84519,
+     19.116357
+    ],
+    [
+     72.844002,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx031-fx032-0",
+   "from": "fx031",
+   "to": "fx032",
+   "reverseId": "fx032-fx031-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 656.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.845,
+     19.125852
+    ],
+    [
+     72.845618,
+     19.131731
+    ]
+   ]
+  },
+  {
+   "id": "fx031-fx036-0",
+   "from": "fx031",
+   "to": "fx036",
+   "reverseId": "fx036-fx031-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 505.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.845,
+     19.125852
+    ],
+    [
+     72.844525,
+     19.121331
+    ]
+   ]
+  },
+  {
+   "id": "fx031-fx039-0",
+   "from": "fx031",
+   "to": "fx039",
+   "reverseId": "fx039-fx031-0",
+   "wayId": "fx-way-117",
+   "name": "Veera Desai Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 733.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.845,
+     19.125852
+    ],
+    [
+     72.838345,
+     19.127842
+    ]
+   ]
+  },
+  {
+   "id": "fx032-fx031-0",
+   "from": "fx032",
+   "to": "fx031",
+   "reverseId": "fx031-fx032-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 656.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.845618,
+     19.131731
+    ],
+    [
+     72.845,
+     19.125852
+    ]
+   ]
+  },
+  {
+   "id": "fx032-fx035-0",
+   "from": "fx032",
+   "to": "fx035",
+   "reverseId": "fx035-fx032-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 939.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.845618,
+     19.131731
+    ],
+    [
+     72.846502,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx033-fx030-0",
+   "from": "fx033",
+   "to": "fx030",
+   "reverseId": "fx030-fx033-0",
+   "wayId": "fx-way-102",
+   "name": "Andheri Subway Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 124.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844002,
+     19.116357
+    ],
+    [
+     72.84519,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx033-fx034-0",
+   "from": "fx033",
+   "to": "fx034",
+   "reverseId": "fx034-fx033-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 343.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844002,
+     19.116357
+    ],
+    [
+     72.844325,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx033-fx038-0",
+   "from": "fx033",
+   "to": "fx038",
+   "reverseId": "fx038-fx033-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 555.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844002,
+     19.116357
+    ],
+    [
+     72.843479,
+     19.111383
+    ]
+   ]
+  },
+  {
+   "id": "fx034-fx007-0",
+   "from": "fx034",
+   "to": "fx007",
+   "reverseId": "fx007-fx034-0",
+   "wayId": "fx-way-107",
+   "name": "Gokhale Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 31,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844325,
+     19.119431
+    ],
+    [
+     72.84462,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx034-fx008-0",
+   "from": "fx034",
+   "to": "fx008",
+   "reverseId": "fx008-fx034-0",
+   "wayId": "fx-way-116",
+   "name": "J.P. Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 613.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844325,
+     19.119431
+    ],
+    [
+     72.839296,
+     19.122235
+    ]
+   ]
+  },
+  {
+   "id": "fx034-fx033-0",
+   "from": "fx034",
+   "to": "fx033",
+   "reverseId": "fx033-fx034-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 343.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844325,
+     19.119431
+    ],
+    [
+     72.844002,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx034-fx036-0",
+   "from": "fx034",
+   "to": "fx036",
+   "reverseId": "fx036-fx034-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 212.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844325,
+     19.119431
+    ],
+    [
+     72.844525,
+     19.121331
+    ]
+   ]
+  },
+  {
+   "id": "fx035-fx014-0",
+   "from": "fx035",
+   "to": "fx014",
+   "reverseId": "fx014-fx035-0",
+   "wayId": "fx-way-112",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 81.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.846502,
+     19.140142
+    ],
+    [
+     72.847282,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx035-fx026-0",
+   "from": "fx035",
+   "to": "fx026",
+   "reverseId": "fx026-fx035-0",
+   "wayId": "fx-way-118",
+   "name": "Relief Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 852.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.846502,
+     19.140142
+    ],
+    [
+     72.84443,
+     19.139418
+    ],
+    [
+     72.842623,
+     19.138152
+    ],
+    [
+     72.841387,
+     19.137338
+    ],
+    [
+     72.840246,
+     19.13562
+    ]
+   ]
+  },
+  {
+   "id": "fx035-fx032-0",
+   "from": "fx035",
+   "to": "fx032",
+   "reverseId": "fx032-fx035-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 939.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.846502,
+     19.140142
+    ],
+    [
+     72.845618,
+     19.131731
+    ]
+   ]
+  },
+  {
+   "id": "fx035-fx037-0",
+   "from": "fx035",
+   "to": "fx037",
+   "reverseId": "fx037-fx035-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 525.4,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.846502,
+     19.140142
+    ],
+    [
+     72.846997,
+     19.144844
+    ]
+   ]
+  },
+  {
+   "id": "fx036-fx028-0",
+   "from": "fx036",
+   "to": "fx028",
+   "reverseId": "fx028-fx036-0",
+   "wayId": "fx-way-109",
+   "name": "Andheri Station Footbridge",
+   "highway": "footway",
+   "oneway": false,
+   "junction": null,
+   "bridge": true,
+   "tunnel": false,
+   "layer": 1,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 756.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844525,
+     19.121331
+    ],
+    [
+     72.847377,
+     19.12115
+    ],
+    [
+     72.85156,
+     19.120064
+    ]
+   ]
+  },
+  {
+   "id": "fx036-fx031-0",
+   "from": "fx036",
+   "to": "fx031",
+   "reverseId": "fx031-fx036-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 505.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844525,
+     19.121331
+    ],
+    [
+     72.845,
+     19.125852
+    ]
+   ]
+  },
+  {
+   "id": "fx036-fx034-0",
+   "from": "fx036",
+   "to": "fx034",
+   "reverseId": "fx034-fx036-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 212.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.844525,
+     19.121331
+    ],
+    [
+     72.844325,
+     19.119431
+    ]
+   ]
+  },
+  {
+   "id": "fx037-fx035-0",
+   "from": "fx037",
+   "to": "fx035",
+   "reverseId": "fx035-fx037-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 525.4,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.846997,
+     19.144844
+    ],
+    [
+     72.846502,
+     19.140142
+    ]
+   ]
+  },
+  {
+   "id": "fx038-fx033-0",
+   "from": "fx038",
+   "to": "fx033",
+   "reverseId": "fx033-fx038-0",
+   "wayId": "fx-way-115",
+   "name": "S.V. Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 555.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.843479,
+     19.111383
+    ],
+    [
+     72.844002,
+     19.116357
+    ]
+   ]
+  },
+  {
+   "id": "fx039-fx010-0",
+   "from": "fx039",
+   "to": "fx010",
+   "reverseId": "fx010-fx039-0",
+   "wayId": "fx-way-117",
+   "name": "Veera Desai Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1074,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.838345,
+     19.127842
+    ],
+    [
+     72.828362,
+     19.129922
+    ]
+   ]
+  },
+  {
+   "id": "fx039-fx031-0",
+   "from": "fx039",
+   "to": "fx031",
+   "reverseId": "fx031-fx039-0",
+   "wayId": "fx-way-117",
+   "name": "Veera Desai Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 733.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.838345,
+     19.127842
+    ],
+    [
+     72.845,
+     19.125852
+    ]
+   ]
+  },
+  {
+   "id": "fx040-fx002-0",
+   "from": "fx040",
+   "to": "fx002",
+   "reverseId": "fx002-fx040-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 856.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.115181
+    ],
+    [
+     72.864965,
+     19.114186
+    ]
+   ]
+  },
+  {
+   "id": "fx040-fx003-0",
+   "from": "fx040",
+   "to": "fx003",
+   "reverseId": "fx003-fx040-0",
+   "wayId": "fx-way-100",
+   "name": "Andheri-Kurla Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 455,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.115181
+    ],
+    [
+     72.854507,
+     19.115497
+    ],
+    [
+     72.852606,
+     19.115814
+    ]
+   ]
+  },
+  {
+   "id": "fx040-fx044-0",
+   "from": "fx040",
+   "to": "fx044",
+   "reverseId": "fx044-fx040-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1287.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.115181
+    ],
+    [
+     72.856884,
+     19.126757
+    ]
+   ]
+  },
+  {
+   "id": "fx040-fx045-0",
+   "from": "fx040",
+   "to": "fx045",
+   "reverseId": "fx045-fx040-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 724.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.115181
+    ],
+    [
+     72.856884,
+     19.108669
+    ]
+   ]
+  },
+  {
+   "id": "fx041-fx011-0",
+   "from": "fx041",
+   "to": "fx011",
+   "reverseId": "fx011-fx041-0",
+   "wayId": "fx-way-110",
+   "name": "Jogeshwari Station Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 334.5,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.140322
+    ],
+    [
+     72.856219,
+     19.141227
+    ],
+    [
+     72.855268,
+     19.140775
+    ],
+    [
+     72.854507,
+     19.140232
+    ]
+   ]
+  },
+  {
+   "id": "fx041-fx016-0",
+   "from": "fx041",
+   "to": "fx016",
+   "reverseId": "fx016-fx041-0",
+   "wayId": "fx-way-113",
+   "name": "Jogeshwari-Vikhroli Link Road",
+   "highway": "primary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 350.9,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.140322
+    ],
+    [
+     72.860212,
+     19.140594
+    ]
+   ]
+  },
+  {
+   "id": "fx041-fx042-0",
+   "from": "fx041",
+   "to": "fx042",
+   "reverseId": "fx042-fx041-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1055.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.140322
+    ],
+    [
+     72.856884,
+     19.130827
+    ]
+   ]
+  },
+  {
+   "id": "fx041-fx043-0",
+   "from": "fx041",
+   "to": "fx043",
+   "reverseId": "fx043-fx041-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 502.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.140322
+    ],
+    [
+     72.856884,
+     19.144844
+    ]
+   ]
+  },
+  {
+   "id": "fx042-fx019-0",
+   "from": "fx042",
+   "to": "fx019",
+   "reverseId": "fx019-fx042-0",
+   "wayId": "fx-way-114",
+   "name": "Mahakali Caves Road",
+   "highway": "secondary",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 550.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.130827
+    ],
+    [
+     72.862113,
+     19.131098
+    ]
+   ]
+  },
+  {
+   "id": "fx042-fx041-0",
+   "from": "fx042",
+   "to": "fx041",
+   "reverseId": "fx041-fx042-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1055.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.130827
+    ],
+    [
+     72.856884,
+     19.140322
+    ]
+   ]
+  },
+  {
+   "id": "fx042-fx044-0",
+   "from": "fx042",
+   "to": "fx044",
+   "reverseId": "fx044-fx042-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 452.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.130827
+    ],
+    [
+     72.856884,
+     19.126757
+    ]
+   ]
+  },
+  {
+   "id": "fx043-fx041-0",
+   "from": "fx043",
+   "to": "fx041",
+   "reverseId": "fx041-fx043-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 502.8,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.144844
+    ],
+    [
+     72.856884,
+     19.140322
+    ]
+   ]
+  },
+  {
+   "id": "fx044-fx024-0",
+   "from": "fx044",
+   "to": "fx024",
+   "reverseId": "fx024-fx044-0",
+   "wayId": "fx-way-104",
+   "name": "Old Nagardas Road",
+   "highway": "residential",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 636.3,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.126757
+    ],
+    [
+     72.855933,
+     19.127028
+    ],
+    [
+     72.855268,
+     19.127571
+    ],
+    [
+     72.854412,
+     19.127028
+    ],
+    [
+     72.854697,
+     19.126305
+    ],
+    [
+     72.854127,
+     19.1254
+    ],
+    [
+     72.853366,
+     19.124496
+    ]
+   ]
+  },
+  {
+   "id": "fx044-fx040-0",
+   "from": "fx044",
+   "to": "fx040",
+   "reverseId": "fx040-fx044-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 1287.2,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.126757
+    ],
+    [
+     72.856884,
+     19.115181
+    ]
+   ]
+  },
+  {
+   "id": "fx044-fx042-0",
+   "from": "fx044",
+   "to": "fx042",
+   "reverseId": "fx042-fx044-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 452.6,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.126757
+    ],
+    [
+     72.856884,
+     19.130827
+    ]
+   ]
+  },
+  {
+   "id": "fx045-fx040-0",
+   "from": "fx045",
+   "to": "fx040",
+   "reverseId": "fx040-fx045-0",
+   "wayId": "fx-way-103",
+   "name": "Western Express Highway",
+   "highway": "trunk",
+   "oneway": false,
+   "junction": null,
+   "bridge": false,
+   "tunnel": false,
+   "layer": 0,
+   "access": null,
+   "foot": null,
+   "motorVehicle": null,
+   "lengthM": 724.1,
+   "floodProne": false,
+   "geometry": [
+    [
+     72.856884,
+     19.108669
+    ],
+    [
+     72.856884,
+     19.115181
+    ]
+   ]
+  }
+ ]
+}

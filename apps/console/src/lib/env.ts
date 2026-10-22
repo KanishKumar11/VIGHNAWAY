@@ -19,3 +19,9 @@ export function reportUrl(origin?: string): string {
 
 export const isLocalOnlyUrl = (url: string): boolean =>
   /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:|\/|$)/i.test(url);
+
+/** Link that opens /verify for a decision receipt token. */
+export function verifyUrl(token: string, origin?: string): string {
+  const base = PUBLIC_SITE_URL ? trimSlash(PUBLIC_SITE_URL) : trimSlash(origin ?? (typeof window !== 'undefined' ? window.location.origin : ''));
+  return `${base}/verify?r=${token}`;
+}

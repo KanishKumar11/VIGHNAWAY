@@ -2,7 +2,7 @@
 
 import type { Incident, OperatorAction } from '@vighnaway/contracts';
 import { formatSimClock } from '@vighnaway/contracts';
-import { alertContext } from '@vighnaway/engine';
+import { alertContext, coverageBriefText, evidenceCoverage, observationsFromIncidents } from '@vighnaway/engine';
 import { motion as motionTokens } from '@vighnaway/tokens';
 import { Ban, CircleCheck, CloudRain, Link2, Radio, ShieldCheck } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
@@ -11,7 +11,10 @@ import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { recommendedRoute, type TripState } from '@/lib/demoTrip';
 import { groupIncidents, incidentFacts, isClosed, QUEUE_GROUPS, type QueueGroup } from '@/lib/incidents';
-import { GRAPH_FILE, isLiveScenario } from '@/lib/scenario';
+import { GRAPH_FILE, graphFor, isLiveScenario } from '@/lib/scenario';
+import { incidentList } from '@/lib/sync';
+import { rt } from '@/i18n/engineText';
+import { CoverageChip } from '@/components/console/CoverageChip';
 import { displayIncidents, useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
@@ -181,6 +184,12 @@ export function SituationBrief({ trip }: { trip: TripState | null }) {
     for (const e of GRAPH_FILE.edges) if (e.floodProne && e.name) names.set(e.name, e.tunnel ? t.route.strip.kinds.underpass : '');
     return [...names.entries()];
   }, []);
+  const sync = useLiveStore((st) => st.sync);
+  const coverage = useMemo(
+    () => evidenceCoverage(graphFor(scenario.demoTrip.profile), observationsFromIncidents(incidentList(sync)), nowS),
+    [scenario, sync, nowS],
+  );
+  const coverageByName = useMemo(() => new Map(coverage.map((c) => [c.name, c] as const)), [coverage]);
   const crossings = useMemo(() => {
     const out = new Map<string, string>();
     for (const r of trip?.plan.routes ?? []) for (const c of r.crossings) if (!atRisk.some(([n]) => n === c.name)) out.set(c.name, t.route.strip.kinds[c.kind]);
@@ -211,12 +220,17 @@ export function SituationBrief({ trip }: { trip: TripState | null }) {
 
       <div>
         <p className="text-meta font-semibold text-ink-on-shell-muted">{t.situation.atRisk}</p>
+        <p className="mt-1 text-body font-medium text-ink-on-shell" data-testid="coverage-brief">
+          {rt(coverageBriefText(coverage, nowS), '')}
+        </p>
+        <p className="text-meta text-ink-on-shell-muted">{t.coverage.note}</p>
         {atRisk.length ? (
           <ul className="mt-1.5 divide-y divide-shell-line">
             {atRisk.map(([name, kind]) => (
               <li key={name} className="flex items-baseline justify-between gap-3 py-2 text-body text-ink-on-shell">
                 <span className="min-w-0">{name}</span>
                 {kind && <span className="shrink-0 text-meta text-ink-on-shell-muted">{kind}</span>}
+                {coverageByName.get(name) && <CoverageChip road={coverageByName.get(name)!} nowS={nowS} />}
               </li>
             ))}
           </ul>

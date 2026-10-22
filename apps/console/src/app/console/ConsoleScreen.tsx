@@ -24,6 +24,7 @@ import { IncidentQueue } from '@/components/console/IncidentQueue';
 import { ChangeBanner, changeBannerVisible, DemoTripPanel } from '@/components/console/DemoTripPanel';
 import { QrCard } from '@/components/console/QrCard';
 import { Timeline } from '@/components/console/Timeline';
+import { AudienceCard } from '@/components/console/AudienceCard';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
 import { MapPanel } from '@/components/map/MapPanel';
 import { t } from '@/i18n';
@@ -145,6 +146,11 @@ export function ConsoleScreen() {
                 extraAttribution={live ? (feed.data?.attribution ?? null) : null}
               />
             </section>
+            {presenter && !replay && (
+              <div className="pointer-events-none absolute bottom-4 left-4 z-30">
+                <AudienceCard />
+              </div>
+            )}
             {listView && <MapListView trip={trip} incidents={incidents} nowS={nowS} style={bannerUp || replay ? { paddingTop: bannerUp ? 168 : 96 } : undefined} />}
             {/* Notices, replay state and the route-change banner, over the top of the map stage. */}
             <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2 px-6">

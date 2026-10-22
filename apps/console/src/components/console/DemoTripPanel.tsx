@@ -17,6 +17,7 @@ import { incidentList } from '@/lib/sync';
 import { useLiveStore } from '@/stores/live';
 import { type RouteMotion } from '@/hooks/useRouteChangeMotion';
 import { tripEnv } from '@/hooks/useDemoTrip';
+import { ReceiptCard } from '@/components/console/ReceiptCard';
 import { ConfidenceMeter } from '@/components/shared/ConfidenceMeter';
 import { EvidenceChips } from '@/components/shared/EvidenceChips';
 import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
@@ -315,7 +316,7 @@ function Comparison({ rec, others }: { rec: RouteEvaluation | null; others: Rout
         {others.map((r) => {
           const blocked = r.role === 'blocked' || !r.viable;
           return (
-            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${r.name}`} className="rounded-card border border-shell-line bg-shell-raised px-4 py-3 transition-colors hover:bg-panel-sunken">
+            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${routeLabel(r)}`} className="rounded-card border border-shell-line bg-shell-raised px-4 py-3 transition-colors hover:bg-panel-sunken">
               <div className="grid grid-cols-[1.5rem_1fr_auto] items-center gap-x-3">
                 <LineSwatch role={r.role} />
                 <p className="min-w-0 truncate text-body font-semibold text-ink-on-shell">{routeLabel(r)}</p>
@@ -513,6 +514,7 @@ export function DemoTripPanel({
             {trip.plan.noViableRoute && !rec && <NoViable trip={trip} destName={dest?.name} />}
             {rec && <Decision route={rec} trip={trip} motion={m} incidents={incidents} nowS={nowS} destName={dest?.name} />}
             <Comparison rec={compare.rec} others={compare.others} />
+            {rec && !given && <ReceiptCard destinationId={trip.destinationId} />}
           </>
         )}
       </div>

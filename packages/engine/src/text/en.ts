@@ -136,6 +136,16 @@ export const en = {
   'cf.none.time': 'Saving time alone would not make it recommended.',
   'cf.join': '{head}; {tail}',
 
+  // Evidence coverage
+  'cov.road.fresh': '{road}: reported in the last 30 min',
+  'cov.road.ageing': '{road}: last report {age} ago',
+  'cov.road.stale': '{road}: last report {age} ago, older than 3 h',
+  'cov.road.none': '{road}: no reports',
+  'cov.brief.none': 'Every flood-prone road has a report in the last hour',
+  'cov.brief.one': '1 flood-prone road has no report in the last hour',
+  'cov.brief.many': '{n} flood-prone roads have no report in the last hour',
+  'cov.brief.noRoads': 'No flood-prone roads are mapped',
+
   // Plan notices
   'notice.unchanged.one': 'Route unchanged: one unverified report',
   'notice.unchanged.many': 'Route unchanged: {n} unverified reports',

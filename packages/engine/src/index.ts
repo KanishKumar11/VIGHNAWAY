@@ -31,6 +31,10 @@ export { explain, confidenceFor, describeChange, hazardLabel, hazardPhrase, evid
 export type { ExplainContext } from './explain';
 export { buildReceipt, verifyReceipt, encodeReceipt, decodeReceipt, inputsHash, rulesHash, ENGINE_VERSION, RECEIPT_VERSION } from './receipt';
 export type { Receipt, ReceiptContext, ReceiptCheck, ReceiptVerification } from './receipt';
+export { evidenceCoverage, observationsFromIncidents, coverageClass, roadsWithoutRecentReport, coverageBriefText } from './coverage';
+export type { CoverageClass, Observation, RoadCoverage } from './coverage';
+export { dataGapQuestions, nextQuestion, ASK_COOLDOWN_MS } from './ask';
+export type { DataGapQuestion, AskState } from './ask';
 export { counterfactuals } from './counterfactual';
 export type { CounterfactualInput, CounterfactualResult } from './counterfactual';
 export { planTrip, replanFrom, findReachableDestination, planHash, edgeMultiplier, nodeLatLng } from './plan';

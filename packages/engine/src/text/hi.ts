@@ -123,6 +123,15 @@ export const hi: Record<TextKey, string> = {
   'cf.none.time': 'सिर्फ़ समय बचने से यह रास्ता नहीं सुझाया जाएगा।',
   'cf.join': '{head}; {tail}',
 
+  'cov.road.fresh': '{road}: पिछले 30 मिनट में रिपोर्ट आई',
+  'cov.road.ageing': '{road}: आखिरी रिपोर्ट {age} पहले',
+  'cov.road.stale': '{road}: आखिरी रिपोर्ट {age} पहले, 3 घंटे से पुरानी',
+  'cov.road.none': '{road}: कोई रिपोर्ट नहीं',
+  'cov.brief.none': 'हर बाढ़-संभावित सड़क से पिछले घंटे में रिपोर्ट आई है',
+  'cov.brief.one': '1 बाढ़-संभावित सड़क से पिछले घंटे में कोई रिपोर्ट नहीं',
+  'cov.brief.many': '{n} बाढ़-संभावित सड़कों से पिछले घंटे में कोई रिपोर्ट नहीं',
+  'cov.brief.noRoads': 'कोई बाढ़-संभावित सड़क नक्शे पर नहीं है',
+
   'notice.unchanged.one': 'रास्ता नहीं बदला: एक असत्यापित रिपोर्ट',
   'notice.unchanged.many': 'रास्ता नहीं बदला: {n} असत्यापित रिपोर्टें',
   'notice.unchanged.hazard': 'रास्ता नहीं बदला: {hazard|lowerall} दूसरा रास्ता लेने जितना बड़ा नहीं है',

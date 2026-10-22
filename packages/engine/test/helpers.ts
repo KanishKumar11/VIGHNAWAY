@@ -1,6 +1,6 @@
 import type { Alert, GraphFile, Incident, RoadEdge, Scenario } from '@vighnaway/contracts';
-import graphJson from '../../scenario-data/andheri/graph.json';
-import scenarioJson from '../../scenario-data/andheri/scenario.json';
+import graphJson from './fixtures/andheri-graph.json';
+import scenarioJson from './fixtures/andheri-scenario.json';
 
 export const andheriGraph = graphJson as unknown as GraphFile;
 export const andheriScenario = scenarioJson as unknown as Scenario;
