@@ -7,10 +7,11 @@ import type {
   PlanResult,
   Reachable,
   RouteEvaluation,
+  Text,
 } from '@vighnaway/contracts';
 import type { Evaluated } from './evaluate';
 import { evaluate } from './evaluate';
-import { describeChange, explain, hazardPhrase } from './explain';
+import { describeChange, explain } from './explain';
 import type { GEdge, Graph } from './graph';
 import { nodePoint, snapToEdge, snapToNode } from './graph';
 import type { EvalContext, IncidentIndex } from './incidents';
@@ -21,7 +22,9 @@ import { rank } from './rank';
 import { SCORING_RULES } from './rules';
 import { pointAlong } from './geo';
 import { edgeCumulative } from './graph';
-import { hashValue } from './hash';
+import { hashValue, stripText } from './hash';
+import { hazardPhraseText, tx } from './text/build';
+import { renderText } from './text/render';
 
 export interface TripConditions {
   incidents: readonly Incident[];
@@ -289,18 +292,20 @@ function planCore(
     if (active.length) {
       const unverified = active.filter((h) => h.status === 'unverified').length;
       const first = index.byId.get(active[0]!.incidentId);
-      const message =
+      const messageText =
         unverified === active.length
-          ? `Route unchanged: ${unverified === 1 ? 'one unverified report' : `${unverified} unverified reports`}`
-          : `Route unchanged: ${first ? hazardPhrase(first).toLowerCase() : 'a reported hazard'} does not outweigh a detour`;
-      notices.push({ kind: 'unchanged_with_hazard', message });
+          ? unverified === 1
+            ? tx('notice.unchanged.one')
+            : tx('notice.unchanged.many', { n: unverified })
+          : tx('notice.unchanged.hazard', { hazard: first ? hazardPhraseText(first) : tx('hazards.unknown') });
+      notices.push(notice('unchanged_with_hazard', messageText));
     }
   }
 
   const noViableRoute = recommended === null;
   let reachable: Reachable | null = null;
   if (noViableRoute) {
-    notices.push({ kind: 'no_viable_route', message: 'No viable route to this destination. In an emergency, call 112.' });
+    notices.push(notice('no_viable_route', tx('notice.noViable')));
     reachable = findReachableDestination(graph, graph.nodeIds[from]!, opts.places, index, ctx, {
       excludePlaceIds: opts.destinationPlaceId ? [opts.destinationPlaceId] : [],
     });
@@ -335,7 +340,7 @@ function emptyPlan(graph: Graph, ctx: EvalContext, index: IncidentIndex, from: n
     recommendedRouteId: null,
     usualFastestRouteId: null,
     change: null,
-    notices: [{ kind: 'no_viable_route', message: 'No route found between these points for this profile.' }],
+    notices: [notice('no_viable_route', tx('notice.noRoute'))],
     noViableRoute: true,
     reachable: null,
     isReversal: false,
@@ -343,6 +348,12 @@ function emptyPlan(graph: Graph, ctx: EvalContext, index: IncidentIndex, from: n
     vehicle: null,
   };
 }
+
+const notice = (kind: PlanNotice['kind'], messageText: Text): PlanNotice => ({
+  kind,
+  message: renderText(messageText, 'en'),
+  messageText,
+});
 
 const planMemo = new Map<string, PlanResult>();
 const PLAN_MEMO_LIMIT = 32;
@@ -433,12 +444,9 @@ export function replanFrom(input: ReplanInput): PlanResult {
   const finish = (core: Omit<PlanResult, 'leadInS' | 'vehicle' | 'isReversal'>, isReversal: boolean, lead: number): PlanResult => {
     const notices = [...core.notices];
     if (onCurrentEdge.length) {
-      notices.unshift({
-        kind: 'on_blocked_edge',
-        message: `Warning: ${hazardPhrase(onCurrentEdge[0]!)} is reported on the road you are on. The plan shown starts at the next junction ahead.`,
-      });
+      notices.unshift(notice('on_blocked_edge', tx('notice.onBlocked', { hazard: hazardPhraseText(onCurrentEdge[0]!) })));
     }
-    if (isReversal) notices.unshift({ kind: 'reversal', message: SCORING_RULES.reversal.value });
+    if (isReversal) notices.unshift(notice('reversal', tx('reversal')));
     return { ...core, notices, isReversal, leadInS: lead, vehicle };
   };
 
@@ -471,20 +479,31 @@ export function replanFrom(input: ReplanInput): PlanResult {
   // The vehicle first turns back along `reverse`; followedRoute() prepends it for the simulator.
   const lead = Math.round(fraction * reverse.timeS * edgeMultiplier(reverse, index, ctx));
   const fwd = forward.change;
+  // The forward plan found nothing viable, so its message reads "No viable route. <cause>": reuse the cause.
+  const cause = fwd?.messageText?.params?.cause;
+  const base = !fwd
+    ? tx('change.changed')
+    : fwd.kind === 'no_viable_route'
+      ? cause
+        ? tx('change.changed.cause', { cause })
+        : tx('change.changed')
+      : fwd.messageText ?? tx('change.changed');
+  const messageText = tx('change.reversal', { base, reversal: tx('reversal') });
   const change = {
     fromRouteId: fwd?.fromRouteId ?? null,
     toRouteId: back.recommendedRouteId,
     kind: 'invalid' as const,
     trigger: fwd?.trigger ?? null,
     gainS: null,
-    message: `${(fwd?.message ?? 'Route changed.').replace(/^No viable route\./, 'Route changed.')} No forward route is viable. ${SCORING_RULES.reversal.value}.`,
+    message: renderText(messageText, 'en'),
     tradeOff: '',
+    messageText,
   };
   return finish({ ...back, change }, true, lead);
 }
 
 /** Hash of a plan, for the phone and console parity check. */
-export const planHash = (plan: PlanResult): string => hashValue(plan);
+export const planHash = (plan: PlanResult): string => hashValue(stripText(plan));
 
 /** Node position helper for markers. */
 export const nodeLatLng = (graph: Graph, nodeId: string): LatLng | null => {
