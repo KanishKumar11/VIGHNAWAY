@@ -28,20 +28,20 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
   return (
     <div className="min-h-dvh bg-shell text-base text-ink-on-shell">
       <div className="vw-header sticky top-0 z-30">
-        <header className="mx-auto flex h-18 max-w-[calc(var(--spacing)*300)] items-center gap-4 px-5">
+        <header className="mx-auto flex min-h-18 max-w-[calc(var(--spacing)*300)] flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2">
           <Link href="/console" className="flex items-center gap-3">
             <BrandMark className="size-9 drop-shadow-sm" />
             <span className="vw-brand-text text-body font-extrabold tracking-wordmark">{t.app.name}</span>
           </Link>
           <SimulatedBadge onShell />
-          <nav className="ml-auto flex gap-1 text-body">
+          <nav className="order-last flex w-full gap-1 overflow-x-auto text-body md:order-none md:ml-auto md:w-auto">
             {nav.map(([href, label]) => (
               <Link
                 key={href}
                 href={href}
                 aria-current={active === href ? 'page' : undefined}
                 className={cn(
-                  'rounded-button px-3 py-1.5 font-medium transition-colors',
+                  'shrink-0 rounded-button px-3 py-1.5 font-medium transition-colors',
                   active === href ? 'bg-panel-sunken text-ink-on-shell' : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
                 )}
               >
@@ -49,9 +49,11 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
               </Link>
             ))}
           </nav>
-          <ViewMenu console={false} />
-          <ThemeToggle />
-          <AccountMenu />
+          <div className="ml-auto flex items-center gap-2 md:ml-0">
+            <ViewMenu console={false} />
+            <ThemeToggle />
+            <AccountMenu />
+          </div>
         </header>
       </div>
       <main className="mx-auto max-w-[calc(var(--spacing)*280)] px-6 pt-14 pb-16">

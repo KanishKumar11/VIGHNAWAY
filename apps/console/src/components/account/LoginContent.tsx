@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { useSession } from '@/stores/session';
+import { Button } from '@/components/ui/button';
 import { useSessionRole } from '@/components/account/AccountMenu';
 import { SignInForm } from '@/components/account/SignInForm';
 import { PageShell } from '@/components/shared/PageShell';
@@ -39,6 +40,9 @@ export function LoginContent() {
               <Link href="/report" className={cn(buttonVariants({ variant: role === 'citizen' ? 'primary' : 'outline' }))}>
                 {t.account.openReport}
               </Link>
+              <Button variant="outline" onClick={() => void useSession.getState().signOut()}>
+                {t.account.signOut}
+              </Button>
             </div>
           </div>
         ) : (

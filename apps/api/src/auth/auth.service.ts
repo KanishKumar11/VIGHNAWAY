@@ -66,10 +66,10 @@ export class AuthService {
     }
     const since = new Date(now.getTime() - HOUR_MS);
     if ((await this.repo.countOtps({ email, since })) >= this.a.otpMaxPerEmailPerHour) {
-      throw new ApiException('RATE_LIMITED', 'Too many codes for this email. Try again in an hour');
+      throw new ApiException('RATE_LIMITED', 'Too many codes for this email. Try again in an hour', { retryAfterS: 3600 });
     }
     if (ipHash && (await this.repo.countOtps({ ipHash, since })) >= this.a.otpMaxPerIpPerHour) {
-      throw new ApiException('RATE_LIMITED', 'Too many codes from this network. Try again in an hour');
+      throw new ApiException('RATE_LIMITED', 'Too many codes from this network. Try again in an hour', { retryAfterS: 3600 });
     }
 
     const code = generateOtpCode();
@@ -120,8 +120,8 @@ export class AuthService {
     } else if (isBootstrapAdmin && user.role !== 'admin') {
       user = (await this.repo.updateUser(user.id, { role: 'admin' })) ?? user;
     }
-    if (user.disabled) throw new ApiException('FORBIDDEN', 'This account is disabled');
-    if (!canSignInOn(user.role, body.client)) throw new ApiException('FORBIDDEN', WRONG_CLIENT[body.client]);
+    if (user.disabled) throw new ApiException('FORBIDDEN', 'This account is disabled', { reason: 'disabled' });
+    if (!canSignInOn(user.role, body.client)) throw new ApiException('FORBIDDEN', WRONG_CLIENT[body.client], { reason: 'wrong_client' });
 
     user = (await this.repo.updateUser(user.id, { lastLoginAt: now })) ?? user;
     const token = generateSessionToken();

@@ -45,6 +45,20 @@ describe('scenario scoreboard (P1-6)', () => {
     expect(fresh.seeds).toEqual([...DEFAULT_SEEDS]);
   }, 120_000);
 
+  it('the pitch slide quotes the scoreboard figures and promises nothing', () => {
+    const slides = readFileSync(resolve(docs, 'pitch-slides.md'), 'utf8').replace(/\r\n/g, '\n');
+    const b = runScoreboard().summary;
+    const block = /<!-- scoreboard:start -->([\s\S]*?)<!-- scoreboard:end -->/.exec(slides)![1]!;
+    expect(block).toContain(`${b.scenarios} seeded scenarios`);
+    expect(block).toContain(`in ${b.usualBlocked} of ${b.scenarios}`);
+    expect(block).toContain(`median of ${b.extraMinMedian} extra modelled minutes, and ${b.extraMinWorst} at worst`);
+    expect(block).toContain(`In ${b.slowerNoBlock} of ${b.scenarios}`);
+    expect(b.noViable).toBe(0);
+    expect(slides).toContain('Simulated scenarios on real roads');
+    // The only mention of a forbidden word is the explicit "do not say" line.
+    expect(findForbiddenWords(slides.replace(/Do not say:[^\n]*/, ''))).toEqual([]);
+  }, 120_000);
+
   it('labels every figure as simulated and modelled, lists unfavourable cases, and promises nothing', () => {
     const b = runScoreboard();
     const text = renderScoreboard(b);

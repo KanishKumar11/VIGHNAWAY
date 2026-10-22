@@ -155,6 +155,7 @@ describe('roles and clients', () => {
     await s.auth.requestOtp(ADMIN, 'mobile', null);
     const e = await rejects(s.auth.verifyOtp({ email: ADMIN, code: s.mailer.last().code, client: 'mobile' }), 'FORBIDDEN');
     expect(e.message).toMatch(/web console/);
+    expect(e.details).toEqual({ reason: 'wrong_client' });
   });
 
   it('a pre-created operator may use the web console but not the phone app', async () => {
@@ -178,7 +179,8 @@ describe('roles and clients', () => {
     expect(await s.auth.authenticate(citizen.token)).toBeNull();
     advance(61);
     await s.auth.requestOtp('asha@example.com', 'mobile', null);
-    await rejects(s.auth.verifyOtp({ email: 'asha@example.com', code: s.mailer.last().code, client: 'mobile' }), 'FORBIDDEN');
+    const e = await rejects(s.auth.verifyOtp({ email: 'asha@example.com', code: s.mailer.last().code, client: 'mobile' }), 'FORBIDDEN');
+    expect(e.details).toEqual({ reason: 'disabled' });
   });
 
   it('a role change takes effect on the next request', async () => {

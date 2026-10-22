@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- HAND-WRITTEN FIXTURE, not a recording of a real feed: the CAP source was unreachable when this was written.
+     Field names follow CAP 1.2. Used only by test/unit/cap.test.ts. -->
+<feed>
+  <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+    <identifier>FIXTURE-RAIN-1</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <sent>2026-07-14T08:00:00+05:30</sent>
+    <status>Actual</status>
+    <msgType>Alert</msgType>
+    <scope>Public</scope>
+    <info>
+      <language>en-IN</language>
+      <event>Heavy Rainfall</event>
+      <urgency>Expected</urgency>
+      <severity>Moderate</severity>
+      <certainty>Likely</certainty>
+      <effective>2026-07-14T08:00:00+05:30</effective>
+      <expires>2026-07-14T20:00:00+05:30</expires>
+      <headline>Heavy rain likely in Mumbai suburbs &lt;b&gt;today&lt;/b&gt;</headline>
+      <description>Heavy to very heavy rainfall is likely.</description>
+      <area><areaDesc>Mumbai Suburban</areaDesc></area>
+    </info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-RAIN-OTHER-AREA</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <sent>2026-07-14T08:00:00+05:30</sent>
+    <status>Actual</status>
+    <msgType>Alert</msgType>
+    <info>
+      <event>Heavy Rainfall</event>
+      <effective>2026-07-14T08:00:00+05:30</effective>
+      <expires>2026-07-14T20:00:00+05:30</expires>
+      <headline>Heavy rain in Nagpur</headline>
+      <area><areaDesc>Nagpur</areaDesc></area>
+    </info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-EXPIRED</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <status>Actual</status>
+    <msgType>Alert</msgType>
+    <info>
+      <event>Heavy Rainfall</event>
+      <effective>2026-07-13T08:00:00+05:30</effective>
+      <expires>2026-07-13T20:00:00+05:30</expires>
+      <headline>Yesterday's rain alert for Mumbai</headline>
+      <area><areaDesc>Mumbai</areaDesc></area>
+    </info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-TEST</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <status>Test</status>
+    <msgType>Alert</msgType>
+    <info><event>Heavy Rainfall</event><effective>2026-07-14T08:00:00+05:30</effective><headline>Test message for Mumbai</headline><area><areaDesc>Mumbai</areaDesc></area></info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-CANCEL</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <status>Actual</status>
+    <msgType>Cancel</msgType>
+    <info><event>Heavy Rainfall</event><effective>2026-07-14T08:00:00+05:30</effective><headline>Cancelled Mumbai alert</headline><area><areaDesc>Mumbai</areaDesc></area></info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-HEAT</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <status>Actual</status>
+    <msgType>Alert</msgType>
+    <info><event>Heat Wave</event><effective>2026-07-14T08:00:00+05:30</effective><expires>2026-07-14T20:00:00+05:30</expires><headline>Heat wave in Mumbai</headline><area><areaDesc>Mumbai</areaDesc></area></info>
+  </alert>
+  <alert>
+    <identifier>FIXTURE-HINDI-FIRST</identifier>
+    <sender>fixture-sender@example.invalid</sender>
+    <status>Actual</status>
+    <msgType>Update</msgType>
+    <info>
+      <language>hi-IN</language>
+      <event>भारी वर्षा</event>
+      <effective>2026-07-14T09:00:00+05:30</effective>
+      <headline>मुंबई में भारी वर्षा</headline>
+      <area><areaDesc>मुंबई</areaDesc></area>
+    </info>
+    <info>
+      <language>en-IN</language>
+      <event>Heavy Rainfall</event>
+      <effective>2026-07-14T09:00:00+05:30</effective>
+      <headline>Very heavy rain, Mumbai and Konkan</headline>
+      <area><areaDesc>Mumbai, Konkan</areaDesc></area>
+    </info>
+  </alert>
+</feed>

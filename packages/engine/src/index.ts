@@ -33,6 +33,8 @@ export { buildReceipt, verifyReceipt, encodeReceipt, decodeReceipt, inputsHash, 
 export type { Receipt, ReceiptContext, ReceiptCheck, ReceiptVerification } from './receipt';
 export { evidenceCoverage, observationsFromIncidents, coverageClass, roadsWithoutRecentReport, coverageBriefText } from './coverage';
 export type { CoverageClass, Observation, RoadCoverage } from './coverage';
+export { assignHospitals, hospitalStateCostS, HOSPITAL_STATES } from './hospital';
+export type { AssignHospitalsInput, AssignmentReason, HospitalAssignment, HospitalState, HospitalTrip } from './hospital';
 export { dataGapQuestions, nextQuestion, ASK_COOLDOWN_MS } from './ask';
 export type { DataGapQuestion, AskState } from './ask';
 export { counterfactuals } from './counterfactual';

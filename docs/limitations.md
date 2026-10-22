@@ -50,6 +50,9 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 - **Data gaps count per stretch.** The data-gap penalty applies once per continuous flood-prone stretch of a route (any recent
   report on it covers the stretch), because real roads are split into many short edges.
 
+- **Rain alerts and hospital state are not live inputs yet.** The CAP parser (docs/TASKS.md P2-5.a) was tested only against a
+  hand-written fixture, and hospital load spreading (P2-4.b) exists in the engine without an operator control or a screen.
+
 ## Languages
 
 - **Hindi and Marathi translations need review by a native speaker** before any public use. They

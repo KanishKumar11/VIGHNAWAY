@@ -130,6 +130,10 @@ export const SCORING_RULES = {
     { car: 15, two_wheeler: 18, foot: 4.5 },
     'Speed for road classes not listed above.',
   ),
+  hospitalLoad: r(
+    { busyS: 300, divertingS: 1800, perAssignedS: 120 },
+    'When several trips head for the nearest hospital, each hospital costs its arrival time plus a state penalty (accepting 0, busy 300 s, diverting 1,800 s) plus 120 s for each trip already assigned to it in the same batch. The lowest cost wins and ties go to the lower hospital id. Ranking only: the arrival time shown is unchanged. A hospital that is not reachable is never assigned.',
+  ),
   access: r(
     {
       motorExcludedHighways: [

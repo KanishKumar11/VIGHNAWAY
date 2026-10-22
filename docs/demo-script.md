@@ -37,6 +37,21 @@ speed). The replay and the console follower agree on every step.
 Then press **Reset** on the console and **Play** again to show the replay is identical (same
 banners, same parity hash on /debug and the phone debug screen).
 
+## Drill the API before a rehearsal
+
+With the API deployed, migrated and seeded (`pnpm --filter api db:migrate`, `db:seed`):
+
+```
+OPERATOR_TOKEN=... API_URL=https://your-api node scripts/smoke-demo.mjs     # or: pnpm smoke
+```
+
+It resets the simulated scenario, steps the seven scripted events and checks each outcome (Unverified, Corroborated,
+Verified by the simulated operator, the hospital closure), that a reset replays identically, the audience flow (two phones
+Corroborated and never Verified, tagged audience-only, operator-only clear, a mixed incident left alone), and the ask-the-crowd
+limits (one answer per road per device, a prompt Road clear never resolves anything). Exit code 1 on any failure.
+**Do not run it during a live demo: it resets the scenario.** It was written without a database to test against; the first run
+on your server is its first run.
+
 ## Optional segments (30 to 90 seconds each)
 
 | Segment | Steps | Talk track |

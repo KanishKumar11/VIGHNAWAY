@@ -226,7 +226,7 @@ Priority P0 · Status todo · Effort 1 h · Depends —
 - **Acceptance:** Every recovery path names a command or click and the expected screen.
 
 ### P0-5.b Recovery drill in the sandbox
-Priority P0 · Status todo · Effort 1 h · Depends P0-5.a
+Priority P0 · Status script written and run once against the developer's API: 18/18 pass. `pnpm smoke` (scripts/smoke-demo.mjs) drives a running API through the scripted demo, determinism, the audience flow and the ask limits with REST only (see docs/demo-script.md). The stop-the-API and no-Maps-key steps below are manual · Effort 1 h · Depends P0-5.a
 - **Steps:**
   1. Stop the API mid-run.
   2. Restart it.
@@ -443,7 +443,7 @@ Priority P1 · Status **done**: `pnpm scoreboard` writes docs/scoreboard.md and 
   real-world outcome.
 
 ### P1-6.c Pitch slide
-Priority P1 · Status todo · Effort 0.5 h · Depends P1-6.b
+Priority P1 · Status **done**: docs/pitch-slides.md (the scoreboard slide and the path-to-pilot slide); a test checks the quoted figures against the scoreboard and the forbidden words · Effort 0.5 h · Depends P1-6.b
 - **Behaviour:** One slide with the headline figures and the sentence "Simulated scenarios on real roads; seeds
   published".
 
@@ -561,6 +561,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-5.a | A CAP 1.2 alert adapter (SACHET publishes CAP), parsed against a **hand-written fixture marked as such**, because the feed was unreachable when this was written | parser; area filter for Mumbai; expiry | 2 h |
+| P2-5.a status | **done** as a pure parser, apps/api/src/alerts/cap.ts, with test/fixtures/cap-mumbai.xml (hand-written, marked) and test/unit/cap.test.ts (6, run with `pnpm --filter api test:unit`, no database needed): keeps active Mumbai rain alerts, reports why others were left out (not Actual, cancelled, expired, other area, not rain), strips markup, caps length, first usable language. Not wired to the live scenario yet (P2-5.b) | | |
 | P2-5.b | Alerts set the scenario's `alerts[]` in live mode only, with provenance and a freshness status; "Alert feed unavailable" with its age when it fails | API tests | 1.5 h |
 | P2-5.c | Live run against the real feed | **blocked** (network) | 1 h |
 
@@ -570,6 +571,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | --- | --- | --- | --- |
 | P2-4.a | Hospital state (accepting, busy, diverting) set by an operator action, logged, labelled "Set by control room (simulated)" in the demo | API tests | 2 h |
 | P2-4.b | Engine `assignHospital(trips, reachable, states)`: deterministic; adds the documented per-state cost; tie-break by hospital id | engine tests; parity | 2–3 h |
+| P2-4.b status | **done** as `assignHospitals` (packages/engine/src/hospital.ts) with the new `hospitalLoad` scoring rule (busy 300 s, diverting 1,800 s, 120 s per trip already assigned in the batch; ranking only), Hindi and Marathi rule text, scoring.md regenerated; engine test/hospital.test.ts (7: nearest, spreading, order independence, busy and diverting, all diverting, unreachable). The parity hash is unchanged. P2-4.a (API operator action) and P2-4.c (console and phone) are not built | | |
 | P2-4.c | Console and phone show the assigned hospital and the reason | vitest and jest | 2 h |
 
 ## P2-7 Commute watch

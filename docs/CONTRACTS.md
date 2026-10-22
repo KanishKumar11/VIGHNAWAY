@@ -22,7 +22,7 @@ seconds** (`…S` fields) assigned by the server.
 | `POST /scenarios/:id/sim/play` · `pause` · `step` · `reset` | Bearer | `{}` | `SimResponse { sim }` |
 | `GET /operator/check` | Bearer (operator token or operator/admin session) | | `204`, `401` or `403` |
 | `POST /auth/otp/request` | none | `{ email, client: 'web' | 'mobile' }` | `OtpRequestResponse { sent, expiresInS, resendAfterS }`: same answer for every email; 429 with `details.retryAfterS` |
-| `POST /auth/otp/verify` | none | `{ email, code, client, displayName? }` | `AuthSessionResponse { token, expiresAt, user }`; 401 for any bad, expired, used or locked code; 403 for a disabled account or a role that may not sign in on that client |
+| `POST /auth/otp/verify` | none | `{ email, code, client, displayName? }` | `AuthSessionResponse { token, expiresAt, user }`; 401 for any bad, expired, used or locked code; 403 for a disabled account or a role that may not sign in on that client (`error.details.reason` is `disabled` or `wrong_client`); the hourly 429s carry `details.retryAfterS` too |
 | `GET /auth/me` | session | | `MeResponse { user, client }` |
 | `POST /auth/logout` | session | | `204` |
 | `GET /me/stats` | session | | `MyStatsResponse { reports, inVerifiedIncidents }` (counts for a thank-you; read by nothing else) |

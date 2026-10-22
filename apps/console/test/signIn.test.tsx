@@ -98,6 +98,8 @@ describe('sign-in form', () => {
     const resend = () => screen.getByRole('button', { name: /^Send a new code/ }) as HTMLButtonElement;
     expect(resend().textContent).toBe(t.account.resendIn(3));
     expect(resend().disabled).toBe(true);
+    // Let the countdown's interval start before moving the clock.
+    await act(async () => {});
     act(() => vi.advanceTimersByTime(2000));
     expect(resend().textContent).toBe(t.account.resendIn(1));
     act(() => vi.advanceTimersByTime(1000));
@@ -131,7 +133,7 @@ describe('sign-in form', () => {
     expect(codeBox().value).toBe('123456');
   });
 
-  it('shows the server message for a disabled account (403) and a network failure', async () => {
+  it('shows the server message for a disabled account (403)', async () => {
     let n = 0;
     stubFetch((c) => {
       if (c.path === '/auth/otp/request') return { body: { sent: true, expiresInS: 600, resendAfterS: 0 } };
