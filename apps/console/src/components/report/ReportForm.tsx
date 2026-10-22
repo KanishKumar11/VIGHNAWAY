@@ -9,7 +9,8 @@ import { CircleAlert, CircleCheck, LocateFixed, MapPin, Send } from 'lucide-reac
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { t } from '@/i18n';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
+import { sendReport } from '@/lib/sendReport';
 import { cn } from '@/lib/cn';
 import { buildScene } from '@/lib/scene';
 import { graphFor, GRAPH_FILE, SCENARIO_ID } from '@/lib/scenario';
@@ -215,7 +216,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     }
     setPhase('sending');
     try {
-      await api.report(scenarioId, parsed.data);
+      await sendReport(scenarioId, parsed.data);
       // The send button morphs into the success animation, then the sent state and the toast.
       finished.current = false;
       setPhase(reduced ? 'sent' : 'success');

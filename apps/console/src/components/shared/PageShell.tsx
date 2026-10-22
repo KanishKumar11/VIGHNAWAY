@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { AccountMenu, useSessionRole } from '@/components/account/AccountMenu';
 import { BrandMark } from './BrandMark';
 import { SimulatedBadge } from './EvidenceChips';
 import { ThemeToggle } from './ThemeToggle';
@@ -21,6 +22,9 @@ const NAV = () =>
 
 /** Floating bar and reading column for /rules and /debug, in the console's visual system. */
 export function PageShell({ title, eyebrow, intro, active, children }: { title: string; eyebrow?: string; intro?: ReactNode; active?: string; children: ReactNode }) {
+  const role = useSessionRole();
+  // The Admin link is for clarity only; the server enforces who may manage accounts.
+  const nav = role === 'admin' ? [...NAV(), ['/admin', t.nav.admin] as const] : NAV();
   return (
     <div className="min-h-dvh bg-shell text-base text-ink-on-shell">
       <div className="vw-header sticky top-0 z-30">
@@ -31,7 +35,7 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
           </Link>
           <SimulatedBadge onShell />
           <nav className="ml-auto flex gap-1 text-body">
-            {NAV().map(([href, label]) => (
+            {nav.map(([href, label]) => (
               <Link
                 key={href}
                 href={href}
@@ -47,6 +51,7 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
           </nav>
           <ViewMenu console={false} />
           <ThemeToggle />
+          <AccountMenu />
         </header>
       </div>
       <main className="mx-auto max-w-[calc(var(--spacing)*280)] px-6 pt-14 pb-16">

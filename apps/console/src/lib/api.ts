@@ -1,6 +1,12 @@
 import {
   API_PATHS,
+  AdminUserResponseSchema,
+  AdminUsersResponseSchema,
   ApiErrorSchema,
+  AuthSessionResponseSchema,
+  MeResponseSchema,
+  MyStatsResponseSchema,
+  OtpRequestResponseSchema,
   ClearAudienceResponseSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
@@ -11,7 +17,16 @@ import {
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
   SimResponseSchema,
+  type AdminCreateUserBody,
+  type AdminUpdateUserBody,
+  type AdminUserResponse,
+  type AdminUsersResponse,
+  type AuthSessionResponse,
   type ClearAudienceResponse,
+  type MeResponse,
+  type MyStatsResponse,
+  type OtpRequestResponse,
+  type OtpVerifyBody,
   type FeedStatus,
   type HistoryResponse,
   type HealthResponse,
@@ -36,6 +51,7 @@ export type ApiErrorCode =
   | 'VALIDATION_FAILED'
   | 'NOT_ON_ROAD'
   | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'NOT_FOUND'
   | 'RATE_LIMITED'
   | 'CONFLICT'
@@ -59,6 +75,7 @@ export class ApiError extends Error {
 const STATUS_CODE: Record<number, ApiErrorCode> = {
   400: 'VALIDATION_FAILED',
   401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',
   413: 'PAYLOAD_TOO_LARGE',
@@ -156,6 +173,21 @@ export const api = {
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),
+  /** Accounts: email one-time code. The same answer whether or not the email has an account. */
+  otpRequest: (email: string, o?: RequestOptions): Promise<OtpRequestResponse> =>
+    request(API_PATHS.authOtpRequest, OtpRequestResponseSchema, { ...o, method: 'POST', body: { email, client: 'web' } }),
+  otpVerify: (body: Omit<OtpVerifyBody, 'client'>, o?: RequestOptions): Promise<AuthSessionResponse> =>
+    request(API_PATHS.authOtpVerify, AuthSessionResponseSchema, { ...o, method: 'POST', body: { ...body, client: 'web' } }),
+  me: (token: string, o?: RequestOptions): Promise<MeResponse> => request(API_PATHS.authMe, MeResponseSchema, { ...o, token }),
+  logout: (token: string, o?: RequestOptions): Promise<void> =>
+    request<void>(API_PATHS.authLogout, null, { ...o, method: 'POST', body: {}, token }),
+  myStats: (token: string, o?: RequestOptions): Promise<MyStatsResponse> => request(API_PATHS.myStats, MyStatsResponseSchema, { ...o, token }),
+  adminUsers: (token: string, o?: RequestOptions): Promise<AdminUsersResponse> =>
+    request(API_PATHS.adminUsers, AdminUsersResponseSchema, { ...o, token }),
+  adminCreateUser: (token: string, body: AdminCreateUserBody, o?: RequestOptions): Promise<AdminUserResponse> =>
+    request(API_PATHS.adminUsers, AdminUserResponseSchema, { ...o, method: 'POST', body, token }),
+  adminUpdateUser: (token: string, id: string, body: AdminUpdateUserBody, o?: RequestOptions): Promise<AdminUserResponse> =>
+    request(API_PATHS.adminUser(id), AdminUserResponseSchema, { ...o, method: 'POST', body, token }),
   operatorCheck: (token: string, o?: RequestOptions): Promise<void> =>
     request<void>(API_PATHS.operatorCheck, null, { ...o, token }),
 };

@@ -13,14 +13,22 @@ seconds** (`…S` fields) assigned by the server.
 | `GET /scenarios` | none | | `ScenarioListResponse { scenarios: ScenarioSummary[] }` |
 | `GET /scenarios/:id` | none | | `ScenarioResponse { scenario: Scenario, sim: SimState }` |
 | `GET /scenarios/:id/incidents` | none | `?sinceSeq=n` (optional) | `IncidentsResponse { scenarioId, seq, full, runId, simTimeS, incidents, observations? }` |
-| `POST /scenarios/:id/reports` | none (throttled) | `ReportInput` | `201 ReportResponse { receipt, incident \| null }` |
+| `POST /scenarios/:id/reports` | none (throttled); an optional session links the report to the account | `ReportInput` | `201 ReportResponse { receipt, incident \| null }` |
 | `POST /scenarios/:id/audience/clear` | Bearer | `{}` | `ClearAudienceResponse { cleared, incidentIds }`: dismisses every open incident supported only by audience reports (one logged change each, broadcast like any change); scripted and mixed-origin incidents stay |
 | `POST /scenarios/:id/incidents/:incidentId/verify` | Bearer | `{ note? }` | `OperatorActionResponse { incident }` |
 | `POST /scenarios/:id/incidents/:incidentId/resolve` | Bearer | `{ note? }` | same |
 | `POST /scenarios/:id/incidents/:incidentId/dismiss` | Bearer | `{ note? }` | same |
 | `GET /scenarios/:id/sim` | none | | `SimResponse { sim }` |
 | `POST /scenarios/:id/sim/play` · `pause` · `step` · `reset` | Bearer | `{}` | `SimResponse { sim }` |
-| `GET /operator/check` | Bearer | | `204` or `401` |
+| `GET /operator/check` | Bearer (operator token or operator/admin session) | | `204`, `401` or `403` |
+| `POST /auth/otp/request` | none | `{ email, client: 'web' | 'mobile' }` | `OtpRequestResponse { sent, expiresInS, resendAfterS }`: same answer for every email; 429 with `details.retryAfterS` |
+| `POST /auth/otp/verify` | none | `{ email, code, client, displayName? }` | `AuthSessionResponse { token, expiresAt, user }`; 401 for any bad, expired, used or locked code; 403 for a disabled account or a role that may not sign in on that client |
+| `GET /auth/me` | session | | `MeResponse { user, client }` |
+| `POST /auth/logout` | session | | `204` |
+| `GET /me/stats` | session | | `MyStatsResponse { reports, inVerifiedIncidents }` (counts for a thank-you; read by nothing else) |
+| `GET /admin/users` | admin session | | `AdminUsersResponse { users }` |
+| `POST /admin/users` | admin session | `{ email, role }` | `201 AdminUserResponse`; 409 if the email exists |
+| `POST /admin/users/:id` | admin session | `{ role?, disabled? }` | `AdminUserResponse`; 409 when changing yourself or removing the last active admin |
 | `GET /scenarios/:id/history` | none | | `HistoryResponse { scenarioId, runId, resetSeq, entries: { seq, atS, kind, summary, incident }[] }`: every incident change of the current run with the incident after it; `incidentsAtSeq(entries, seq)` rebuilds any moment for decision replay |
 | `GET /scenarios/:id/feed` | none | | `FeedStatus` (live traffic feed; see docs/live-traffic.md) |
 | `POST /scenarios/:id/feed/poll` | Bearer | | `{ result, status }`; 409 for non-live scenarios or when the feed is off |
@@ -80,7 +88,8 @@ note, seq`.
 | Code | HTTP | When |
 | --- | --- | --- |
 | `VALIDATION_FAILED` | 400 | Body or query fails its Zod schema (`details` = issues) |
-| `UNAUTHORIZED` | 401 | Missing or wrong `Authorization: Bearer <OPERATOR_TOKEN>` |
+| `UNAUTHORIZED` | 401 | Missing or wrong `Authorization: Bearer` credential (operator token or session), or a bad one-time code |
+| `FORBIDDEN` | 403 | A valid sign-in whose role may not do this: a citizen on an operator action, a non-admin on `/admin`, or a staff account on the phone |
 | `NOT_FOUND` | 404 | Unknown scenario or incident |
 | `CONFLICT` | 409 | Operator action on a closed incident, or a second `prompt` answer for the same road from one device within 30 simulated minutes |
 | `PAYLOAD_TOO_LARGE` | 413 | Body over 16 kB |
@@ -120,9 +129,28 @@ before trusting the stream. Apply `incident.upserted` only if `seq > lastSeq`; o
 (`seq > lastSeq + 1`) resync. On `sim.reset` clear incidents and resync with no `sinceSeq`. The API
 keeps only the latest `trip.position` per scenario in memory and sends it to a client when it joins.
 
+## Accounts (email one-time code)
+
+Roles: `citizen`, `operator`, `admin`. Clients: `web`, `mobile`. `ROLE_CLIENTS` in `packages/contracts/src/auth.ts`
+decides who may sign in where: a citizen on the phone and the public web report page; operators and admins on the web
+console only. The server enforces it twice: at sign-in (403 after a correct code) and on every request (a session whose
+role no longer fits its client stops working). Role and disabled state are read live, so a change applies on the next
+request.
+
+Sign-in is two calls. `otp/request` emails a 6-digit code (10 min, one use, 5 wrong guesses lock it, 60 s between
+requests, 5 per email and 30 per network per hour); only an HMAC of email + code under `AUTH_SECRET` is stored.
+`otp/verify` creates a citizen account on first sign-in (or an admin, for an email in `ADMIN_EMAILS`), and returns an
+opaque session token (web 12 h, phone 30 days). Only its sha256 is stored; send it as `Authorization: Bearer`.
+Operators are added by an admin (`POST /admin/users`) before their first sign-in. Without `SMTP_URL` the code is
+written to the API log in development, and sign-in emails are refused when `NODE_ENV=production`.
+
+An account never feeds routing or corroboration. A signed-in report stores `user_id` for history and for the
+reporter's own counts (`/me/stats`); incidents stay the only state that drives routing, and only an operator action
+sets Verified. Signing in is optional for reporting.
+
 ## Operator auth
 
-`OPERATOR_TOKEN` is server-side only. The console asks for it at runtime, keeps it in
+Operator actions accept either an operator or admin session (above) or the shared token below. `OPERATOR_TOKEN` is server-side only. The console asks for it at runtime, keeps it in
 sessionStorage (demo-grade, not a vault) and sends `Authorization: Bearer <token>`. Comparison is
 constant-time. `pnpm preflight` fails if the token appears in any `EXPO_PUBLIC_`/`NEXT_PUBLIC_`
 variable or committed file.

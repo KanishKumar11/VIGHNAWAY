@@ -48,9 +48,11 @@ nearest reachable hospital and "In an emergency, call 112".
   en-route mode with re-planning and trip relay; evidence sheet, banner, haptic, local notification;
   Report modal; control room; report page; edge states; tests; release APK and backup video.
 - **Should:** vehicle profiles; reachable destination; SMS share; offline mode.
+- **Added late (roles and sign-in):** email one-time-code accounts with citizen, operator and admin roles; optional for
+  reporting, required for the web control room. Accounts never feed routing. See docs/CONTRACTS.md "Accounts".
 - **Stretch:** iOS build; evacuation load spreading; Hindi and Punjabi strings; read-only SACHET
   alert banner.
-- **Out:** accounts, ML forecasting, LLM routing decisions, dispatch, Expo Go.
+- **Out:** ML forecasting, LLM routing decisions, dispatch, Expo Go.
 
 ## Success criteria
 

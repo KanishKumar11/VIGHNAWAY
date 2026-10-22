@@ -5,7 +5,7 @@ import { useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Activity, BookOpen, Bug, ChevronRight, Navigation, Settings, type LucideIcon } from '@/components/icons';
+import { Activity, BookOpen, Bug, ChevronRight, Navigation, Settings, UserRound, type LucideIcon } from '@/components/icons';
 import { Mark } from '@/components/Mark';
 import { PressScale } from '@/components/motion';
 import { appVersion } from '@/config/env';
@@ -19,6 +19,7 @@ import { createStyles, fontFamily, hairline, layout, letterSpacing, radius, shad
 const ITEMS: { name: string; label: StringKey; icon: LucideIcon }[] = [
   { name: 'index', label: 'drawerNavigate', icon: Navigation },
   { name: 'activity', label: 'drawerActivity', icon: Activity },
+  { name: 'account', label: 'drawerAccount', icon: UserRound },
   { name: 'settings', label: 'drawerSettings', icon: Settings },
   { name: 'how-it-decides', label: 'drawerHowItDecides', icon: BookOpen },
 ];
@@ -117,6 +118,7 @@ export default function DrawerLayout() {
     >
       <Drawer.Screen name="index" options={{ swipeEnabled: false, title: t('drawerNavigate') }} />
       <Drawer.Screen name="activity" options={{ title: t('drawerActivity') }} />
+      <Drawer.Screen name="account" options={{ title: t('drawerAccount') }} />
       <Drawer.Screen name="settings" options={{ title: t('drawerSettings') }} />
       <Drawer.Screen name="how-it-decides" options={{ title: t('drawerHowItDecides') }} />
       <Drawer.Screen name="debug" options={{ title: t('drawerDebug') }} />

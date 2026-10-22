@@ -4,6 +4,7 @@ import { t } from '@/i18n';
 import { ATTRIBUTION, isLiveScenario, scenarioFor } from '@/lib/scenario';
 import { parseAsk } from '@/lib/ask';
 import { AskForm } from '@/components/report/AskForm';
+import { ReportAccount } from '@/components/account/ReportAccount';
 import { ReportForm } from '@/components/report/ReportForm';
 import { ReportFooter, ReportHeader } from '@/components/report/ReportHeader';
 
@@ -35,6 +36,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
     <div className="min-h-dvh bg-shell text-ink">
       <ReportHeader live={live} />
       <main className="relative mx-auto flex min-h-[calc(100dvh-var(--spacing)*36)] max-w-[calc(var(--spacing)*130)] flex-col border-t border-shell-line bg-panel">
+        <ReportAccount />
         {askLink ? <AskForm scenarioId={scenario.id} link={askLink} /> : <ReportForm scenarioId={scenario.id} audience={audience} />}
         <ReportFooter attribution={ATTRIBUTION} />
       </main>

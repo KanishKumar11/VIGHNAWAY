@@ -8,11 +8,11 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
   scenario is simulated. In live mode, incidents come from real user reports, operators and the
   TomTom feed, each labelled with its source; VIGHNAWAY never says a real road is flooded or closed
   unless a named source reported it.
-- **Schematic road fixture.** The committed `graph.json` is a hand-drawn schematic of Andheri
-  (real road names, approximate positions), because the build sandbox could not reach
-  OpenStreetMap. Routes will not line up exactly with the Google basemap until
-  `scripts/extract_graph.py` is run and the scenario re-tuned. The UI shows the fixture notice
-  instead of the OpenStreetMap attribution while the fixture is in use.
+- **Real roads, with hand-set exceptions.** The committed `graph.json` is an OpenStreetMap extract of
+  Andheri (attribution shown). Two things in it are hand-set and labelled: the Andheri Subway name and
+  flood-prone mark (see below), and the schematic fixture kept only for engine tests
+  (`packages/engine/test/fixtures`). The OpenStreetMap extract has not been checked against the Google basemap
+  on a device.
 - **Speeds are illustrative** monsoon-traffic defaults per road class, not measurements.
 - **Overlaying OSM-derived routes on Google Maps:** the team must confirm this fits both
   providers' terms before any public release.
@@ -24,8 +24,9 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
   can corroborate. It is not proof of independent witnesses. Only an operator sets Verified.
 - **Operator access is demo-grade.** A shared bearer token typed into the console and kept in
   sessionStorage.
-- **Road clear reports** without an open incident nearby are recorded but do not count as
-  coverage for the data-gap rule.
+- **Road clear reports** on a flood-prone road count as a recent observation for the data-gap rule and the
+  coverage layer (the API publishes the latest report per flood-prone road). They never resolve an incident
+  and never set Verified.
 - **Incident extent** is modelled as the reported road within 60 m (600 m for congestion) of the
   report, in both directions.
 
@@ -52,8 +53,9 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 ## Languages
 
 - **Hindi and Marathi translations need review by a native speaker** before any public use. They
-  were written without one. Engine-generated sentences (route reasons, change messages) are
-  currently English in every language.
+  were written without one. Engine-generated sentences (route reasons, change messages, counterfactuals,
+  coverage lines) are built as structured text and shown in the active language; place and road names stay as
+  OpenStreetMap gives them.
 
 ## Platform
 

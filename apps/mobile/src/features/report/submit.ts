@@ -2,6 +2,7 @@ import { REPORT_TYPE_LABEL, type ReportInput } from '@vighnaway/contracts';
 import { t } from '@/i18n/en';
 import { api, ApiRequestError } from '@/lib/api';
 import { useActivity } from '@/stores/activity';
+import { authToken } from '@/stores/auth';
 import { useConnection } from '@/stores/connection';
 import { usePendingReports } from '@/stores/reports';
 import { useScenario } from '@/stores/scenario';
@@ -32,7 +33,8 @@ function queue(input: ReportInput): SubmitOutcome {
 export async function submitReport(input: ReportInput): Promise<SubmitOutcome> {
   if (useConnection.getState().net === 'offline') return queue(input);
   try {
-    await api.report(useSettings.getState().apiUrl, useScenario.getState().scenario.id, input);
+    // Signed in: the report is linked to the account. Signed out (or a stale session): anonymous, as before.
+    await api.report(useSettings.getState().apiUrl, useScenario.getState().scenario.id, input, authToken());
     useActivity.getState().add({
       atS: useSim.getState().simTimeS,
       kind: 'report_sent',

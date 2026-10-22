@@ -9,6 +9,8 @@ import { cn } from '@/lib/cn';
 import type { Insets } from '@/lib/projection';
 import { ATTRIBUTION } from '@/lib/scenario';
 import { themeVar } from '@/lib/theme';
+import { usePrefs } from '@/stores/prefs';
+import { CoverageSwatch } from '@/components/console/CoverageChip';
 
 type SwatchKind = 'recommended' | 'usual_fastest' | 'alternative' | 'blocked' | 'travelled' | 'floodProne' | 'railway' | 'slow' | 'jam';
 
@@ -82,6 +84,7 @@ export function MapLegend({
   extraAttribution?: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const coverageOn = usePrefs((s) => s.coverage);
   // Docked map stage: every overlay sits 16px from the stage's edges (8px when compact). Over the Google
   // basemap the legend is lifted clear of Google's logo and attribution row, which must stay visible.
   const edge = compact ? 8 : 16;
@@ -116,6 +119,20 @@ export function MapLegend({
                   </li>
                 ))}
               </ul>
+              {coverageOn && (
+                <>
+                  <p className="mt-3 border-t border-shell-hairline pt-3 font-semibold text-ink-on-shell-muted">{t.coverage.title}</p>
+                  <ul className="mt-2 grid grid-cols-1 gap-1.5" data-testid="coverage-legend">
+                    {(['fresh', 'ageing', 'stale', 'none'] as const).map((cls) => (
+                      <li key={cls} className="flex items-center gap-3">
+                        <CoverageSwatch cls={cls} />
+                        {t.coverage.classes[cls]}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-ink-on-shell-muted">{t.coverage.note}</p>
+                </>
+              )}
               {unavailable && (
                 <p role="status" className="mt-3 flex items-start gap-2 border-t border-shell-hairline pt-3 text-ink-on-shell">
                   <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-warn" />

@@ -22,6 +22,7 @@ import { getGraph } from '@/lib/engine';
 import { haptic } from '@/lib/feedback';
 import { sinceSeqFor } from '@/lib/sync';
 import { useActivity } from '@/stores/activity';
+import { authToken } from '@/stores/auth';
 import { useConnection } from '@/stores/connection';
 import { useFeed } from '@/stores/feed';
 import { useIncidents } from '@/stores/incidents';
@@ -188,7 +189,7 @@ export async function flushPendingReports(): Promise<void> {
   for (const p of pending) {
     try {
       // Each report goes to the scenario it was made in (queues from before tagging: the demo).
-      await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input);
+      await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input, authToken());
       remove(p.localId);
       const text = t('activityReportSent', { type: REPORT_TYPE_LABEL[p.input.type] });
       if (p.activityId) useActivity.getState().update(p.activityId, { kind: 'report_sent', text });

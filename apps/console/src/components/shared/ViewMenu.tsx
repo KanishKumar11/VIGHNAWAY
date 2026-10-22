@@ -107,6 +107,7 @@ export function ViewMenu({ console: inConsole = true, compact = false, bare = fa
                 <>
                   <Toggle label={t.view.speech} hint={speechAvailable() ? t.view.speechHint : t.view.speechUnavailable} checked={prefs.speech} disabled={!speechAvailable()} onChange={(v) => prefs.set('speech', v)} />
                   <Toggle label={t.view.list} hint={t.view.listHint} checked={prefs.listView} onChange={(v) => prefs.set('listView', v)} />
+                  <Toggle label={t.view.coverage} hint={t.view.coverageHint} checked={prefs.coverage} onChange={(v) => prefs.set('coverage', v)} />
                   <Toggle label={t.view.presenter} hint={t.view.presenterHint} checked={prefs.presenter} onChange={(v) => prefs.set('presenter', v)} />
                 </>
               )}

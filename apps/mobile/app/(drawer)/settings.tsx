@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
-import { Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, Volume2, type LucideIcon } from '@/components/icons';
+import { Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { GUTTER, Radio as RadioMark, Row, ScreenHeader, Section } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
@@ -18,6 +18,7 @@ import { LANGUAGES, type Language } from '@/i18n/lang';
 import { api } from '@/lib/api';
 import { KEYS, storage } from '@/lib/storage';
 import { useActivity } from '@/stores/activity';
+import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useIncidents } from '@/stores/incidents';
 import { useScenario } from '@/stores/scenario';
 import { useSettings, type Appearance, type DataMode } from '@/stores/settings';
@@ -64,6 +65,8 @@ export default function SettingsScreen() {
   const language = useSettings((s) => s.language);
   const largerText = useSettings((s) => s.largerText);
   const speakChanges = useSettings((s) => s.speakChanges);
+  const signedIn = useAuth(selectSignedIn);
+  const accountEmail = useAuth((s) => s.user?.email ?? null);
   // Offer Live only when this server lists a live scenario (the API may not have it yet).
   const [liveOffered, setLiveOffered] = useState<'checking' | 'yes' | 'no'>('checking');
   const profile = useSettings((s) => s.profile);
@@ -166,6 +169,17 @@ export default function SettingsScreen() {
         <View style={styles.headerBleed}>
           <ScreenHeader title={t('drawerSettings')} />
         </View>
+        <Section title={t('settingsAccount')} index={0}>
+          <Row
+            first
+            icon={UserRound}
+            title={t('drawerAccount')}
+            subtitle={signedIn ? accountEmail : t('accountRowSignedOut')}
+            onPress={() => router.push('/account')}
+            accessibilityLabel={t('drawerAccount')}
+            testID="settings-account"
+          />
+        </Section>
         <Section title={t('settingsProfile')} index={0} bare>
           <Segmented
             accessibilityLabel={t('settingsProfile')}

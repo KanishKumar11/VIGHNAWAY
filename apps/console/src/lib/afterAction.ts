@@ -1,4 +1,4 @@
-import type { HistoryEntry, HistoryResponse, Scenario, Text } from '@vighnaway/contracts';
+import type { HistoryEntry, HistoryResponse, Text } from '@vighnaway/contracts';
 import { formatSimClock, incidentsAtSeq } from '@vighnaway/contracts';
 import { ENGINE_VERSION, rulesHash } from '@vighnaway/engine';
 import { createTrip, incidentsTrip, recommendedRoute, tickTrip, type TripEnv } from './demoTrip';

@@ -1,7 +1,7 @@
 import type { GraphFile, Incident, LatLng, LngLatTuple, Place, RouteRole } from '@vighnaway/contracts';
-import type { Graph, RouteSegmentFlow } from '@vighnaway/engine';
+import type { CoverageClass, Graph, RoadCoverage, RouteSegmentFlow } from '@vighnaway/engine';
 import { alertContext, flowDurationMs, routeFlow, routeGeometry } from '@vighnaway/engine';
-import { routeStyles, zIndex } from '@vighnaway/tokens';
+import { colors, routeStyles, zIndex } from '@vighnaway/tokens';
 import type { MotionPhase } from '@/hooks/useRouteChangeMotion';
 import type { TripChange, TripEnv, TripState } from './demoTrip';
 import { followedDisplayEdges, recommendedRoute, vehicleMarker } from './demoTrip';
@@ -10,7 +10,7 @@ import { followedDisplayEdges, recommendedRoute, vehicleMarker } from './demoTri
  * Everything both map renderers draw, built once from the engine's plan so the Google map and the
  * schematic view are styled identically (tokens.routeStyles, tokens.zIndex).
  */
-export type LineKind = RouteRole | 'travelled' | 'floodProne' | 'old' | 'blocking';
+export type LineKind = RouteRole | 'travelled' | 'floodProne' | 'old' | 'blocking' | 'coverage';
 
 export interface SceneLine {
   key: string;
@@ -126,19 +126,58 @@ export function floodProneLines(file: GraphFile): SceneLine[] {
   return out;
 }
 
+/**
+ * Evidence-coverage layer (P1-5): each flood-prone road drawn in the colour and dash pattern of
+ * its coverage class, so it reads without colour: solid (fresh), long dashes (ageing), short
+ * dashes (stale), dots (no reports). Existing colour tokens only; sits just above the flood-prone underlay.
+ */
+export const COVERAGE_STYLE: Record<CoverageClass, { color: string; dash: readonly number[] | null }> = {
+  fresh: { color: colors.positive, dash: null },
+  ageing: { color: colors.warn, dash: [9, 4] },
+  stale: { color: colors.danger, dash: [3, 3] },
+  none: { color: colors.routeMuted, dash: [1, 6] },
+};
+
+export function coverageLines(file: GraphFile, coverage: readonly RoadCoverage[]): SceneLine[] {
+  const byId = new Map(file.edges.map((e) => [e.id, e] as const));
+  const out: SceneLine[] = [];
+  for (const road of coverage) {
+    const st = COVERAGE_STYLE[road.class];
+    for (const id of road.edgeIds) {
+      const e = byId.get(id);
+      if (!e) continue;
+      out.push({
+        key: `cov-${id}`,
+        kind: 'coverage',
+        coords: e.geometry,
+        color: st.color,
+        width: routeStyles.recommended.width,
+        casing: null,
+        casingWidth: 0,
+        opacity: 1,
+        dash: st.dash,
+        z: zIndex.floodProne + 0.5,
+        fade: false,
+        edgeIds: [id],
+      });
+    }
+  }
+  return out;
+}
+
 export interface MotionInput {
   phase: MotionPhase;
   flashOn: boolean;
   change: Pick<TripChange, 'id'> | null;
 }
 
-export function buildScene(env: TripEnv, file: GraphFile, trip: TripState | null, motion: MotionInput, incidents: readonly Incident[] = []): MapScene {
+export function buildScene(env: TripEnv, file: GraphFile, trip: TripState | null, motion: MotionInput, incidents: readonly Incident[] = [], coverage: readonly RoadCoverage[] | null = null): MapScene {
   const graph: Graph = env.graph;
   const places = env.scenario.places;
   const origin = places.find((p) => p.id === env.scenario.demoTrip.originId) ?? null;
   const destination = places.find((p) => p.id === (trip?.destinationId ?? env.scenario.demoTrip.destinationId)) ?? null;
   const otherPlaces = places.filter((p) => p.kind === 'hospital' && p.id !== destination?.id);
-  const lines: SceneLine[] = [...floodProneLines(file)];
+  const lines: SceneLine[] = [...floodProneLines(file), ...(coverage ? coverageLines(file, coverage) : [])];
   const blockedCrosses: SceneMarker[] = [];
   if (!trip) return { lines, blockedCrosses, vehicle: null, origin, destination, otherPlaces, focus: null };
   const ctx = alertContext(env.scenario.alerts, env.scenario.hasAlertInformation, trip.simTimeS);

@@ -53,3 +53,6 @@ export { default as ArrowLeft } from 'lucide-react-native/icons/arrow-left';
 export { default as BadgeCheck } from 'lucide-react-native/icons/badge-check';
 export { default as Volume2 } from 'lucide-react-native/icons/volume-2';
 export { default as TypeIcon } from 'lucide-react-native/icons/type';
+export { default as UserRound } from 'lucide-react-native/icons/user-round';
+export { default as Mail } from 'lucide-react-native/icons/mail';
+export { default as LogOut } from 'lucide-react-native/icons/log-out';

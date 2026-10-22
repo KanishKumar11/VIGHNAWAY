@@ -1,15 +1,25 @@
 import {
   API_PATHS,
   ApiErrorSchema,
+  AuthSessionResponseSchema,
   FeedStatusSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
+  MeResponseSchema,
+  MyStatsResponseSchema,
+  OtpRequestResponseSchema,
   ReportResponseSchema,
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
+  type AuthSessionResponse,
   type FeedStatus,
   type HealthResponse,
   type IncidentsResponse,
+  type MeResponse,
+  type MyStatsResponse,
+  type OtpRequestBody,
+  type OtpRequestResponse,
+  type OtpVerifyBody,
   type ReportInput,
   type ReportResponse,
   type ScenarioListResponse,
@@ -22,6 +32,8 @@ export class ApiRequestError extends Error {
     message: string,
     readonly status: number,
     readonly code: string | null,
+    /** error.details from the API envelope, when it sent any (a 429 carries retryAfterS). */
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = 'ApiRequestError';
@@ -39,7 +51,7 @@ async function request<T>(
   baseUrl: string,
   path: string,
   schema: Parser<T>,
-  init: { method?: 'GET' | 'POST'; body?: unknown; timeoutMs?: number } = {},
+  init: { method?: 'GET' | 'POST'; body?: unknown; timeoutMs?: number; token?: string | null } = {},
 ): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init.timeoutMs ?? TIMEOUT_MS);
@@ -47,7 +59,11 @@ async function request<T>(
   try {
     res = await fetch(`${baseUrl}${path}`, {
       method: init.method ?? 'GET',
-      headers: { Accept: 'application/json', ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : null) },
+      headers: {
+        Accept: 'application/json',
+        ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : null),
+        ...(init.token ? { Authorization: `Bearer ${init.token}` } : null),
+      },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
       signal: controller.signal,
     });
@@ -64,11 +80,23 @@ async function request<T>(
   }
   if (!res.ok) {
     const err = ApiErrorSchema.safeParse(json);
-    throw new ApiRequestError(err.success ? err.data.error.message : `HTTP ${res.status}`, res.status, err.success ? err.data.error.code : null);
+    throw new ApiRequestError(err.success ? err.data.error.message : `HTTP ${res.status}`, res.status, err.success ? err.data.error.code : null, err.success ? err.data.error.details : undefined);
   }
   const parsed = schema.safeParse(json);
   if (!parsed.success) throw new ApiRequestError('Unexpected response from the server', res.status, 'INVALID_RESPONSE');
   return parsed.data;
+}
+
+/** Accepts any body, including none (204 responses have no JSON). */
+const anyBody: Parser<unknown> = { safeParse: (v) => ({ success: true, data: v }) };
+
+/** Seconds to wait before asking again, from a 429's details; null when the server gave none. */
+export function retryAfterSeconds(e: unknown): number | null {
+  if (!(e instanceof ApiRequestError)) return null;
+  const d = e.details;
+  if (typeof d !== 'object' || d === null) return null;
+  const v = (d as { retryAfterS?: unknown }).retryAfterS;
+  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.ceil(v) : null;
 }
 
 export const api = {
@@ -85,6 +113,30 @@ export const api = {
       `${API_PATHS.incidents(id)}${sinceSeq === undefined ? '' : `?sinceSeq=${sinceSeq}`}`,
       IncidentsResponseSchema,
     ),
-  report: (baseUrl: string, id: string, input: ReportInput): Promise<ReportResponse> =>
-    request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body: input }),
+  /**
+   * Signing in is optional: with a token the report is linked to the account, without one it is
+   * anonymous. The server ignores a bad token, but if anything answers 401 to an authorised report
+   * it is sent again anonymously, so a stale session can never stop a report.
+   */
+  report: async (baseUrl: string, id: string, input: ReportInput, token?: string | null): Promise<ReportResponse> => {
+    const send = (tk?: string | null) => request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body: input, token: tk });
+    if (!token) return send();
+    try {
+      return await send(token);
+    } catch (e) {
+      if (e instanceof ApiRequestError && e.status === 401) return send();
+      throw e;
+    }
+  },
+  authOtpRequest: (baseUrl: string, body: OtpRequestBody): Promise<OtpRequestResponse> =>
+    request(baseUrl, API_PATHS.authOtpRequest, OtpRequestResponseSchema, { method: 'POST', body }),
+  authOtpVerify: (baseUrl: string, body: OtpVerifyBody): Promise<AuthSessionResponse> =>
+    request(baseUrl, API_PATHS.authOtpVerify, AuthSessionResponseSchema, { method: 'POST', body }),
+  authMe: (baseUrl: string, token: string): Promise<MeResponse> =>
+    request(baseUrl, API_PATHS.authMe, MeResponseSchema, { token, timeoutMs: 6000 }),
+  authLogout: async (baseUrl: string, token: string): Promise<void> => {
+    await request(baseUrl, API_PATHS.authLogout, anyBody, { method: 'POST', token, timeoutMs: 5000 });
+  },
+  myStats: (baseUrl: string, token: string): Promise<MyStatsResponse> =>
+    request(baseUrl, API_PATHS.myStats, MyStatsResponseSchema, { token, timeoutMs: 6000 }),
 };

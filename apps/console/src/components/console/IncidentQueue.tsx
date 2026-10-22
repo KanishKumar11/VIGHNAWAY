@@ -17,6 +17,7 @@ import { rt } from '@/i18n/engineText';
 import { CoverageChip } from '@/components/console/CoverageChip';
 import { displayIncidents, useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
+import { useOperatorAccess } from '@/lib/credential';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
 import { useIncidentAction } from '@/hooks/useOperatorActions';
 import { usePulse } from '@/hooks/usePulse';
@@ -289,7 +290,7 @@ export function IncidentQueue({
   const confirmed = useLiveStore((s) => s.confirmed);
   const liveNow = useLiveStore((s) => s.simTimeS);
   const reachable = useLiveStore((s) => s.apiReachable);
-  const token = useOperator((s) => s.token);
+  const token = useOperatorAccess();
   const openDialog = useOperator((s) => s.openDialog);
   const action = useIncidentAction();
   const liveIncidents = useMemo(() => displayIncidents({ sync, optimistic, confirmed }), [sync, optimistic, confirmed]);

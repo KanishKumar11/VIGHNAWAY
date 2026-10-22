@@ -400,7 +400,7 @@ Priority P1 · Status done on the data we have (engine test/coverage.test.ts, 8 
   newest edge wins, and the oldest edge is reported as well).
 
 ### P1-5.b Console layer, legend, situation-brief line
-Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer and the view-menu toggle are NOT built yet (they touch both map renderers) · Effort 2–3 h · Depends P1-5.a
+Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer is built: View menu → "Evidence coverage on the map" colours each flood-prone road by class (colour tokens positive/warn/danger/muted plus solid, long-dash, short-dash and dotted patterns) in both renderers, with a legend and the "No reports is not the same as clear" note (vitest coverageLayer 4). Screenshots in light and dark, and a CVD check, still to do · Effort 2–3 h · Depends P1-5.a
 - **Behaviour:**
   - A "Coverage" toggle in the view menu.
   - Roads are shaded with existing tokens; each class differs by pattern as well as colour (solid, long dash, short dash,

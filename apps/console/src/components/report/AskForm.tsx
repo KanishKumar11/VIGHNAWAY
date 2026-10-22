@@ -5,7 +5,8 @@ import { CircleAlert, CircleCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { t } from '@/i18n';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
+import { sendReport } from '@/lib/sendReport';
 import { reportForAskAnswer, type AskAnswer, type AskLink } from '@/lib/ask';
 import { cn } from '@/lib/cn';
 import { getDeviceId } from '@/lib/storage';
@@ -39,7 +40,7 @@ export function AskForm({ scenarioId, link }: { scenarioId: string; link: AskLin
     setError(null);
     setPhase('sending');
     try {
-      await api.report(scenarioId, parsed.data);
+      await sendReport(scenarioId, parsed.data);
       setPhase({ done: a });
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;

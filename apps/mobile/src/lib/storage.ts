@@ -29,6 +29,7 @@ export const KEYS = {
   pendingReports: 'pendingReports.v1',
   deviceId: 'deviceId.v1',
   asked: 'asked.v1',
+  auth: 'auth.v1',
 } as const;
 
 export const storage = {
