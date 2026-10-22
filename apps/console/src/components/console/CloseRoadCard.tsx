@@ -70,10 +70,10 @@ export function CloseRoadCard() {
 
   return (
     <>
-      <div className="border-t border-shell-hairline px-4 py-3">
-        <Button variant="outline" onClick={() => setOpen(true)} className="w-full justify-start" data-testid="close-road-open">
+      <div className="min-w-0 flex-1">
+        <Button variant="outline" onClick={() => setOpen(true)} className="h-auto min-h-16 w-full flex-col gap-1 px-1 py-2 text-center text-meta leading-tight" aria-label={t.closeRoad.open} title={t.closeRoad.open} data-testid="close-road-open">
           <Ban aria-hidden className="size-5" />
-          {t.closeRoad.open}
+          {t.closeRoad.openShort}
         </Button>
       </div>
       <Dialog

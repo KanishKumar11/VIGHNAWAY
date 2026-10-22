@@ -243,6 +243,7 @@ Priority P0 · Status todo · Effort 1 h · Depends P0-5.a
   presenter view. Stored under `docs/demo/` (or attached to the release if it is too large for git).
 - **Acceptance:** The video plays end to end and shows the Simulated label throughout. The phone part is blocked
   (P0-3).
+- **Status:** **recorded** with `scripts/record-demo.mjs` (needs `playwright-core` and Playwright's ffmpeg build): the console in the light theme and in the presenter view, driven through the scripted run against the real API, saved to docs/demo/ as webm. The phone half is blocked (P0-3). Check the files play to the end before relying on them.
 
 ### P0-5.d Three timed rehearsals
 Priority P0 · Status **blocked**: needs the team · Effort 1.5 h
@@ -356,6 +357,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends P1-3.c
   4. The operator verifies.
   5. Clear removes it.
 - **Acceptance:** The script passes against the real API, with screenshots saved.
+- **Status:** **done and run, 9 of 9 checks against the developer's database** (`scripts/e2e-two-browsers.mjs`; needs `playwright-core`, which is not a repo dependency; screenshots in docs/design/e2e/). Two phone-sized browsers with different device ids report knee-deep flooding at Andheri Subway through the public report page; the first makes an Unverified incident, the second a Corroborated one with 2 devices; the console lists it Corroborated and its recommended route changes (Via Andheri Subway to Via Balasaheb Thackeray Flyover); the operator verifies it; Resolve clears it and the original route returns; no console errors in any browser. It resets the scenario first.
 
 ## F-COV Evidence coverage input (decision D2; shared by P1-5 and P1-4)
 
@@ -570,6 +572,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | --- | --- | --- | --- |
 | P2-5.a | A CAP 1.2 alert adapter (SACHET publishes CAP), parsed against a **hand-written fixture marked as such**, because the feed was unreachable when this was written | parser; area filter for Mumbai; expiry | 2 h |
 | P2-5.a status | **done** as a pure parser, apps/api/src/alerts/cap.ts, with test/fixtures/cap-mumbai.xml (hand-written, marked) and test/unit/cap.test.ts (6, run with `pnpm --filter api test:unit`, no database needed): keeps active Mumbai rain alerts, reports why others were left out (not Actual, cancelled, expired, other area, not rain), strips markup, caps length, first usable language. Not wired to the live scenario yet (P2-5.b) | | |
+| P2-5.b status | **built; reading and parsing tested, the database write not run**: `ALERT_FEED_URL` (CAP 1.2), `ALERT_FEED_SCENARIO` (default andheri-live), `ALERT_POLL_SECONDS` (default 600, 0 = manual); apps/api/src/alerts (alert-feed.ts reads over HTTP with a timeout, a 2 MB cap, http(s) only, and says why it failed; alert-feed.service.ts writes the live scenario's `alerts[]` and `hasAlertInformation`, and keeps the last alerts when a read fails); `GET /scenarios/:id/alerts` (public status: enabled, reason, last success and error, active count, what was left out) and operator `POST /scenarios/:id/alerts/poll`; the feed never touches simulated scenarios. Unit test test/unit/alert-feed.test.ts 3 pass against a local server serving the hand-written fixture. The write into the live scenario was not exercised against the real database on purpose (it would put fixture alerts into your live scenario). Clients read alerts when they fetch the scenario, so a new alert reaches them on the next fetch, not as a live event | | |
 | P2-5.b | Alerts set the scenario's `alerts[]` in live mode only, with provenance and a freshness status; "Alert feed unavailable" with its age when it fails | API tests | 1.5 h |
 | P2-5.c | Live run against the real feed | **blocked** (network) | 1 h |
 
@@ -581,6 +584,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P2-4.b | Engine `assignHospital(trips, reachable, states)`: deterministic; adds the documented per-state cost; tie-break by hospital id | engine tests; parity | 2–3 h |
 | P2-4.b status | **done** as `assignHospitals` (packages/engine/src/hospital.ts) with the new `hospitalLoad` scoring rule (busy 300 s, diverting 1,800 s, 120 s per trip already assigned in the batch; ranking only), Hindi and Marathi rule text, scoring.md regenerated; engine test/hospital.test.ts (7: nearest, spreading, order independence, busy and diverting, all diverting, unreachable). The parity hash is unchanged. P2-4.a (API operator action) and P2-4.c (console and phone) are not built | | |
 | P2-4.a status | **written, run in part**: migration 0005 (`scenarios.hospital_states`), `GET` and operator `PUT /scenarios/:id/hospitals[/:placeId]`, cleared by a reset; apps/api/test/hospitals.test.ts and 6 more checks in `pnpm smoke` (the API suite needs a database on 127.0.0.1, which this machine lacks; see the ROADMAP_STATUS row for what was run) | | |
+| P2-4.c phone status | **done, device-blocked**: the search sheet fetches `GET /scenarios/:id/hospitals` when it opens and shows "Busy. Set by control room (simulated)" or "Diverting. ..." under a hospital that is not accepting; en/hi/mr; jest hospitals 5 pass | | |
 | P2-4.c status | **console done**: "Hospital load" dialog in the left column (components/console/HospitalLoadCard.tsx): an operator marks each hospital Accepting, Busy or Diverting; the console re-plans three simulated callers with `assignHospitals` and shows where each goes and why; en/hi/mr; vitest hospitalLoad. **Phone not built** | | |
 | P2-4.c | Console and phone show the assigned hospital and the reason | vitest and jest | 2 h |
 
@@ -589,6 +593,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-7.a | Saved trip and leave time (MMKV). A background re-plan uses existing capabilities first; `expo-background-task` is a native install | jest for "notify only when the recommendation differs from the saved usual route" | 3 h |
+| P2-7.a status | **built for an open or backgrounded app, jest result below; no leave time**: Settings, Trips: a "Watch my commute" switch saves the trip on the map and its usual fastest route (MMKV, features/commute/commute.ts); when the app re-plans (an incident arrives, the app is opened or comes forward) and the recommendation for that same trip, profile and destination differs from the usual route, it adds an Activity entry and sends a local notification, once per difference (announced again only after it has returned to the usual route). Silent for another trip or profile, with no viable route, or with nothing saved. en/hi/mr. **Not built**: a saved leave time, and waking a closed app, which need the native `expo-background-task` package and a device (P2-7.b, blocked on P0-3) | | |
 | P2-7.b | Device verification of background execution and notification permission | **blocked** (P0-3) | 1 h |
 
 ## P2-8 Walking-concern reports (poorly lit, isolated)

@@ -8,6 +8,7 @@ import { getGraph } from '@/lib/engine';
 import { announce, haptic } from '@/lib/feedback';
 import { dur } from '@/lib/motion';
 import { notifyIfBackgrounded } from '@/lib/notifications';
+import { commuteAlertFor, useCommute } from '@/features/commute/commute';
 import { speakChange } from '@/lib/speech';
 import { useActivity } from '@/stores/activity';
 import { useIncidents } from '@/stores/incidents';
@@ -233,6 +234,25 @@ function handleOutcome(prevPlan: PlanResult | null, plan: PlanResult, contextCha
     haptic.warning();
     announce(t('noViableTitle'));
   }
+  checkCommute(plan, nowS);
+}
+
+/** Commute watch (P2-7): tell the traveller only when the recommendation differs from their saved usual route. */
+function checkCommute(plan: PlanResult, nowS: number): void {
+  const { saved, markAlerted } = useCommute.getState();
+  if (!saved) return;
+  const { originId, destinationId } = useTrip.getState();
+  const profile = useSettings.getState().profile;
+  const alert = commuteAlertFor(saved, { originId, destinationId, profile }, plan);
+  if (!alert) {
+    // Back on the usual route (or another trip): the next difference is news again.
+    if (saved.lastAlertRouteId !== null && recommendedRoute(plan)?.routeId === saved.usualRouteId) markAlerted(null);
+    return;
+  }
+  markAlerted(alert.routeId);
+  const text = t('commuteAlert', { to: alert.destinationName, usual: alert.usualName, route: alert.routeName });
+  useActivity.getState().add({ atS: nowS, kind: 'route_changed', text, dedupeKey: `commute|${alert.routeId}` });
+  void notifyIfBackgrounded(t('commuteAlertTitle'), text);
 }
 
 const UNCHANGED_TOAST = 'unchanged';

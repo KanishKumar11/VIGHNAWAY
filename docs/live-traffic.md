@@ -104,3 +104,7 @@ Sant Gadge Maharaj Marg and B D Sawant Marg.
 
 **Not verified here:** how the TomTom incidents look on the phone's map (no Google Maps key), and the accuracy of TomTom's data. The
 feed is evidence, never a router; the engine still decides.
+
+## Rain-alert feed (P2-5.b)
+
+Set `ALERT_FEED_URL` to a CAP 1.2 feed (SACHET publishes CAP) and the API reads it every `ALERT_POLL_SECONDS` (default 600; 0 means only when an operator calls `POST /scenarios/:id/alerts/poll`). The active Mumbai rain alerts become the live scenario's `alerts[]`, each with its sender as the source and `simulated: false`; `hasAlertInformation` becomes true after the first good read. `GET /scenarios/:id/alerts` says whether it is on, when it last worked, the last error and what a read kept or left out (not Actual, cancelled, expired, other area, not rain). If a read fails the alerts already stored stay and the status says how old they are. The feed must serve CAP `<alert>` documents: a page with none is reported as an error, not as "no alerts". It only runs for the live scenario; the simulated demo keeps its own labelled alert. Not tested against the real feed (it was unreachable when written): only against a local server serving docs-style CAP, and the stored write was not exercised on the real database.

@@ -5,6 +5,8 @@
  */
 const nextConfig = {
   reactStrictMode: true,
+  // A second dev server (for tests or recording) needs its own build folder: set NEXT_DIST_DIR=.next-other.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // The floating dev badge would sit on top of the console's timeline.
   devIndicators: false,
   transpilePackages: [

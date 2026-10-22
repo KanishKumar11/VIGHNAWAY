@@ -453,6 +453,7 @@ export const en = {
   },
   closeRoad: {
     open: 'Close a road',
+    openShort: 'Close road',
     title: 'Close a road',
     intro: 'Tap along the road on the map, then preview. Nothing is created until you confirm. A closure you confirm is shown as Verified by the control room, and routes plan around it.',
     tapMore: (n: number) => (n === 0 ? 'Tap the first point on the road.' : 'Tap another point further along the road.'),
@@ -481,6 +482,7 @@ export const en = {
   },
   hospitals: {
     open: 'Hospital load',
+    openShort: 'Hospitals',
     title: 'Hospital load',
     intro: (n: number) => `Plans ${n} simulated callers from the demo start together. Each goes to the hospital with the lowest cost: arrival time, plus the state the control room set, plus the callers already sent there. This only ranks hospitals; it never closes a road.`,
     setBy: 'Set by control room (simulated)',
@@ -501,6 +503,7 @@ export const en = {
   },
   relay: {
     open: 'Relay an offline report',
+    openShort: 'Relay',
     title: 'Relay an offline report',
     intro: 'A phone with no signal can show a waiting report as a QR code. Hold it up to the camera, or paste the code text, and the report is sent as the phone would have sent it. It is stored once however many times it is relayed, and relaying adds no weight to it.',
     cameraLabel: 'Camera view',

@@ -39,9 +39,13 @@ async function record(name, { presenter }) {
   // The first plan on the real graph takes a moment; wait for a recommended route before the run starts.
   await page.waitForFunction(() => /Via [A-Z]/.test(document.body.innerText), null, { timeout: 180_000 });
   await page.waitForTimeout(2500);
-  if (presenter) await page.keyboard.press('p');
   await page.waitForTimeout(1500);
+  // Play first: presenter mode hides the operator controls, so it is switched on (P) once the run has started.
   await page.getByRole('button', { name: /^Play/ }).first().click();
+  if (presenter) {
+    await page.waitForTimeout(2000);
+    await page.keyboard.press('p');
+  }
   await page.waitForTimeout(RUN_MS);
   await page.close();
   await ctx.close();
@@ -51,8 +55,9 @@ async function record(name, { presenter }) {
 }
 
 try {
-  await record('light', { presenter: false });
-  await record('presenter', { presenter: true });
+  // ONLY=light or ONLY=presenter records just one of them.
+  if (process.env.ONLY !== 'presenter') await record('light', { presenter: false });
+  if (process.env.ONLY !== 'light') await record('presenter', { presenter: true });
 } finally {
   await browser.close();
   await call(`/scenarios/${SID}/sim/reset`);

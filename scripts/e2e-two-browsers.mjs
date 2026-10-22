@@ -67,11 +67,11 @@ try {
   const cons = await consoleCtx.newPage();
   watch(cons, 'console');
   await cons.goto(`${CONSOLE}/console`, { waitUntil: 'load', timeout: 240_000 });
-  const startRoute = await until('a recommended route on the console', async () => {
-    // A route name is "Via" and capitalised words (letters, spaces, dots): it stops at the first other character.
-    const m = /Via [A-Z][A-Za-z.' ]{2,40}/.exec(await cons.locator('body').innerText());
-    return m ? m[0].trim() : null;
-  }, 180_000);
+  const currentRoute = async () => {
+    const label = await cons.locator('article[aria-label^="Recommended route:"]').first().getAttribute('aria-label', { timeout: 2000 }).catch(() => null);
+    return label ? label.replace(/^Recommended route:\s*/, '').trim() : null;
+  };
+  const startRoute = await until('a recommended route on the console', currentRoute, 180_000);
   check('the console shows a recommended route before any report', !!startRoute, startRoute);
   await cons.screenshot({ path: path.join(OUT, '01-console-before.png') });
 
@@ -100,11 +100,11 @@ try {
 
   // The console shows it, and the demo trip's route changes.
   const changed = await until('the console route to change', async () => {
-    const text = await cons.locator('body').innerText();
-    return /Corroborated/.test(text) && !text.includes(startRoute) ? text : null;
+    const now = await currentRoute();
+    return now && now !== startRoute ? now : null;
   }, 60_000).catch(() => null);
   check('the console lists it as Corroborated', /Corroborated/.test(await cons.locator('body').innerText()));
-  check('the demo trip\'s recommended route changes', !!changed, `was ${startRoute}`);
+  check('the demo trip\'s recommended route changes', !!changed, `was ${startRoute}, now ${changed}`);
   await cons.screenshot({ path: path.join(OUT, '04-console-corroborated.png') });
 
   // The operator verifies it from the console.
@@ -116,7 +116,7 @@ try {
   // Resolve clears it, and the route can come back.
   const resolve = await call('POST', `/scenarios/${SID}/incidents/${encodeURIComponent(flood.id)}/resolve`, {}, true);
   check('Resolve clears it', resolve.status === 200 && resolve.json?.incident?.status === 'resolved', String(resolve.status));
-  const back = await until('the console route to return', async () => (await cons.locator('body').innerText()).includes(startRoute), 60_000).catch(() => null);
+  const back = await until('the console route to return', async () => ((await currentRoute()) === startRoute ? startRoute : null), 60_000).catch(() => null);
   check('the original route is recommended again once it is resolved', !!back, startRoute);
   await cons.screenshot({ path: path.join(OUT, '06-console-resolved.png') });
 

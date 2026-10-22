@@ -191,10 +191,15 @@ export function ConsoleScreen() {
               readOnly={!!replay}
               trip={trip}
             />
-            {!replay && <CloseRoadCard />}
-            {!replay && <HospitalLoadCard />}
+            {/* The operator tools share one row so the incident queue keeps its room. */}
+            {!replay && (
+              <div className="flex gap-2 border-t border-shell-hairline px-4 py-3">
+                <CloseRoadCard />
+                <HospitalLoadCard />
+                <RelayScanner />
+              </div>
+            )}
             {!replay && live && <OffMapCard />}
-            {!replay && <RelayScanner />}
             <QrCard />
           </aside>
         )}

@@ -8,7 +8,7 @@ import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ChoiceGrid } from '@/components/ChoiceGrid';
-import { Accessibility, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
+import { Accessibility, BellRing, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
 import { Card, GUTTER, Row, ScreenHeader, Section } from '@/components/ui';
@@ -20,10 +20,12 @@ import { t, type StringKey } from '@/i18n/en';
 import { LANGUAGES, type Language } from '@/i18n/lang';
 import { api } from '@/lib/api';
 import { KEYS, storage } from '@/lib/storage';
+import { useCommute } from '@/features/commute/commute';
 import { useActivity } from '@/stores/activity';
 import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useIncidents } from '@/stores/incidents';
-import { useScenario } from '@/stores/scenario';
+import { placeById, useScenario } from '@/stores/scenario';
+import { useTrip } from '@/stores/trip';
 import { useSettings, type Appearance, type DataMode } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
@@ -103,6 +105,7 @@ export default function SettingsScreen() {
   const largerText = useSettings((s) => s.largerText);
   const speakChanges = useSettings((s) => s.speakChanges);
   const preferLit = useSettings((s) => s.preferLit);
+  const commute = useCommute((s) => s.saved);
   const signedIn = useAuth(selectSignedIn);
   const accountEmail = useAuth((s) => s.user?.email ?? null);
   // Offer Live only when this server lists a live scenario (the API may not have it yet).
@@ -129,6 +132,21 @@ export default function SettingsScreen() {
       alive = false;
     };
   }, [apiUrl]);
+
+  // Saves the trip on the map, with the usual fastest route as the one it normally takes.
+  const saveCommute = () => {
+    const trip = useTrip.getState();
+    const plan = trip.plan;
+    const usual = plan?.routes.find((r) => r.routeId === (plan.usualFastestRouteId ?? plan.recommendedRouteId));
+    const sc = useScenario.getState().scenario;
+    const from = placeById(sc, trip.originId);
+    const to = placeById(sc, trip.destinationId);
+    if (!plan || !usual || !from || !to) {
+      useToast.getState().show(t('commuteNoTrip'));
+      return;
+    }
+    useCommute.getState().save({ originId: trip.originId, destinationId: trip.destinationId, originName: from.name, destinationName: to.name, profile, usualRouteId: usual.routeId, usualName: usual.name });
+  };
 
   const chooseMode = (mode: DataMode) => {
     if (mode === dataMode) return;
@@ -233,6 +251,8 @@ export default function SettingsScreen() {
                 <SwitchRow first icon={Lightbulb} label={t('preferLitLabel')} hint={t('preferLitHint')} value={preferLit} onChange={(v) => useSettings.getState().setPreferLit(v)} testID="prefer-lit" />
               </>
             ) : null}
+            <View style={styles.rule} />
+            <SwitchRow first icon={BellRing} label={t('commuteLabel')} hint={commute ? t('commuteSaved', { from: commute.originName, to: commute.destinationName, route: commute.usualName }) : t('commuteHint')} value={!!commute} onChange={(on) => (on ? saveCommute() : useCommute.getState().clear())} testID="watch-commute" />
             <View style={styles.rule} />
             <View style={styles.field}>
               <AppText variant="label" tone="muted">

@@ -52,10 +52,10 @@ export function HospitalLoadCard() {
 
   return (
     <>
-      <div className="border-t border-shell-hairline px-4 py-3">
-        <Button variant="outline" onClick={() => setOpen(true)} className="w-full justify-start" data-testid="hospital-load-open">
+      <div className="min-w-0 flex-1">
+        <Button variant="outline" onClick={() => setOpen(true)} className="h-auto min-h-16 w-full flex-col gap-1 px-1 py-2 text-center text-meta leading-tight" aria-label={t.hospitals.open} title={t.hospitals.open} data-testid="hospital-load-open">
           <Hospital aria-hidden className="size-5" />
-          {t.hospitals.open}
+          {t.hospitals.openShort}
         </Button>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>

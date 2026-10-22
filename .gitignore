@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .next/
+.next-*/
 .turbo/
 coverage/
 *.log
@@ -20,3 +21,6 @@ __pycache__/
 apps/mobile/expo-env.d.ts
 next-env.d.ts
 *.tsbuildinfo
+
+# Recorded demo videos are large: keep them out of git (see docs/demo/README.md)
+docs/demo/*.webm
