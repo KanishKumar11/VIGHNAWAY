@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { consoleThemes as themes } from '@vighnaway/tokens';
 import { t } from '@/i18n';
 import { ATTRIBUTION, isLiveScenario, scenarioFor } from '@/lib/scenario';
+import { parseAsk } from '@/lib/ask';
+import { AskForm } from '@/components/report/AskForm';
 import { ReportForm } from '@/components/report/ReportForm';
 import { ReportFooter, ReportHeader } from '@/components/report/ReportHeader';
 
@@ -26,12 +28,14 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   const scenario = scenarioFor(typeof q === 'string' ? q : null);
   // The presenter QR code opens /report?audience=1: those reports are labelled as the demo audience's.
   const audience = params.audience === '1';
+  // /report?ask=lat,lng&road=name opens one question about one road instead of the full form.
+  const askLink = parseAsk(params);
   const live = isLiveScenario(scenario);
   return (
     <div className="min-h-dvh bg-shell text-ink">
       <ReportHeader live={live} />
       <main className="relative mx-auto flex min-h-[calc(100dvh-var(--spacing)*36)] max-w-[calc(var(--spacing)*130)] flex-col border-t border-shell-line bg-panel">
-        <ReportForm scenarioId={scenario.id} audience={audience} />
+        {askLink ? <AskForm scenarioId={scenario.id} link={askLink} /> : <ReportForm scenarioId={scenario.id} audience={audience} />}
         <ReportFooter attribution={ATTRIBUTION} />
       </main>
     </div>

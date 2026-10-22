@@ -22,6 +22,18 @@
  "hasAlertInformation": true,
  "places": [
   {
+   "id": "origin-swami-vivekanand",
+   "name": "Swami Vivekanand Road, Andheri West",
+   "kind": "origin",
+   "point": {
+    "lat": 19.12181,
+    "lng": 72.84615
+   },
+   "nodeId": "13589430204",
+   "side": "west",
+   "address": "Near Andheri station, Andheri West"
+  },
+  {
    "id": "origin-marol",
    "name": "Marol Naka, Andheri East",
    "kind": "origin",
@@ -72,11 +84,11 @@
  ],
  "demoTrip": {
   "profile": "car",
-  "originId": "origin-marol",
-  "destinationId": "hosp-kokilaben",
+  "originId": "origin-swami-vivekanand",
+  "destinationId": "hosp-holy-spirit",
   "alternativeDestinationIds": [
    "hosp-hbt",
-   "hosp-holy-spirit"
+   "hosp-kokilaben"
   ],
   "vehicleSpeedFactor": 1,
   "startTripAtS": 0
@@ -85,31 +97,31 @@
   {
    "id": "ev01-ankle",
    "atS": 60,
-   "label": "Ankle-deep water reported at Andheri Subway (simulated device A)",
+   "label": "Ankle-deep water reported on Jijamata Road (simulated device A)",
    "kind": "report",
    "report": {
     "type": "flood",
     "depth": "ankle",
     "point": {
-     "lat": 19.116285,
-     "lng": 72.847065
+     "lat": 19.12524,
+     "lng": 72.86473
     },
     "observedPersonally": true,
-    "description": "Water collecting at the subway entrance",
+    "description": "Water collecting at the edge of the road",
     "deviceId": "sim-device-a"
    }
   },
   {
    "id": "ev02-knee",
    "atS": 180,
-   "label": "Knee-deep water reported at Andheri Subway by a second device (simulated device B)",
+   "label": "Knee-deep water reported on Jijamata Road by a second device (simulated device B)",
    "kind": "report",
    "report": {
     "type": "flood",
     "depth": "knee",
     "point": {
-     "lat": 19.116285,
-     "lng": 72.847065
+     "lat": 19.12524,
+     "lng": 72.86473
     },
     "observedPersonally": true,
     "description": "Water up to the knee, cars stalling",
@@ -119,21 +131,21 @@
   {
    "id": "ev03-verify",
    "atS": 270,
-   "label": "Simulated operator verifies the Andheri Subway flooding",
+   "label": "Simulated operator verifies the Jijamata Road flooding",
    "kind": "verify",
    "targetEventId": "ev02-knee"
   },
   {
    "id": "ev04-congestion-a",
    "atS": 360,
-   "label": "Heavy congestion reported on Old Nagardas Road towards Gokhale Bridge (simulated device C)",
+   "label": "Heavy congestion reported on G K Gokhale Flyover (simulated device C)",
    "kind": "report",
    "report": {
     "type": "congestion",
     "congestion": "heavy",
     "point": {
-     "lat": 19.125467,
-     "lng": 72.854045
+     "lat": 19.11463,
+     "lng": 72.85175
     },
     "observedPersonally": true,
     "deviceId": "sim-device-c"
@@ -148,8 +160,8 @@
     "type": "congestion",
     "congestion": "heavy",
     "point": {
-     "lat": 19.125467,
-     "lng": 72.854045
+     "lat": 19.11463,
+     "lng": 72.85175
     },
     "observedPersonally": true,
     "deviceId": "sim-device-d"
@@ -158,16 +170,16 @@
   {
    "id": "ev06-closure",
    "atS": 480,
-   "label": "Road into Kokilaben Hospital reported closed (simulated device E)",
+   "label": "Road into Holy Spirit Hospital reported closed (simulated device E)",
    "kind": "report",
    "report": {
     "type": "closure",
     "point": {
-     "lat": 19.13213,
-     "lng": 72.825579
+     "lat": 19.1249081,
+     "lng": 72.8669246
     },
     "observedPersonally": true,
-    "description": "Barricades across the hospital road",
+    "description": "Barricades across the hospital approach road",
     "deviceId": "sim-device-e"
    }
   },

@@ -2,7 +2,7 @@
 
 Last updated 2026-10-22 (evening). Details are in docs/TASKS.md; the plan is in docs/IMPLEMENTATION_PLAN.md.
 
-> **▶ Continue from here:** P1-3 (judge-in-the-loop: API audience tag and bulk clear, then the report page and presenter panel).
+> **▶ Continue from here:** deploy and test the API changes below (migration 0003), then P1-3.d (the two-browser end-to-end), P0-4.d (re-tune on the real graph) and P0-6a.
 > Data and sim: **P0-4.d re-tune the demo scenario on the real graph** is now the demo's biggest risk (see "Real graph
 > landed" below). Whoever runs the demo on a phone needs P0-3 next.
 
@@ -11,7 +11,7 @@ Last updated 2026-10-22 (evening). Details are in docs/TASKS.md; the plan is in 
 | | |
 | --- | --- |
 | **Just finished** | P0-2 structured, localisable engine text (a–d); P1-1 counterfactuals (a–c, screenshots pending); P1-2 decision receipts (a–c, Playwright check pending) |
-| **In progress** | P1-3 judge-in-the-loop (needs the API owner: audience tag and bulk clear, verified on a machine with Postgres) |
+| **In progress** | Verifying the API changes (written and typechecked, not run: no Postgres on the dev machine) |
 | **Next** | P1-4 ask the crowd, P1-5 evidence coverage map, then P0-6a Docker image, P0-5a–c runbook, drill and recording |
 | **Gate in view** | G-P0 sandbox |
 
@@ -61,7 +61,8 @@ The hash table must be recomputed on the real graph after P0-4.d (the engine, ph
 | P0-1.a Mobile design pass in the browser preview | docs/design/preview, 38 screenshots |
 | P0-2.a–d Structured, localisable engine text | Engine 72/72 (new text tests: catalogs, every parity plan in en/hi/mr), console 91/91, phone 77/77 plus 7 new engineText tests (on the fixture); parity and all 9 replay hashes identical to the baseline. Hindi/Marathi still need native review |
 | P1-1.a–c Counterfactuals | Engine tests: blocked, hazard-penalised, slower-only, two hazards, a property test that clearing the stated hazards in a fresh planTrip makes the route recommended; scoring.md section; UI on console and phone (screenshots still to capture) |
-| P1-3.c (QR card only) Presenter QR | Presenter mode shows a large QR to /report with the four evidence steps (vitest 3). Audience tag, status ladder and bulk clear need the API owner |
+| P1-3.a–c judge-in-the-loop, API written NOT run | apps/api: migration `0003_audience_origin.sql` (adds `incident_reports.origin` and `incidents.audience_only`), report origin audience/web/app/prompt, `POST /scenarios/:id/audience/clear`, prompt answer limit (409) and no-resolve rule, observations in `GET /incidents`; tsc and eslint clean; test/audience.test.ts written. Console: presenter card with QR (/report?audience=1), live status ladder, confirmed clear, "Demo audience" chip, report-page audience note (vitest 8); phone sends origin prompt. **To check after redeploying: `pnpm --filter api db:migrate`, `pnpm --filter api test`, then scan the QR from two phones** |
+| P1-3.c (QR card only, earlier) Presenter QR | Presenter mode shows a large QR to /report with the four evidence steps (vitest 3). Audience tag, status ladder and bulk clear need the API owner |
 | P1-4.a, P1-4.c Ask the crowd (phone) | Engine ask.test.ts (4); phone ask.test.tsx (8). The API side (P1-4.b: answers must not resolve incidents, 409 on a repeat) and the web question page (P1-4.d) are not built |
 | P1-5.a, P1-5.b (panel only) Evidence coverage | Engine coverage.test.ts (8): class boundaries at 30 min and 3 h, mixed edges, sort order, the 60-min brief window; console coverage.test.tsx (4). Map shading and the toggle still to build; Road-clear-only observations need F-COV.a |
 | P1-2.a–c Decision receipts | Engine receipt.test.ts (7): verify, determinism, round trip, malformed and tampered tokens. Console: /verify page, Create receipt card with QR, test/receipt.test.tsx (7, incl. a tampered receipt and Hindi). Phone: share text carries the hash and a verify link (3 jest tests). Playwright check of a step-3 receipt on a second machine still to do |
