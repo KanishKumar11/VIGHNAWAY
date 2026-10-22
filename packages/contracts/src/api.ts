@@ -19,6 +19,7 @@ export const API_PATHS = {
   operatorCheck: '/operator/check',
   feed: (id: string) => `/scenarios/${encodeURIComponent(id)}/feed`,
   history: (id: string) => `/scenarios/${encodeURIComponent(id)}/history`,
+  clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
 } as const;
 
 export const OperatorActionSchema = z.enum(['verify', 'resolve', 'dismiss']);
@@ -65,6 +66,18 @@ export type IncidentsQuery = z.infer<typeof IncidentsQuerySchema>;
  * When `full` is true (no sinceSeq, or sinceSeq predates the last reset) the client must replace
  * its incident set; otherwise it merges `incidents` by id.
  */
+/**
+ * Latest observation on a flood-prone edge, from any report including Road clear (which creates no
+ * incident). It lets clients tell "no reports" from "reports say clear" when showing coverage. An
+ * observation never removes a hazard penalty or a block.
+ */
+export const ObservationSchema = z.object({
+  edgeId: z.string(),
+  lastObservedAtS: SimSecondsSchema,
+  kind: z.enum(['hazard', 'clear']),
+});
+export type ObservationPayload = z.infer<typeof ObservationSchema>;
+
 export const IncidentsResponseSchema = z.object({
   scenarioId: IdSchema,
   seq: z.number().int().min(0),
@@ -72,6 +85,8 @@ export const IncidentsResponseSchema = z.object({
   runId: z.string(),
   simTimeS: SimSecondsSchema,
   incidents: z.array(IncidentSchema),
+  /** Latest observation per flood-prone edge (current state, not versioned by seq). Absent from older servers. */
+  observations: z.array(ObservationSchema).optional(),
 });
 export type IncidentsResponse = z.infer<typeof IncidentsResponseSchema>;
 
@@ -79,6 +94,10 @@ export const OperatorActionBodySchema = z
   .object({ note: z.string().trim().max(200).optional() })
   .strict();
 export type OperatorActionBody = z.infer<typeof OperatorActionBodySchema>;
+
+/** POST /scenarios/:id/audience/clear: dismisses every open incident that only audience reports support. */
+export const ClearAudienceResponseSchema = z.object({ cleared: z.number().int().min(0), incidentIds: z.array(IdSchema) });
+export type ClearAudienceResponse = z.infer<typeof ClearAudienceResponseSchema>;
 
 export const OperatorActionResponseSchema = z.object({ incident: IncidentSchema });
 export type OperatorActionResponse = z.infer<typeof OperatorActionResponseSchema>;

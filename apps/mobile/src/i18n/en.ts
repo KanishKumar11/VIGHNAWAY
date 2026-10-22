@@ -235,6 +235,7 @@ export const en = {
   errChooseLocation: 'Choose a location',
   errNotOnRoad: 'That point is not on a known road. Move the pin onto a road.',
   errRateLimited: 'Too many reports from this device. Try again in a minute.',
+  errAlreadyAnswered: 'You already answered for this road. Thanks.',
   errGeneric: 'Could not send the report: {message}',
   toastSent: 'Sent. Shown as Unverified until confirmed.',
   toastPending: 'Saved. Pending send when you are back online.',

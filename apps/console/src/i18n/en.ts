@@ -259,6 +259,7 @@ export const en = {
     empty: 'Nothing has changed yet.',
   },
   report: {
+    audienceNote: 'Demo audience report: simulated scenario',
     title: 'Report a hazard',
     header: 'Simulated scenario: Andheri, Mumbai',
     headerLive: 'Live: Andheri, Mumbai',
@@ -409,6 +410,20 @@ export const en = {
   audience: {
     title: 'Join the demo: scan and report a hazard',
     qrLabel: 'QR code that opens the report page',
+    chip: 'Demo audience',
+    ladderTitle: 'Newest audience report',
+    ladderEmpty: 'Waiting for the first audience report…',
+    ladder: {
+      unverified: 'Unverified: one phone reported it',
+      corroborated: 'Corroborated: a second phone reported the same place (a device heuristic)',
+      verified: 'Verified: only the operator can do this',
+    },
+    clear: 'Clear audience reports',
+    clearAsk: (n: number) => `Clear ${n} audience report${n === 1 ? '' : 's'}? Scripted and operator-verified mixed incidents stay.`,
+    clearConfirm: 'Clear',
+    clearCancel: 'Cancel',
+    cleared: (n: number) => `Cleared ${n} audience report${n === 1 ? '' : 's'}`,
+    clearFailed: (message: string) => `Could not clear audience reports: ${message}`,
     steps: [
       'Scan the code and report a hazard on a road.',
       'It appears here as Unverified.',

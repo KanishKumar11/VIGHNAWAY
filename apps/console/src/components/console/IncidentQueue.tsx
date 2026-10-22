@@ -185,9 +185,11 @@ export function SituationBrief({ trip }: { trip: TripState | null }) {
     return [...names.entries()];
   }, []);
   const sync = useLiveStore((st) => st.sync);
+  const serverObservations = useLiveStore((st) => st.observations);
   const coverage = useMemo(
-    () => evidenceCoverage(graphFor(scenario.demoTrip.profile), observationsFromIncidents(incidentList(sync)), nowS),
-    [scenario, sync, nowS],
+    // Incident reports plus the server's observations: a Road clear report makes no incident but is still a report.
+    () => evidenceCoverage(graphFor(scenario.demoTrip.profile), [...observationsFromIncidents(incidentList(sync)), ...serverObservations], nowS),
+    [scenario, sync, serverObservations, nowS],
   );
   const coverageByName = useMemo(() => new Map(coverage.map((c) => [c.name, c] as const)), [coverage]);
   const crossings = useMemo(() => {

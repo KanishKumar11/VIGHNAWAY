@@ -6,6 +6,7 @@ import type {
   Depth,
   IncidentSource,
   ReportInput,
+  ReportOrigin,
   ReportOutcome,
   ReportResponse,
   Severity,
@@ -30,6 +31,8 @@ export const REPORT_RULES = {
   corroborationWindowS: 1800,
   corroborationDevices: 2,
   clearDevicesToResolve: 2,
+  /** One answer to the data-gap question per road per device per 30 simulated minutes. */
+  promptWindowS: 1800,
 } as const;
 
 const DEPTH_RANK: Record<Depth, number> = { ankle: 1, knee: 2, waist: 3 };
@@ -93,6 +96,8 @@ export class ReportsService {
         });
       }
       const deviceHash = this.hashDevice(input.deviceId);
+      const origin: ReportOrigin = input.origin ?? 'app';
+      if (origin === 'prompt') await this.requireNoRecentPromptAnswer(tx, scenarioRow.graphVersion, scenarioId, deviceHash, snap, nowS);
       const base = {
         scenarioId,
         type: input.type,
@@ -105,6 +110,7 @@ export class ReportsService {
         deviceHash,
         ipHash: ctx.ip ? saltedHash(this.config.deviceHashSalt, ctx.ip) : null,
         source: ctx.source,
+        origin,
         receivedAtS: nowS,
         snappedEdgeId: snap.id,
         distanceToRoadM: Math.round(snap.d * 10) / 10,
@@ -143,7 +149,8 @@ export class ReportsService {
           const row = (await this.incidents.findRow(tx, scenarioId, id))!;
           const { seq: _seq, ...draft } = row;
           const clearDevices = await this.clearDevices(tx, scenarioId, id, row.createdAtS);
-          const resolve = clearDevices >= REPORT_RULES.clearDevicesToResolve;
+          // An answer to a data-gap question is an observation: it may mark the incident Conflicting but never resolves it.
+          const resolve = clearDevices >= REPORT_RULES.clearDevicesToResolve && origin !== 'prompt';
           const next: IncidentDraft = { ...draft, conflicting: true, updatedAtS: nowS };
           if (resolve) {
             next.status = 'resolved';
@@ -181,6 +188,7 @@ export class ReportsService {
           congestion: deeper(CONGESTION_RANK, prev.congestion as CongestionLevel | null, base.congestion),
           severity: deeper(SEVERITY_RANK, prev.severity as Severity | null, base.severity),
           impassable: prev.impassable || base.impassable,
+          audienceOnly: prev.audienceOnly && origin === 'audience',
           note: base.description ?? prev.note,
           lastReportAtS: nowS,
           updatedAtS: nowS,
@@ -223,6 +231,7 @@ export class ReportsService {
           note: base.description,
           geom: base.geom,
           feed: null,
+          audienceOnly: origin === 'audience',
         };
         reportId = ctx.reportId ?? randomId(scenarioId, 'rep');
         await tx.insert(incidentReports).values({ ...base, id: reportId, incidentId: id });
@@ -247,6 +256,25 @@ export class ReportsService {
     });
     this.incidents.publish(changes);
     return response;
+  }
+
+  /**
+   * A device answers the data-gap question for a road at most once per 30 simulated minutes (409 on a
+   * repeat). A road is the snapped edge, its twin, or any edge with the same name.
+   */
+  private async requireNoRecentPromptAnswer(tx: Tx, graphVersion: string, scenarioId: string, deviceHash: string, snap: Snap, nowS: number): Promise<void> {
+    const rows = await tx.execute<{ id: string }>(sql`
+      SELECT r.id FROM incident_reports r
+      JOIN road_edges e ON e.id = r.snapped_edge_id AND e.graph_version = ${graphVersion}
+      WHERE r.scenario_id = ${scenarioId} AND r.device_hash = ${deviceHash} AND r.origin = 'prompt'
+        AND r.received_at_s > ${nowS - REPORT_RULES.promptWindowS}
+        AND (r.snapped_edge_id = ${snap.id}
+          ${snap.reverseId ? sql`OR r.snapped_edge_id = ${snap.reverseId}` : sql``}
+          ${snap.name ? sql`OR e.name = ${snap.name}` : sql``})
+      LIMIT 1`);
+    if (rows.length > 0) {
+      throw new ApiException('CONFLICT', 'You already answered for this road in the last 30 minutes', { windowS: REPORT_RULES.promptWindowS });
+    }
   }
 
   /** Nearest road edge within 30 m (geodesic distance; ties broken by id). */

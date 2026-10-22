@@ -21,14 +21,17 @@ export const viewport: Viewport = {
  * the scenario named in ?scenario= (the one the console shows), else the simulated demo.
  */
 export default async function ReportPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const q = (await searchParams).scenario;
+  const params = await searchParams;
+  const q = params.scenario;
   const scenario = scenarioFor(typeof q === 'string' ? q : null);
+  // The presenter QR code opens /report?audience=1: those reports are labelled as the demo audience's.
+  const audience = params.audience === '1';
   const live = isLiveScenario(scenario);
   return (
     <div className="min-h-dvh bg-shell text-ink">
       <ReportHeader live={live} />
       <main className="relative mx-auto flex min-h-[calc(100dvh-var(--spacing)*36)] max-w-[calc(var(--spacing)*130)] flex-col border-t border-shell-line bg-panel">
-        <ReportForm scenarioId={scenario.id} />
+        <ReportForm scenarioId={scenario.id} audience={audience} />
         <ReportFooter attribution={ATTRIBUTION} />
       </main>
     </div>

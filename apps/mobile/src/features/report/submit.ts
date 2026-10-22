@@ -44,6 +44,7 @@ export async function submitReport(input: ReportInput): Promise<SubmitOutcome> {
       if (e.status === 0) return queue(input);
       if (e.status === 422 || e.code === 'NOT_ON_ROAD') return { kind: 'error', message: t('errNotOnRoad') };
       if (e.status === 429 || e.code === 'RATE_LIMITED') return { kind: 'error', message: t('errRateLimited') };
+      if (e.status === 409) return { kind: 'error', message: t('errAlreadyAnswered') };
       return { kind: 'error', message: t('errGeneric', { message: e.message }) };
     }
     return queue(input);

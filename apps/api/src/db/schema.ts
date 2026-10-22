@@ -102,6 +102,8 @@ export const incidents = pgTable(
     geom: pointGeom('geom').notNull(),
     /** Provenance for source 'live_feed' (contracts FeedRef); null otherwise. */
     feed: jsonb('feed'),
+    /** True while every supporting report came from the demo audience (report origin 'audience'). */
+    audienceOnly: boolean('audience_only').notNull().default(false),
   },
   (t) => [
     index('incidents_geom_gist').using('gist', t.geom),
@@ -127,6 +129,8 @@ export const incidentReports = pgTable(
     deviceHash: text('device_hash').notNull(),
     ipHash: text('ip_hash'),
     source: text('source').notNull(),
+    /** Report origin: app, web, audience or prompt (contracts ReportOrigin). Labels and limits only. */
+    origin: text('origin').notNull().default('app'),
     receivedAtS: integer('received_at_s').notNull(),
     snappedEdgeId: text('snapped_edge_id').notNull(),
     distanceToRoadM: doublePrecision('distance_to_road_m').notNull(),

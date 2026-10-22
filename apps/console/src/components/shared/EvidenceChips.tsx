@@ -113,6 +113,12 @@ export function EvidenceChips({ incident, nowS }: { incident: Incident; nowS: nu
           {t.queue.stale}
         </span>
       )}
+      {incident.audienceOnly && (
+        <span className={cn(chip, 'bg-panel-sunken text-ink-on-shell')} data-testid="audience-chip">
+          <UserRound aria-hidden className="size-3.5" />
+          {t.audience.chip}
+        </span>
+      )}
       {incident.conflicting && (
         <span className={cn(chip, 'bg-warn-surface text-warn-ink')}>
           <Split aria-hidden className="size-3.5" />

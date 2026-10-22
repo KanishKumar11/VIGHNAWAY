@@ -271,6 +271,7 @@ export class TrafficFeedService implements OnApplicationBootstrap, OnApplication
       lastReportAtS: nowS,
       updatedAtS: nowS,
       verifiedAtS: null,
+      audienceOnly: false,
       verifiedBy: null,
       closedAtS: null,
       linkedIncidentId: existing ? existing.id : null,

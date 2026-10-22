@@ -312,7 +312,7 @@ Priority P1 · Status in progress (route comparison row shows it; jest and scree
 ## P1-3 Judge-in-the-loop demo (decision D4)
 
 ### P1-3.a API: audience origin tag and operator bulk clear
-Priority P1 · Status NOT built: no Postgres or Docker was available to run the API tests, and this change needs a column and a migration, so it was left for the API owner rather than pushed untested · Effort 2 h · Depends —
+Priority P1 · Status written, NOT run: apps/api (migration 0003, reports.service, incidents.service.clearAudience, AudienceController) typechecks and lints and has test/audience.test.ts, but no Postgres was available here, so the tests have not run. Redeploy, run `pnpm --filter api test`, and note the API tests also expect the schematic fixture graph, which the real graph replaced · Effort 2 h · Depends —
 - **Files:**
   - packages/contracts (`ReportInput.origin?: 'app' | 'web' | 'audience'`; `API_PATHS.clearAudience`);
   - apps/api reports and incidents;
@@ -330,12 +330,12 @@ Priority P1 · Status NOT built: no Postgres or Docker was available to run the 
 - **Acceptance:** Supertest suite green.
 
 ### P1-3.b Report page: audience mode via the QR link
-Priority P1 · Status todo · Effort 1 h · Depends P1-3.a
+Priority P1 · Status done in the page (sends origin audience from /report?audience=1, origin web otherwise; shows the "Demo audience report: simulated scenario" note) and the console queue chip ("Demo audience", vitest); stored once the API change is deployed · Effort 1 h · Depends P1-3.a
 - **Behaviour:** `/report?audience=1` sends `origin: 'audience'` and shows "Demo audience report: simulated scenario".
 - **Automated tests:** vitest. **Acceptance:** The origin is stored, and visible in the console queue as a chip.
 
 ### P1-3.c Console presenter panel: QR, live status ladder
-Priority P1 · Status partly done: presenter mode now shows a large QR card with the four evidence steps (apps/console AudienceCard, vitest 3 tests). The live status ladder and the "Clear audience reports" action are NOT built: they need P1-3.a (audience origin and bulk clear) from the API owner, who has Postgres to verify it · Effort 2–3 h · Depends P1-3.b
+Priority P1 · Status done on the console side (vitest 8 tests): the presenter card shows the QR to /report?audience=1, the four steps, the live status ladder for the newest audience incident (fed by the existing socket events) and a confirmed "Clear audience reports". Needs the API change above deployed to work end to end · Effort 2–3 h · Depends P1-3.b
 - **Behaviour:**
   - Presenter mode shows a large QR code.
   - It shows a live ladder for the newest audience incident: Unverified, then Corroborated (2 devices), then Verified
@@ -358,7 +358,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends P1-3.c
 ## F-COV Evidence coverage input (decision D2; shared by P1-5 and P1-4)
 
 ### F-COV.a API publishes observations per edge
-Priority P1 · Status todo · Effort 2 h · Depends —
+Priority P1 · Status written, NOT run: `GET /incidents` returns `observations` (latest report per flood-prone edge, Road clear included, both directions) from incident_reports; it is current state, not replayable from /history (documented in CONTRACTS.md). Test in test/audience.test.ts. The console coverage panel does not consume it yet · Effort 2 h · Depends —
 - **Behaviour:**
   - The incidents payload gains `observations: { edgeId, lastObservedAtS, kind: 'hazard' | 'clear' }[]` for flood-prone
     edges.
@@ -455,7 +455,7 @@ Priority P1 · Status done as `dataGapQuestions(plan, graph)` and `nextQuestion`
   Each comes with a structured question text, "Is {road} flooded right now?".
 
 ### P1-4.b API: answer semantics, limits
-Priority P1 · Status NOT built (needs Postgres to verify). The phone uses the existing report path: Yes is a flood report with depth not given, No is an ordinary Road clear report. Today the API lets two Road clear devices resolve an incident, which this spec says an answer must not do, and has no 409 on a repeat answer, so both are open items for the API owner · Effort 2 h · Depends F-COV.a
+Priority P1 · Status written, NOT run: report origin `prompt` is limited to one answer per road per device per 30 simulated minutes (409), and a prompt Road clear never resolves an incident (apps/api reports.service; tests in test/audience.test.ts). The phone sends origin `prompt` and shows a friendly message on 409 · Effort 2 h · Depends F-COV.a
 - **Behaviour:**
 
   | Answer | Effect |

@@ -1,6 +1,7 @@
 import {
   API_PATHS,
   ApiErrorSchema,
+  ClearAudienceResponseSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
   OperatorActionResponseSchema,
@@ -10,6 +11,7 @@ import {
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
   SimResponseSchema,
+  type ClearAudienceResponse,
   type FeedStatus,
   type HistoryResponse,
   type HealthResponse,
@@ -148,6 +150,9 @@ export const api = {
       body: {},
       token,
     }),
+  /** Operator: dismisses every open incident that only demo-audience reports support. */
+  clearAudience: (id: string, token: string, o?: RequestOptions): Promise<ClearAudienceResponse> =>
+    request(API_PATHS.clearAudience(id), ClearAudienceResponseSchema, { ...o, method: 'POST', body: {}, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),

@@ -11,6 +11,6 @@ export type Answer = 'yes' | 'no' | 'not_sure';
  */
 export function reportForAnswer(question: DataGapQuestion, answer: Answer, deviceId: string): ReportInput | null {
   if (answer === 'not_sure') return null;
-  const common = { point: question.point, observedPersonally: false, deviceId } as const;
+  const common = { point: question.point, observedPersonally: false, origin: 'prompt', deviceId } as const;
   return answer === 'yes' ? { type: 'flood', depth: null, ...common } : { type: 'road_clear', ...common };
 }
