@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FEED_PROVIDER_LABEL, PROFILES, type Profile } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, ServerOff, WifiOff, type LucideIcon } from '@/components/icons';
+import { Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, WifiOff, type LucideIcon } from '@/components/icons';
 import { easing, PressScale } from '@/components/motion';
 import { Segmented } from '@/components/Segmented';
 import { t, type StringKey } from '@/i18n/en';
@@ -103,6 +103,8 @@ export function TopBar({ onOpenDrawer, onOpenDestinations, onLayout }: { onOpenD
   const simTimeS = useSim((s) => s.simTimeS);
   const dest = placeById(scenario, destinationId);
   const [expanded, setExpanded] = useState(false);
+  // The status pill sits on its own line under the profile control; its notices open just below it.
+  const [statusBottom, setStatusBottom] = useState(BAR_H * 2 + spacing.sm);
   // Re-render the "(6 min old)" age twice a minute.
   const [nowWallMs, setNow] = useState(Date.now());
   useEffect(() => {
@@ -155,17 +157,21 @@ export function TopBar({ onOpenDrawer, onOpenDestinations, onLayout }: { onOpenD
           accessibilityLabel={t('searchLabel', { place: dest?.name ?? '' })}
           accessibilityHint={t('searchHint')}
         >
-          <View style={styles.destHead}>
-            <AppText variant="label" tone="onShellMuted">
-              {t('destinationEyebrow')}
+          <View style={styles.destText}>
+            <View style={styles.destHead}>
+              <AppText variant="label" tone="onShellMuted">
+                {t('destinationEyebrow')}
+              </AppText>
+              <ModeBadge compact />
+            </View>
+            <AppText variant="body" tone="onShell" numberOfLines={1} style={styles.destName}>
+              {dest?.name ?? t('searchPlaceholder')}
             </AppText>
-            <ModeBadge compact />
           </View>
-          <AppText variant="body" tone="onShell" numberOfLines={1} style={styles.destName}>
-            {dest?.name ?? t('searchPlaceholder')}
-          </AppText>
+          <View style={styles.searchBadge} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <Search size={18} color={tc.accentInk} strokeWidth={2.4} />
+          </View>
         </PressScale>
-        <StatusButton pill={pill} expanded={showPanel} onToggle={() => setExpanded((v) => !v)} />
       </View>
       <Segmented
         variant="shell"
@@ -176,11 +182,18 @@ export function TopBar({ onOpenDrawer, onOpenDestinations, onLayout }: { onOpenD
         options={PROFILES.map((p) => ({ value: p, label: t(PROFILE_META[p].label), icon: PROFILE_META[p].icon, testID: `profile-${p}` }))}
         style={shadow('md')}
       />
+      <View
+        style={styles.statusRow}
+        pointerEvents="box-none"
+        onLayout={(e) => setStatusBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}
+      >
+        <StatusButton pill={pill} expanded={showPanel} onToggle={() => setExpanded((v) => !v)} />
+      </View>
       {showPanel ? (
         <Animated.View
           entering={reduce ? undefined : FadeInDown.duration(motion.banner).easing(easing)}
           exiting={reduce ? undefined : FadeOutUp.duration(motion.banner - 100)}
-          style={[styles.panel, shadow('lg')]}
+          style={[styles.panel, { top: statusBottom + spacing.xs }, shadow('lg')]}
           accessibilityLiveRegion="polite"
           testID="connection-bar"
         >
@@ -216,8 +229,9 @@ const BAR_H = layout.minTouch + spacing.xs;
 const useStyles = createStyles((tc) => ({
   wrap: { position: 'absolute', gap: spacing.xs },
   flex: { flex: 1 },
+  // The bar grows with the phone's text size instead of clipping: every row is centred on one axis.
   bar: {
-    height: BAR_H,
+    minHeight: BAR_H,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: radius.card + 2,
@@ -225,21 +239,25 @@ const useStyles = createStyles((tc) => ({
     borderWidth: hairline,
     borderColor: tc.shellHairlineStrong,
     paddingHorizontal: spacing.xxs,
+    paddingVertical: spacing.xxs,
     gap: spacing.xxs,
   },
   menu: { width: layout.minTouch, height: layout.minTouch, alignItems: 'center', justifyContent: 'center', borderRadius: radius.button },
-  divider: { width: hairline, height: spacing.lg, backgroundColor: tc.shellHairlineStrong },
-  dest: { flex: 1, minWidth: 0, overflow: 'hidden', justifyContent: 'center', paddingHorizontal: spacing.xs, minHeight: layout.minTouch },
-  destHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  divider: { width: hairline, alignSelf: 'stretch', marginVertical: spacing.xs, backgroundColor: tc.shellHairlineStrong },
+  dest: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingVertical: spacing.xxs, minHeight: layout.minTouch },
+  destText: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2 },
+  searchBadge: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
+  statusRow: { flexDirection: 'row', alignItems: 'center' },
+  // "To" and the mode badge share one centred line, so the eyebrow never sits above or below the badge text.
+  destHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: spacing.md + spacing.xxs, overflow: 'hidden' },
   destName: { fontFamily: fontFamily.semibold },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs + 2,
-    height: spacing.xl,
+    minHeight: spacing.xl,
     paddingHorizontal: spacing.sm - 2,
     borderRadius: radius.chip,
-    marginRight: spacing.xxs,
     borderWidth: hairline,
   },
   pillCalm: { backgroundColor: tc.shellRaised, borderColor: tc.shellHairline },
@@ -250,7 +268,6 @@ const useStyles = createStyles((tc) => ({
   liveDotIdle: { backgroundColor: tc.inkOnShellMuted },
   panel: {
     position: 'absolute',
-    top: BAR_H + spacing.xs,
     left: 0,
     right: 0,
     padding: spacing.sm,

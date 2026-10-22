@@ -77,8 +77,8 @@ export function SimulatedBadge({ onShell = false, className }: { onShell?: boole
   return (
     <span
       className={cn(
-        'inline-flex h-6 items-center gap-1.5 rounded-chip border border-control-border px-2 text-meta font-semibold',
-        onShell ? 'text-ink-on-shell' : 'bg-panel-raised text-ink',
+        'inline-flex h-6 items-center gap-1.5 rounded-chip border border-shell-line bg-panel-sunken px-2.5 text-meta font-semibold whitespace-nowrap',
+        onShell ? 'text-ink-on-shell' : 'text-ink',
         className,
       )}
     >

@@ -241,12 +241,12 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@expo-google-fonts/inter':
-        specifier: ^0.4.2
-        version: 0.4.2
       '@expo-google-fonts/jetbrains-mono':
         specifier: ^0.4.1
         version: 0.4.1
+      '@expo-google-fonts/manrope':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@expo-google-fonts/noto-sans-devanagari':
         specifier: ^0.4.1
         version: 0.4.1
@@ -1719,11 +1719,11 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@expo-google-fonts/inter@0.4.2':
-    resolution: {integrity: sha512-syfiImMaDmq7cFi0of+waE2M4uSCyd16zgyWxdPOY7fN2VBmSLKEzkfbZgeOjJq61kSqPBNNtXjggiQiSD6gMQ==}
-
   '@expo-google-fonts/jetbrains-mono@0.4.1':
     resolution: {integrity: sha512-CslACrtMOcRwoWXCO7OMEI+9w3fukWSoBtvNz46OqPoogEuuoY0tkDY1O8sFumk8t0pC6Cx0Xr95O0TOQhpkug==}
+
+  '@expo-google-fonts/manrope@0.4.2':
+    resolution: {integrity: sha512-BZsKe8d9BJrVnIQIZcTS7/Kac0TbXnqs/+8EBSiQxrmK6GoCO6eTkmr50D1weIk/EoF20pTmAkpWICnovATr/g==}
 
   '@expo-google-fonts/noto-sans-devanagari@0.4.1':
     resolution: {integrity: sha512-26boYPNKGP1r4R5MxsMAY/zCQOwiXLOJzX8sh1a2oEWyQurQsyniaCv4992c+9jjwshEEt2NNVv5GcnyzaL7QQ==}
@@ -9249,9 +9249,9 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 1.8.0
 
-  '@expo-google-fonts/inter@0.4.2': {}
-
   '@expo-google-fonts/jetbrains-mono@0.4.1': {}
+
+  '@expo-google-fonts/manrope@0.4.2': {}
 
   '@expo-google-fonts/noto-sans-devanagari@0.4.1': {}
 

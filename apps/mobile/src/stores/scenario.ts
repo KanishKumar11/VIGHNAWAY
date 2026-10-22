@@ -51,5 +51,19 @@ export const useScenario = create<ScenarioState>()((set) => ({
   selectMode: (mode) => set({ ...initial(mode), graphMismatch: null }),
 }));
 
+/**
+ * Places the traveller picked beyond the scenario's own list: a searched road, or the phone's
+ * position. They live only for this session; the engine still plans between graph nodes.
+ */
+const customPlaces = new Map<string, Place>();
+const CUSTOM_PREFIXES = ['road:', 'my-location:'] as const;
+
+export const isCustomPlaceId = (id: string): boolean => CUSTOM_PREFIXES.some((p) => id.startsWith(p));
+
+export function registerCustomPlace(place: Place): Place {
+  customPlaces.set(place.id, place);
+  return place;
+}
+
 export const placeById = (scenario: Scenario, id: string | null | undefined): Place | null =>
-  (id ? scenario.places.find((p) => p.id === id) : undefined) ?? null;
+  (id ? (scenario.places.find((p) => p.id === id) ?? customPlaces.get(id)) : undefined) ?? null;

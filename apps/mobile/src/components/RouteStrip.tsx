@@ -1,25 +1,31 @@
 import { memo, useState } from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, G, Line, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Line, Rect } from 'react-native-svg';
 import type { CrossingKind, RouteEvaluation } from '@vighnaway/contracts';
 import { routeName } from '@/i18n/engineText';
 import { fmtDistance } from '@/i18n/format';
-import { getLanguage } from '@/i18n/lang';
 import { t } from '@/i18n/en';
-import { createStyles, devanagari, fontFamily, lineStyle, ringStyle, type, useColors } from '@/theme';
+import { createStyles, lineStyle, radius, ringStyle, spacing, useColors } from '@/theme';
+import { AppText } from './AppText';
 
 const crossingKey = { underpass: 'crossingUnderpass', flyover: 'crossingFlyover', bridge: 'crossingBridge', footbridge: 'crossingFootbridge' } as const;
 const crossingWord = (k: CrossingKind) => t(crossingKey[k]);
 
 const BAR_Y = 8;
 const BAR_H = 6;
-const HEIGHT = 36;
-const LABEL = type.meta.size - 1;
+const HEIGHT = 24;
+
+/** "Flyover ×3 · Underpass": crossings by kind, in order of first appearance, with no per-crossing text to collide. */
+function crossingSummary(route: RouteEvaluation): { kind: CrossingKind; label: string }[] {
+  const counts = new Map<CrossingKind, number>();
+  for (const c of route.crossings) counts.set(c.kind, (counts.get(c.kind) ?? 0) + 1);
+  return [...counts].map(([kind, n]) => ({ kind, label: n > 1 ? `${crossingWord(kind)} ×${n}` : crossingWord(kind) }));
+}
 
 /**
  * Signature route strip: origin to destination as a slim bar, hazard ticks at their real positions
- * (positionM / distanceM), crossings banded and named by kind, and the travelled part
- * tinted when en route.
+ * (positionM / distanceM), crossings banded on the bar and summarised by kind underneath, and the
+ * travelled part tinted when en route.
  */
 export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }: { route: RouteEvaluation; travelledFraction?: number }) {
   const tc = useColors();
@@ -38,6 +44,7 @@ export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }:
     hazards: hazards.length ? t('routeStripHazards', { n: hazards.length }) : t('routeStripNoHazards'),
   });
   const mid = BAR_Y + BAR_H / 2;
+  const kinds = crossingSummary(route);
   return (
     <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)} accessible accessibilityLabel={label}>
       {width > 0 ? (
@@ -54,20 +61,9 @@ export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }:
           {route.crossings.map((c) => {
             const x0 = x(c.positionM);
             const x1 = Math.max(x0 + 4, x(c.positionM + c.lengthM));
-            const cx = (x0 + x1) / 2;
             return (
               <G key={`${c.name}-${c.positionM}`}>
                 <Rect x={x0 - 1} y={BAR_Y - 2} width={x1 - x0 + 2} height={BAR_H + 4} rx={3} fill={tc.panel} stroke={tc.ink} strokeWidth={1.5} />
-                <SvgText
-                  x={Math.min(width - pad, Math.max(pad, cx))}
-                  y={HEIGHT - 3}
-                  fontSize={LABEL}
-                  fontFamily={getLanguage() === 'en' ? fontFamily.medium : devanagari.medium}
-                  fill={tc.inkMuted}
-                  textAnchor={cx < pad + 40 ? 'start' : cx > width - pad - 40 ? 'end' : 'middle'}
-                >
-                  {crossingWord(c.kind)}
-                </SvgText>
               </G>
             );
           })}
@@ -99,9 +95,27 @@ export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }:
           <Circle cx={pad} cy={mid} r={4.5} fill={tc.ink} stroke={tc.panel} strokeWidth={2} />
           <Circle cx={width - pad} cy={mid} r={4.5} fill={tc.panel} stroke={tc.ink} strokeWidth={2} />
         </Svg>
+      ) : (
+        <View style={styles.svgSpace} />
+      )}
+      {kinds.length ? (
+        <View style={styles.kinds}>
+          {kinds.map((k) => (
+            <View key={k.kind} style={styles.kind}>
+              <AppText variant="label" tone="muted" maxFontSizeMultiplier={1.3}>
+                {k.label}
+              </AppText>
+            </View>
+          ))}
+        </View>
       ) : null}
     </View>
   );
 });
 
-const useStyles = createStyles(() => ({ wrap: { height: HEIGHT, width: '100%' } }));
+const useStyles = createStyles((tc) => ({
+  wrap: { width: '100%', gap: spacing.xs },
+  svgSpace: { height: HEIGHT },
+  kinds: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  kind: { paddingHorizontal: spacing.xs + 2, paddingVertical: 2, borderRadius: radius.chip, backgroundColor: tc.panelSunken },
+}));

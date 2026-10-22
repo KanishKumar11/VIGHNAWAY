@@ -1,4 +1,3 @@
-import * as SMS from 'expo-sms';
 import { Share } from 'react-native';
 import { formatSimClock, type Incident, type PlanResult, type RouteEvaluation } from '@vighnaway/contracts';
 import type { Graph } from '@vighnaway/engine';
@@ -54,16 +53,11 @@ export function buildShareText(input: ShareInput): string {
   return lines.join('\n');
 }
 
-/** Opens the SMS composer when available, otherwise the system share sheet. */
+/**
+ * Opens the system share sheet, so the traveller chooses where the route goes (WhatsApp, Messages,
+ * email, copy...) instead of one app opening on its own.
+ */
 export async function shareText(message: string): Promise<boolean> {
-  try {
-    if (await SMS.isAvailableAsync()) {
-      await SMS.sendSMSAsync([], message);
-      return true;
-    }
-  } catch {
-    // fall through to the share sheet
-  }
   try {
     await Share.share({ message, title: t('shareTitle') });
     return true;

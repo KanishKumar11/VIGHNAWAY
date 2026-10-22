@@ -56,11 +56,11 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 /** Corner radius for smoothed roads and routes (px), after simplifying wiggles under SIMPLIFY px. */
 const CORNER = spacing.md;
 const SIMPLIFY = spacing.xs + 2;
-/** Map labels: Inter, sentence case, a step under metadata size (DESIGN_VISION 6). */
+/** Map labels: Manrope, sentence case, a step under metadata size (DESIGN_VISION 6). */
 const LABEL_SIZE = type.meta.size - 2;
 const LABEL_TRACK = 0;
-/** Average Inter glyph width as a share of the font size, for collision boxes. */
-const LABEL_RATIO = 0.54;
+/** Average Manrope glyph width as a share of the font size, for collision boxes (Inter's is 0.54). */
+const LABEL_RATIO = 0.58;
 const LABEL_H = LABEL_SIZE + spacing.xxs;
 
 type Project = (c: MapCoord) => Pt;
@@ -118,7 +118,7 @@ export const SchematicMap = memo(function SchematicMap(props: Props) {
             <PinView key={pin.key} pin={pin} project={project} />
           ))}
           {props.markers.map((m) => (
-            <IncidentMarker key={m.incident.id} item={m} project={project} onPress={props.onIncidentPress} />
+            <IncidentMarker key={m.incident.id} item={m} project={project} showAge={props.markers.length <= AGE_LABELS_MAX} onPress={props.onIncidentPress} />
           ))}
           {props.vehiclePin ? <Vehicle pin={props.vehiclePin} project={project} /> : null}
         </>
@@ -273,7 +273,7 @@ const Labels = memo(function Labels({
     }
     const obstacles: Rect[] = [];
     const box = (p: Pt, half: number): Rect => ({ x: p.x - half, y: p.y - half, w: half * 2, h: half * 2 });
-    for (const m of markers) obstacles.push(box(project(m.coordinate), marker.size / 2 + spacing.xxs), { ...box(project(m.coordinate), marker.size / 2), y: project(m.coordinate).y + marker.size / 2 });
+    for (const m of markers) obstacles.push(box(project(m.coordinate), marker.mapSize / 2 + spacing.xxs), { ...box(project(m.coordinate), marker.mapSize / 2), y: project(m.coordinate).y + marker.mapSize / 2 });
     for (const p of pins) obstacles.push(box(project(p.coordinate), spacing.md));
     // Routes and the railway: sampled every few px so straight runs block labels too.
     for (const l of lines) {
@@ -403,7 +403,7 @@ const FloodContour = memo(function FloodContour({ item, project }: { item: MapIn
   const tc = useColors();
   const inc = item.incident;
   const p = project(item.coordinate);
-  const r = marker.size / 2 + (inc.depth === 'waist' ? spacing.lg : inc.depth === 'knee' ? spacing.md : spacing.xs);
+  const r = marker.mapSize / 2 + (inc.depth === 'waist' ? spacing.lg : inc.depth === 'knee' ? spacing.md : spacing.xs);
   return <Circle cx={p.x} cy={p.y} r={r} stroke={tc.floodProneSolid} strokeWidth={1.5} strokeDasharray={[2, 4]} strokeLinecap="round" fill={tc.floodProne} fillOpacity={0.35} />;
 });
 
@@ -438,7 +438,7 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
     );
   }
   if (pin.kind === 'blocking') {
-    const leftSide = p.x - BLOCK_W - marker.size / 2 > spacing.sm;
+    const leftSide = p.x - BLOCK_W - marker.mapSize / 2 > spacing.sm;
     // The incident marker sits on the same spot: the cross and "Not viable" sit beside it, with a
     // short leader back to the blocked segment.
     return (
@@ -448,8 +448,8 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
         style={[
           styles.blockWrap,
           leftSide
-            ? { left: p.x - BLOCK_W - marker.size / 2 - spacing.xxs, top: p.y - spacing.sm - 1 }
-            : { left: p.x + marker.size / 2 + spacing.xxs, top: p.y - spacing.sm - 1, flexDirection: 'row-reverse' },
+            ? { left: p.x - BLOCK_W - marker.mapSize / 2 - spacing.xxs, top: p.y - spacing.sm - 1 }
+            : { left: p.x + marker.mapSize / 2 + spacing.xxs, top: p.y - spacing.sm - 1, flexDirection: 'row-reverse' },
         ]}
       >
         <View style={[styles.blockPill, shadow('sm')]}>
@@ -467,14 +467,17 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
   return null;
 }
 
-const IncidentMarker = memo(function IncidentMarker({ item, project, onPress }: { item: MapIncident; project: Project; onPress: (i: Incident) => void }) {
+/** Above this many markers the age labels step aside, so a busy live map stays readable (the age is in the incident sheet). */
+const AGE_LABELS_MAX = 24;
+
+const IncidentMarker = memo(function IncidentMarker({ item, project, showAge, onPress }: { item: MapIncident; project: Project; showAge: boolean; onPress: (i: Incident) => void }) {
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
   const inc = item.incident;
   const p = project(item.coordinate);
   const closed = inc.status === 'resolved' || inc.status === 'dismissed';
-  const size = marker.size;
+  const size = marker.mapSize;
   return (
     <Animated.View
       entering={reduce ? undefined : springEntry(ZoomIn, motion.springSnappy)}
@@ -491,15 +494,17 @@ const IncidentMarker = memo(function IncidentMarker({ item, project, onPress }: 
       >
         <View style={[styles.markerCircle, { width: size, height: size, borderRadius: size / 2 }, closed && styles.markerClosed, shadow('sm')]}>
           <View style={StyleSheet.absoluteFill}>
-            <StatusRing status={inc.status} size={size} strokeWidth={marker.ringWidth + 1} />
+            <StatusRing status={inc.status} size={size} strokeWidth={marker.ringWidth} />
           </View>
-          <IncidentGlyph type={inc.type} size={marker.glyphSize} color={closed ? tc.resolved : tc.ink} />
+          <IncidentGlyph type={inc.type} size={marker.mapGlyphSize} color={closed ? tc.resolved : tc.ink} />
         </View>
-        <View style={styles.agePill}>
-          <AppText variant="label" tone="onShell" maxFontSizeMultiplier={1.3}>
-            {item.ageLabel}
-          </AppText>
-        </View>
+        {showAge ? (
+          <View style={styles.agePill}>
+            <AppText variant="label" tone="onShell" maxFontSizeMultiplier={1} style={styles.ageText}>
+              {item.ageLabel}
+            </AppText>
+          </View>
+        ) : null}
       </Pressable>
     </Animated.View>
   );
@@ -564,6 +569,7 @@ const useStyles = createStyles((tc) => ({
   markerHit: { alignItems: 'center' },
   markerCircle: { backgroundColor: tc.panelRaised, alignItems: 'center', justifyContent: 'center' },
   markerClosed: { backgroundColor: tc.panelSunken },
+  ageText: { fontSize: type.meta.size - 2, lineHeight: marker.mapAgePillHeight - 2 },
   agePill: {
     marginTop: spacing.xxs,
     paddingHorizontal: spacing.xs - 2,

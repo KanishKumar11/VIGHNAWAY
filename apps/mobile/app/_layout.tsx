@@ -1,7 +1,7 @@
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { Manrope_400Regular } from '@expo-google-fonts/manrope/400Regular';
+import { Manrope_500Medium } from '@expo-google-fonts/manrope/500Medium';
+import { Manrope_600SemiBold } from '@expo-google-fonts/manrope/600SemiBold';
+import { Manrope_700Bold } from '@expo-google-fonts/manrope/700Bold';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono/500Medium';
 import { NotoSansDevanagari_400Regular } from '@expo-google-fonts/noto-sans-devanagari/400Regular';
 import { NotoSansDevanagari_500Medium } from '@expo-google-fonts/noto-sans-devanagari/500Medium';
@@ -34,14 +34,14 @@ const queryClient = new QueryClient({
 // expo-router already provides a SafeAreaProvider at the root: do not add another here.
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    [fontFamily.regular]: Inter_400Regular,
-    [fontFamily.medium]: Inter_500Medium,
-    [fontFamily.semibold]: Inter_600SemiBold,
-    [fontFamily.bold]: Inter_700Bold,
+    [fontFamily.regular]: Manrope_400Regular,
+    [fontFamily.medium]: Manrope_500Medium,
+    [fontFamily.semibold]: Manrope_600SemiBold,
+    [fontFamily.bold]: Manrope_700Bold,
     // Instrument readouts (DESIGN.md 11.1): ETA digits, clocks, ages, eyebrow labels.
     [fontFamily.mono]: JetBrainsMono_500Medium,
     [fontFamily.monoBold]: JetBrainsMono_700Bold,
-    // Devanagari for Hindi and Marathi (Inter has no Devanagari glyphs).
+    // Devanagari for Hindi and Marathi (Manrope has no Devanagari glyphs).
     [devanagari.regular]: NotoSansDevanagari_400Regular,
     [devanagari.medium]: NotoSansDevanagari_500Medium,
     [devanagari.semibold]: NotoSansDevanagari_600SemiBold,

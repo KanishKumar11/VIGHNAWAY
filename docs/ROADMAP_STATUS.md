@@ -115,6 +115,7 @@ Baseline run on 2026-10-22, `pnpm test`: **381 passing, 0 failing**.
 
 See docs/limitations.md. The main ones:
 - schematic road fixture;
+- place search covers only the roads and places inside the bundled Andheri map (no street numbers, no landmarks other than the scenario places; no hosted geocoder);
 - no device run;
 - translations not reviewed by native speakers;
 - device-id corroboration is a heuristic;

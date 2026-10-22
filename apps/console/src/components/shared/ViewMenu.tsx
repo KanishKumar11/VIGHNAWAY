@@ -34,7 +34,7 @@ function Toggle({ label, hint, checked, onChange, disabled }: { label: string; h
 }
 
 /** View settings: language, larger text, spoken changes, list view, presenter mode. */
-export function ViewMenu({ console: inConsole = true, compact = false }: { console?: boolean; compact?: boolean }) {
+export function ViewMenu({ console: inConsole = true, compact = false, bare = false }: { console?: boolean; compact?: boolean; bare?: boolean }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
@@ -55,7 +55,7 @@ export function ViewMenu({ console: inConsole = true, compact = false }: { conso
     };
   }, [open]);
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={cn('relative', bare && 'h-full')}>
       <button
         type="button"
         aria-expanded={open}
@@ -63,8 +63,8 @@ export function ViewMenu({ console: inConsole = true, compact = false }: { conso
         aria-label={t.view.menu}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'vw-press inline-flex h-10 items-center gap-2 rounded-button border border-control-border text-body font-medium text-ink-on-shell',
-          compact ? 'w-10 justify-center' : 'px-3',
+          'vw-press text-body',
+          bare ? 'ctl-quiet h-full w-9 justify-center' : cn('ctl h-10', compact ? 'w-10' : 'px-3.5'),
         )}
       >
         <SlidersHorizontal aria-hidden className="size-4" />

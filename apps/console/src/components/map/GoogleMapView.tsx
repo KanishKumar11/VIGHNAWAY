@@ -2,7 +2,7 @@
 
 import { APILoadingStatus, Map, Polyline, useApiLoadingStatus, useMap, type MapMouseEvent } from '@vis.gl/react-google-maps';
 import type { Incident, LatLng } from '@vighnaway/contracts';
-import { googleMapStyles, themes } from '@vighnaway/tokens';
+import { consoleGoogleMapStyles as googleMapStyles, consoleThemes as themes } from '@vighnaway/tokens';
 import { CarFront, MapPin } from 'lucide-react';
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -170,7 +170,7 @@ function TrafficLayer({ on }: { on: boolean }) {
   return null;
 }
 
-function TrafficToggle({ on, onChange, top, right }: { on: boolean; onChange: (v: boolean) => void; top: number; right: number }) {
+function TrafficToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
@@ -179,10 +179,9 @@ function TrafficToggle({ on, onChange, top, right }: { on: boolean; onChange: (v
       aria-label={t.map.trafficLabel}
       onClick={() => onChange(!on)}
       className={cn(
-        'vw-press surface absolute z-20 flex items-center gap-2 rounded-chip px-3 py-1.5 text-meta font-semibold',
+        'vw-press surface absolute top-4 left-4 z-20 flex h-9 items-center gap-2 rounded-chip px-3.5 text-meta font-semibold',
         on ? 'text-ink-on-shell' : 'text-ink-on-shell-muted',
       )}
-      style={{ top, right }}
     >
       <CarFront aria-hidden className="size-4" />
       {t.map.traffic}
@@ -281,9 +280,9 @@ export function GoogleMapView({
           </HtmlOverlay>
         )}
       </Map>
-      {!compact && <TrafficToggle on={traffic} onChange={setTraffic} top={pad.top} right={pad.right} />}
+      {!compact && <TrafficToggle on={traffic} onChange={setTraffic} />}
       <MapLegend schematic={false} unavailable={false} compact={compact} insets={pad} extraAttribution={extraAttribution} />
-      <p className="pointer-events-none absolute top-2 right-2 rounded-chip bg-shell-raised px-3 py-1 text-meta text-ink-on-shell-muted">{t.map.googleAttribution}</p>
+      <p className="surface pointer-events-none absolute top-4 right-4 z-20 flex h-9 items-center rounded-chip px-3.5 text-meta text-ink-on-shell-muted">{t.map.googleAttribution}</p>
     </div>
   );
 }

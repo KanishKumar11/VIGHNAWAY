@@ -62,10 +62,10 @@ export type SpacingToken = keyof typeof spacing;
 export const radius = { sheet: 20, card: 14, chip: 999, button: 12, marker: 18 } as const;
 
 export const fontFamily = {
-  regular: 'Inter_400Regular',
-  medium: 'Inter_500Medium',
-  semibold: 'Inter_600SemiBold',
-  bold: 'Inter_700Bold',
+  regular: 'Manrope_400Regular',
+  medium: 'Manrope_500Medium',
+  semibold: 'Manrope_600SemiBold',
+  bold: 'Manrope_700Bold',
   /** CSS stack for the console. */
   web: "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
   /** Instrument readouts: clock, ETA digits, metadata eyebrows. */
@@ -140,6 +140,10 @@ export const marker = {
   ringWidth: 2,
   selectedScale: 1.15,
   agePillHeight: 18,
+  /** Incident markers on the phone's map: small, so a live feed with many closures stays readable (the console keeps `size`). */
+  mapSize: 26,
+  mapGlyphSize: 14,
+  mapAgePillHeight: 16,
   /** Ring language shared by markers and evidence chips. */
   ring: {
     unverified: { style: 'dashed', color: colors.warn },
@@ -184,6 +188,8 @@ export const layout = {
   drawerWidthRatio: 0.8,
   searchCardOffset: 8,
   sheetSnapPeek: 280,
+  /** Lowest sheet stop floor (dp): handle, ETA, route name and Start; grows with large text. */
+  sheetSnapMini: 120,
   sheetSnapHalf: '50%',
   sheetSnapFull: '92%',
   minTouch: 48,
@@ -219,7 +225,7 @@ export const googleMapStyle = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4B5D7A' }] },
 ] as const;
 
-export { themes, defaultTheme, contrastPairs } from './themes';
+export { themes, phoneThemes, consoleThemes, consoleChrome, consoleBrand, chromeContrastPairs, brandContrastPairs, defaultTheme, contrastPairs } from './themes';
 export type { ThemeColors, ThemeName } from './themes';
 
 /** Google Maps style for the light theme: warm neutral land, white roads, quiet blue water, visible railway. */
@@ -251,6 +257,98 @@ export const googleMapStyleLight = [
 
 /** Map style per theme. */
 export const googleMapStyles = { dark: googleMapStyle, light: googleMapStyleLight } as const;
+
+/**
+ * Phone map styles (DESIGN.md section 14): natural colours, so the basemap reads like the real
+ * place: green parks, blue water, warm land, white roads, amber highways. Generic points of interest
+ * stay hidden (hospitals and parks stay) so the route and incident markers remain the focus.
+ */
+export const googleMapStylePhoneLight = [
+  { elementType: 'geometry', stylers: [{ color: '#F1EEE6' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#4A5568' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#FFFFFF' }, { weight: 3 }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#CFC8BA' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#E9E4D9' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#E3EDD3' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.park', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#BDE3A6' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.medical', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.medical', elementType: 'geometry', stylers: [{ color: '#F5D5D5' }] },
+  { featureType: 'poi.medical', elementType: 'labels.icon', stylers: [{ visibility: 'on' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#E2DCCD' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#FFF6DC' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#FFD479' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#EDB84A' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.line', stylers: [{ visibility: 'on' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#4A5568' }, { weight: 1.4 }] },
+  { featureType: 'transit.station.rail', stylers: [{ visibility: 'on' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#9CCBF2' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#2F6A9E' }] },
+] as const;
+
+export const googleMapStylePhoneDark = [
+  { elementType: 'geometry', stylers: [{ color: '#1A2233' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#A9B6D0' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0A1020' }, { weight: 3 }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#2E3A57' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#1E283C' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#18291F' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.park', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#17402A' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.medical', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.medical', elementType: 'geometry', stylers: [{ color: '#3A2430' }] },
+  { featureType: 'poi.medical', elementType: 'labels.icon', stylers: [{ visibility: 'on' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2C3750' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#141C2E' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#38456A' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#7A6430' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#4F4020' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.line', stylers: [{ visibility: 'on' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#C7CFDB' }, { weight: 1.6 }] },
+  { featureType: 'transit.station.rail', stylers: [{ visibility: 'on' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0F3557' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6C9BC8' }] },
+] as const;
+export const phoneGoogleMapStyles = { dark: googleMapStylePhoneDark, light: googleMapStylePhoneLight } as const;
+
+/** Google Maps style for the console's Porcelain light theme: cool grey land, white roads, soft blue water. */
+export const googleMapStyleConsoleLight = [
+  { elementType: 'geometry', stylers: [{ color: '#E4E9F1' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#475569' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#FFFFFF' }, { weight: 3 }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#CBD3DF' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#DEE4EC' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.medical', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.medical', elementType: 'geometry', stylers: [{ color: '#D9E0EA' }] },
+  { featureType: 'poi.medical', elementType: 'labels.icon', stylers: [{ visibility: 'on' }, { saturation: -100 }] },
+  { featureType: 'poi.park', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#D9E5E0' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#D3DAE5' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#C3CCDA' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.line', stylers: [{ visibility: 'on' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#475569' }, { weight: 1.4 }] },
+  { featureType: 'transit.station.rail', stylers: [{ visibility: 'on' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C4D9EA' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#486A8E' }] },
+] as const;
+
+/** Map style per theme for the web control room. */
+export const consoleGoogleMapStyles = { dark: googleMapStyle, light: googleMapStyleConsoleLight } as const;
 
 export const tokens = { colors, spacing, radius, fontFamily, type, letterSpacing, elevation, routeStyles, zIndex, marker, motion, layout } as const;
 export default tokens;

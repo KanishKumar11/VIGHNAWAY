@@ -23,8 +23,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const GROUP_RING: Record<QueueGroup, Incident['status']> = { corroborated: 'corroborated', unverified: 'unverified', verified: 'verified', closed: 'resolved' };
 const spring = { type: 'spring' as const, ...motionTokens.springSoft };
-const secondaryBtn =
-  'vw-press inline-flex h-9 items-center gap-1.5 rounded-button border border-control-border px-2.5 text-meta font-semibold text-ink-on-shell disabled:opacity-50';
+/** Summary tile per queue group: tinted when it has incidents, quiet when empty. */
+const TILE_TONE = (filled: boolean): Record<QueueGroup, string> => {
+  const quiet = 'border-shell-line bg-panel-sunken text-ink-on-shell-muted';
+  return {
+    corroborated: filled ? 'border-shell-line bg-warn-surface text-warn-ink' : quiet,
+    unverified: filled ? 'border-shell-line bg-warn-surface text-warn-ink' : quiet,
+    verified: filled ? 'border-shell-line bg-danger-surface text-danger-ink' : quiet,
+    closed: quiet,
+  };
+};
+const secondaryBtn = 'vw-press ctl h-9 px-3 text-meta disabled:opacity-50';
 
 function IncidentRow({
   incident,
@@ -62,13 +71,16 @@ function IncidentRow({
       exit={{ opacity: 0 }}
       transition={{ ...spring, opacity: { duration: 0.25 } }}
       aria-label={`${f.title}, ${f.status}, ${f.source}, ${f.age}`}
-      className={cn('relative border-t border-shell-line px-5 py-4', selected && 'bg-panel-sunken', closed && 'opacity-75')}
+      className={cn(
+        'relative mx-5 my-1.5 rounded-card border px-4 py-4 transition-colors',
+        selected ? 'border-accent bg-recommended-surface shadow-sm' : 'border-shell-line bg-shell-raised hover:border-shell-hairline-strong',
+        closed && 'opacity-75',
+      )}
     >
-      {selected && <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent" />}
       <button type="button" className="flex w-full items-start gap-3 rounded-button text-left" onClick={() => onSelect(incident.id)} aria-pressed={selected}>
         <span
           className={cn(
-            'relative flex size-10 shrink-0 items-center justify-center rounded-button',
+            'relative flex size-11 shrink-0 items-center justify-center rounded-card',
             s === 'verified' ? 'bg-danger text-white' : closed ? 'bg-panel-sunken text-resolved' : 'bg-warn-surface text-warn-ink',
           )}
         >
@@ -79,7 +91,7 @@ function IncidentRow({
           <span className="truncate text-body text-ink-on-shell-muted">{incident.roadName ? t.queue.road(incident.roadName) : t.queue.unknownRoad}</span>
         </span>
       </button>
-      <div className="mt-3 pl-13">
+      <div className="mt-3.5 pl-14">
         <EvidenceChips incident={incident} nowS={nowS} />
         {incident.feed ? (
           <div className="mt-2.5 text-meta text-ink-on-shell-muted">
@@ -99,7 +111,7 @@ function IncidentRow({
           </p>
         )}
         {incident.note && incident.note !== incident.feed?.description && (
-          <p className="mt-2.5 border-l-2 border-shell-line pl-3 text-body text-ink-on-shell">
+          <p className="well mt-3 px-3.5 py-2.5 text-body text-ink-on-shell">
             <span className="mb-0.5 block text-meta font-semibold text-ink-on-shell-muted">{t.queue.note}</span>
             {/* Plain text only: React escapes it. */}
             {incident.note}
@@ -111,31 +123,26 @@ function IncidentRow({
             {t.queue.linked}
           </p>
         )}
-        {!closed && !readOnly && (
-          <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-            {s !== 'verified' && (
-              <button
-                type="button"
-                className="vw-press inline-flex h-9 items-center gap-1.5 rounded-button bg-accent px-2.5 text-meta font-semibold text-on-accent disabled:opacity-50"
-                disabled={pending}
-                onClick={() => onAction(incident, 'verify')}
-              >
-                <ShieldCheck aria-hidden className="size-4" />
-                {t.queue.verify}
-              </button>
-            )}
-            <button type="button" className={secondaryBtn} disabled={pending} onClick={() => onAction(incident, 'resolve')}>
-              <CircleCheck aria-hidden className="size-4" />
-              {t.queue.resolve}
-            </button>
-            <button type="button" className={secondaryBtn} disabled={pending} onClick={() => onAction(incident, 'dismiss')}>
-              <Ban aria-hidden className="size-4" />
-              {t.queue.dismiss}
-            </button>
-            {pending && <span className="ml-auto text-meta text-ink-on-shell-muted">{t.queue.pending}</span>}
-          </div>
-        )}
       </div>
+      {!closed && !readOnly && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-shell-line pt-3.5">
+          {s !== 'verified' && (
+            <button type="button" className="vw-press ctl-primary h-9 flex-auto px-3 text-meta whitespace-nowrap disabled:opacity-50" disabled={pending} onClick={() => onAction(incident, 'verify')}>
+              <ShieldCheck aria-hidden className="size-4" />
+              {t.queue.verify}
+            </button>
+          )}
+          <button type="button" className={cn(secondaryBtn, 'flex-auto whitespace-nowrap')} disabled={pending} onClick={() => onAction(incident, 'resolve')}>
+            <CircleCheck aria-hidden className="size-4" />
+            {t.queue.resolve}
+          </button>
+          <button type="button" className={cn(secondaryBtn, 'flex-auto whitespace-nowrap')} disabled={pending} onClick={() => onAction(incident, 'dismiss')}>
+            <Ban aria-hidden className="size-4" />
+            {t.queue.dismiss}
+          </button>
+        </div>
+      )}
+      {pending && <p className="mt-2 text-right text-meta text-ink-on-shell-muted">{t.queue.pending}</p>}
     </motion.article>
   );
 }
@@ -145,7 +152,7 @@ function QueueSkeleton() {
     <div className="flex flex-1 flex-col" role="status" aria-label={t.queue.loading}>
       <p className="px-5 pb-3 text-meta text-ink-on-shell-muted">{t.queue.loading}</p>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="border-t border-shell-line px-5 py-4" style={{ opacity: 1 - i * 0.25 }}>
+        <div key={i} className="mx-5 my-1.5 rounded-card border border-shell-line px-4 py-4" style={{ opacity: 1 - i * 0.25 }}>
           <div className="flex items-start gap-3">
             <Skeleton className="size-10 shrink-0" />
             <div className="flex flex-1 flex-col gap-2 pt-1">
@@ -182,49 +189,61 @@ export function SituationBrief({ trip }: { trip: TripState | null }) {
   const rec = trip ? recommendedRoute(trip.plan) : null;
   const watched = rec?.crossings.find((c) => atRisk.some(([n]) => n === c.name));
   return (
-    <section aria-labelledby="situation-title" className="flex flex-1 flex-col px-5 pb-6">
-      <h3 id="situation-title" className="text-title font-semibold text-ink-on-shell">
-        {t.situation.title}
-      </h3>
-      <p className="mt-1 text-body text-ink-on-shell-muted">{live ? t.situation.live : t.app.scenarioShort(scenario.name)}</p>
+    <section aria-labelledby="situation-title" className="flex flex-1 flex-col gap-5 px-5 py-5">
+      <div>
+        <h3 id="situation-title" className="text-title font-semibold text-ink-on-shell">
+          {t.situation.title}
+        </h3>
+        <p className="mt-0.5 text-body text-ink-on-shell-muted">{live ? t.situation.live : t.app.scenarioShort(scenario.name)}</p>
+      </div>
 
       {alert && (
-        <p className="mt-5 flex items-start gap-2.5 text-body text-ink-on-shell">
-          <CloudRain aria-hidden className="mt-0.5 size-5 shrink-0 text-flood-prone-solid" />
-          <span>
-            {rain ? alert.label : `${alert.label} (${t.sim.alertInactive})`}
+        <p className="well flex items-start gap-3 p-3.5 text-body text-ink-on-shell">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-button bg-shell-raised shadow-sm">
+            <CloudRain aria-hidden className="size-5 text-flood-prone-solid" />
+          </span>
+          <span className="min-w-0">
+            <span className="font-medium">{rain ? alert.label : `${alert.label} (${t.sim.alertInactive})`}</span>
             <span className="block text-meta text-ink-on-shell-muted">{alert.source}</span>
           </span>
         </p>
       )}
 
-      <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-body">
-        <dt className="text-meta font-semibold text-ink-on-shell-muted">{t.situation.atRisk}</dt>
-        <dd className="text-ink-on-shell">
-          {atRisk.length ? atRisk.map(([name, kind]) => (
-                <span key={name} className="block">
-                  {name} {kind && <span className="text-ink-on-shell-muted">· {kind}</span>}
-                </span>
-              )) : t.situation.none}
-        </dd>
-        {crossings.length > 0 && (
-          <>
-            <dt className="text-meta font-semibold text-ink-on-shell-muted">{t.situation.crossings}</dt>
-            <dd className="text-ink-on-shell">
-              {crossings.map(([name, kind]) => (
-                <span key={name} className="block">
-                  {name} <span className="text-ink-on-shell-muted">· {kind}</span>
-                </span>
-              ))}
-            </dd>
-          </>
+      <div>
+        <p className="text-meta font-semibold text-ink-on-shell-muted">{t.situation.atRisk}</p>
+        {atRisk.length ? (
+          <ul className="mt-1.5 divide-y divide-shell-line">
+            {atRisk.map(([name, kind]) => (
+              <li key={name} className="flex items-baseline justify-between gap-3 py-2 text-body text-ink-on-shell">
+                <span className="min-w-0">{name}</span>
+                {kind && <span className="shrink-0 text-meta text-ink-on-shell-muted">{kind}</span>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1.5 text-body text-ink-on-shell">{t.situation.none}</p>
         )}
-      </dl>
+      </div>
 
-      <p className="mt-6 text-meta font-semibold text-ink-on-shell-muted">{t.situation.watch}</p>
-      <p className="mt-1 text-body text-ink-on-shell">{watched && rec ? t.situation.watchLine(watched.name, rec.name) : t.situation.watchGeneric}</p>
+      {crossings.length > 0 && (
+        <div>
+          <p className="text-meta font-semibold text-ink-on-shell-muted">{t.situation.crossings}</p>
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {crossings.map(([name, kind]) => (
+              <li key={name} className="rounded-chip border border-shell-line bg-panel-sunken px-2.5 py-1 text-meta text-ink-on-shell">
+                {name} <span className="text-ink-on-shell-muted">· {kind}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      <div className="mt-auto border-t border-shell-line pt-4 text-body">
+      <div className="rounded-card border border-shell-line border-l-4 border-l-accent bg-recommended-surface px-4 py-3">
+        <p className="text-meta font-semibold text-recommended-ink">{t.situation.watch}</p>
+        <p className="mt-1 text-body text-ink-on-shell">{watched && rec ? t.situation.watchLine(watched.name, rec.name) : t.situation.watchGeneric}</p>
+      </div>
+
+      <div className="mt-auto rounded-card border border-dashed border-shell-hairline-strong px-4 py-3 text-body">
         <p className="text-ink-on-shell">{live ? t.queue.emptyLive : t.queue.empty}</p>
         <p className="mt-1 text-meta text-ink-on-shell-muted">{t.situation.noData}</p>
       </div>
@@ -275,12 +294,29 @@ export function IncidentQueue({
 
   return (
     <section aria-labelledby="queue-title" className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3">
-        <h2 id="queue-title" className="text-title font-semibold text-ink-on-shell">
+      <header className="flex items-center justify-between gap-3 border-b border-shell-line px-5 py-4">
+        <h2 id="queue-title" className="flex items-center gap-2.5 text-title font-semibold text-ink-on-shell">
+          <span aria-hidden className="vw-title-bar" />
           {t.queue.title}
         </h2>
-        {!loading && <span className="text-meta font-medium text-ink-on-shell-muted tabular">{t.queue.active(active)}</span>}
+        {!loading && (
+          <span className={cn('inline-flex h-7 items-center rounded-chip px-3 text-meta font-semibold tabular', active > 0 ? 'bg-warn-surface text-warn-ink' : 'bg-panel-sunken text-ink-on-shell-muted')}>
+            {t.queue.active(active)}
+          </span>
+        )}
       </header>
+
+      {!loading && (
+        <ul aria-hidden className="grid grid-cols-2 gap-2 border-b border-shell-line px-5 py-4">
+          {QUEUE_GROUPS.map((g) => (
+            <li key={g} className={cn('flex items-center gap-2.5 rounded-card border px-3 py-2.5', TILE_TONE(groups[g].length > 0)[g])}>
+              <RingIcon status={GROUP_RING[g]} className="size-4" />
+              <span className="min-w-0 flex-1 truncate text-meta font-semibold">{t.queue.groups[g]}</span>
+              <span className="text-title font-bold tabular">{groups[g].length}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {loading ? (
         <QueueSkeleton />
@@ -289,21 +325,23 @@ export function IncidentQueue({
           <SituationBrief trip={trip} />
         </div>
       ) : (
-        <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
+        <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto pb-3">
           <LayoutGroup>
             {QUEUE_GROUPS.map((g) => {
               const list = groups[g];
               return (
                 <motion.div key={g} layout="position" className="flex flex-col">
-                  <h3 className={cn('flex items-center gap-2 px-5 pt-3 pb-2 text-ink-on-shell-muted', list.length === 0 && 'opacity-60')}>
+                  {/* Empty groups stay in the accessibility tree (the summary tiles show them) but take no space. */}
+                  <h3 className={cn(list.length === 0 ? 'sr-only' : 'flex items-center gap-2 px-5 pt-4 pb-1.5 text-ink-on-shell-muted')}>
                     <span className="sr-only">{t.queue.groupCount(t.queue.groups[g], list.length)}</span>
-                    <RingIcon status={GROUP_RING[g]} className={cn(g === 'verified' ? 'text-danger' : g === 'closed' ? 'text-resolved' : 'text-warn')} />
-                    <span aria-hidden className="text-meta font-semibold">
-                      {t.queue.groups[g]}
-                    </span>
-                    <span aria-hidden className="text-meta font-medium tabular">
-                      {list.length}
-                    </span>
+                    {list.length > 0 && (
+                      <>
+                        <RingIcon status={GROUP_RING[g]} className={cn(g === 'verified' ? 'text-danger' : g === 'closed' ? 'text-resolved' : 'text-warn')} />
+                        <span aria-hidden className="text-meta font-semibold">
+                          {t.queue.groups[g]}
+                        </span>
+                      </>
+                    )}
                   </h3>
                   <AnimatePresence mode="popLayout" initial={false}>
                     {list.map((inc) => (
@@ -325,7 +363,7 @@ export function IncidentQueue({
           </LayoutGroup>
         </div>
       )}
-      <p className="border-t border-shell-line px-5 py-3 text-meta text-ink-on-shell-muted">{t.queue.corroborationHeuristic}</p>
+      <p className="border-t border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell-muted">{t.queue.corroborationHeuristic}</p>
     </section>
   );
 }
