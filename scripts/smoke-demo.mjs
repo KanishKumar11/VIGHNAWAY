@@ -38,6 +38,7 @@ async function call(method, path, body, auth = false) {
 }
 const get = (p) => call('GET', p);
 const post = (p, b = {}, auth = false) => call('POST', p, b, auth);
+const put = (p, b = {}, auth = false) => call('PUT', p, b, auth);
 const sim = (action) => post(`/scenarios/${SID}/sim/${action}`, {}, true);
 const incidents = async () => (await get(`/scenarios/${SID}/incidents`)).json;
 
@@ -141,7 +142,23 @@ check('confirm creates one Verified closure, source operator', cf.status === 200
 const cf2 = await post(`/scenarios/${SID}/closures`, { polyline: line, confirm: true }, true);
 check('the same roads cannot be closed twice (409)', cf2.status === 409, `status ${cf2.status}`);
 
-// 7. Leave the scenario clean.
+// 7. Hospital states (P2-4): operator-set, listed publicly, cleared by a reset.
+await sim('reset');
+const hosp0 = await get(`/scenarios/${SID}/hospitals`);
+check('hospitals list as accepting, set by nobody', hosp0.status === 200 && hosp0.json?.hospitals?.length >= 3 && hosp0.json.hospitals.every((h) => h.state === 'accepting' && h.setBy === null), JSON.stringify(hosp0.json)?.slice(0, 120));
+const hospUnauth = await put(`/scenarios/${SID}/hospitals/hosp-holy-spirit`, { state: 'busy' }, false);
+check('setting a hospital state needs the operator credential', hospUnauth.status === 401 || hospUnauth.status === 403, `status ${hospUnauth.status}`);
+const hospSet = await put(`/scenarios/${SID}/hospitals/hosp-holy-spirit`, { state: 'diverting' }, true);
+check('operator sets a hospital to diverting', hospSet.status === 200 && hospSet.json?.hospitals?.find((h) => h.placeId === 'hosp-holy-spirit')?.state === 'diverting' && hospSet.json.hospitals.find((h) => h.placeId === 'hosp-holy-spirit')?.setBy === 'operator', JSON.stringify(hospSet.json)?.slice(0, 120));
+const hospBad = await put(`/scenarios/${SID}/hospitals/hosp-holy-spirit`, { state: 'closed' }, true);
+check('an unknown state is refused (400)', hospBad.status === 400, `status ${hospBad.status}`);
+const hospMissing = await put(`/scenarios/${SID}/hospitals/origin-ramesh-nagar`, { state: 'busy' }, true);
+check('a place that is not a hospital is refused (404)', hospMissing.status === 404, `status ${hospMissing.status}`);
+await sim('reset');
+const hosp1 = await get(`/scenarios/${SID}/hospitals`);
+check('a reset clears hospital states', hosp1.json?.hospitals?.every((h) => h.state === 'accepting'), JSON.stringify(hosp1.json)?.slice(0, 120));
+
+// 8. Leave the scenario clean.
 await sim('reset');
 
 const failed = results.filter((r) => !r.ok);

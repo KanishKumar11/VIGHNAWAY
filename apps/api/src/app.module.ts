@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config.module';
 import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
+import { HospitalsModule } from './hospitals/hospitals.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { LiveModule } from './live/live.module';
 import { ReportsModule } from './reports/reports.module';
@@ -37,6 +38,7 @@ export class AppModule {
         ScenariosModule,
         LiveModule,
         IncidentsModule,
+        HospitalsModule,
         ReportsModule,
         SimModule,
         TrafficModule,

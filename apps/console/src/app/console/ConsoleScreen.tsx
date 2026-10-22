@@ -25,6 +25,7 @@ import { IncidentQueue } from '@/components/console/IncidentQueue';
 import { ChangeBanner, changeBannerVisible, DemoTripPanel } from '@/components/console/DemoTripPanel';
 import { QrCard } from '@/components/console/QrCard';
 import { CloseRoadCard } from '@/components/console/CloseRoadCard';
+import { HospitalLoadCard } from '@/components/console/HospitalLoadCard';
 import { Timeline } from '@/components/console/Timeline';
 import { AudienceCard } from '@/components/console/AudienceCard';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
@@ -136,6 +137,7 @@ export function ConsoleScreen() {
           <aside aria-label={t.queue.title} className="panel-card flex w-80 shrink-0 flex-col overflow-hidden min-[1440px]:w-100">
             <IncidentQueue selectedId={selectedId} onSelect={toggle} incidents={incidents} nowS={nowS} readOnly={!!replay} trip={trip} />
             {!replay && <CloseRoadCard />}
+            {!replay && <HospitalLoadCard />}
             <QrCard />
           </aside>
         )}

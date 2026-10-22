@@ -574,6 +574,8 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P2-4.a | Hospital state (accepting, busy, diverting) set by an operator action, logged, labelled "Set by control room (simulated)" in the demo | API tests | 2 h |
 | P2-4.b | Engine `assignHospital(trips, reachable, states)`: deterministic; adds the documented per-state cost; tie-break by hospital id | engine tests; parity | 2–3 h |
 | P2-4.b status | **done** as `assignHospitals` (packages/engine/src/hospital.ts) with the new `hospitalLoad` scoring rule (busy 300 s, diverting 1,800 s, 120 s per trip already assigned in the batch; ranking only), Hindi and Marathi rule text, scoring.md regenerated; engine test/hospital.test.ts (7: nearest, spreading, order independence, busy and diverting, all diverting, unreachable). The parity hash is unchanged. P2-4.a (API operator action) and P2-4.c (console and phone) are not built | | |
+| P2-4.a status | **written, run in part**: migration 0005 (`scenarios.hospital_states`), `GET` and operator `PUT /scenarios/:id/hospitals[/:placeId]`, cleared by a reset; apps/api/test/hospitals.test.ts and 6 more checks in `pnpm smoke` (the API suite needs a database on 127.0.0.1, which this machine lacks; see the ROADMAP_STATUS row for what was run) | | |
+| P2-4.c status | **console done**: "Hospital load" dialog in the left column (components/console/HospitalLoadCard.tsx): an operator marks each hospital Accepting, Busy or Diverting; the console re-plans three simulated callers with `assignHospitals` and shows where each goes and why; en/hi/mr; vitest hospitalLoad. **Phone not built** | | |
 | P2-4.c | Console and phone show the assigned hospital and the reason | vitest and jest | 2 h |
 
 ## P2-7 Commute watch

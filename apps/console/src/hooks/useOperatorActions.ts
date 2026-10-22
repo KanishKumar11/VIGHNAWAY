@@ -1,7 +1,7 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
-import type { ClosureRequest, Incident, OperatorAction, SimAction } from '@vighnaway/contracts';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ClosureRequest, HospitalStateValue, Incident, OperatorAction, SimAction } from '@vighnaway/contracts';
 import { t } from '@/i18n';
 import { api, ApiError } from '@/lib/api';
 import { dropCredential, getOperatorCredential, type Credential } from '@/lib/credential';
@@ -114,6 +114,33 @@ export function useCloseRoad() {
     },
     onSuccess: (resp) => {
       if (resp.incident) toast.success(t.closeRoad.done(resp.preview.roadNames[0] ?? t.closeRoad.unnamed));
+    },
+  });
+}
+
+const HOSPITALS_POLL_MS = 15_000;
+
+/** Operator-set hospital states for the active scenario (P2-4), polled so a second console sees changes. */
+export function useHospitals() {
+  const scenarioId = useScenarioStore((s) => s.id);
+  return useQuery({
+    queryKey: ['hospitals', scenarioId],
+    queryFn: ({ signal }) => api.hospitals(scenarioId, { signal }),
+    refetchInterval: HOSPITALS_POLL_MS,
+    retry: false,
+  });
+}
+
+/** Operator: set one hospital to accepting, busy or diverting. */
+export function useSetHospital() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { placeId: string; state: HospitalStateValue }) => {
+      if (isReplaying()) throw new ApiError('CONFLICT', t.replay.readOnly, 409);
+      const scenarioId = useScenarioStore.getState().id;
+      const resp = await withCredential((token) => api.setHospital(scenarioId, v.placeId, v.state, token));
+      qc.setQueryData(['hospitals', scenarioId], resp);
+      return resp;
     },
   });
 }

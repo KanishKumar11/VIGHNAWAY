@@ -15,6 +15,7 @@ import {
   ReportResponseSchema,
   FeedStatusSchema,
   HistoryResponseSchema,
+  HospitalStatesResponseSchema,
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
   SimResponseSchema,
@@ -32,6 +33,8 @@ import {
   type OtpVerifyBody,
   type FeedStatus,
   type HistoryResponse,
+  type HospitalStatesResponse,
+  type HospitalStateValue,
   type HealthResponse,
   type ScenarioListResponse,
   type IncidentsResponse,
@@ -176,6 +179,10 @@ export const api = {
   /** Operator: preview (confirm false) or create a Verified closure along a drawn line. */
   closeRoad: (id: string, body: ClosureRequest, token: string, o?: RequestOptions): Promise<ClosureResponse> =>
     request(API_PATHS.closures(id), ClosureResponseSchema, { ...o, method: 'POST', body, token }),
+  /** Hospital states (P2-4): public list; an operator sets one. */
+  hospitals: (id: string, o?: RequestOptions): Promise<HospitalStatesResponse> => request(API_PATHS.hospitals(id), HospitalStatesResponseSchema, o),
+  setHospital: (id: string, placeId: string, state: HospitalStateValue, token: string, o?: RequestOptions): Promise<HospitalStatesResponse> =>
+    request(API_PATHS.hospital(id, placeId), HospitalStatesResponseSchema, { ...o, method: 'PUT', body: { state }, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),
