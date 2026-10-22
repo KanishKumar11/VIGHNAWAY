@@ -65,12 +65,13 @@ export function OperatorTokenDialog() {
             id={fieldId}
             type="password"
             autoComplete="off"
+            placeholder={t.operator.fieldHint}
             autoFocus
             value={value}
             onChange={(e) => setValue(e.target.value)}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : undefined}
-            className="min-h-12 rounded-button border border-panel-line bg-panel-sunken px-4 text-base text-ink"
+            className="min-h-12 rounded-button border border-control-border/40 bg-panel-sunken px-4 text-base text-ink placeholder:text-ink-subtle hover:border-control-border focus-visible:border-accent"
           />
           {error && (
             <p id={errorId} role="alert" className="text-base font-semibold text-danger-ink">

@@ -7,6 +7,7 @@ import { themeBootScript } from '@/lib/themeMode';
 import { Providers } from './providers';
 // Fonts are bundled locally (no Google Fonts request): Inter for UI, JetBrains Mono for readouts.
 import '@fontsource-variable/inter';
+import '@fontsource-variable/manrope';
 import '@fontsource-variable/jetbrains-mono';
 import '@fontsource-variable/noto-sans-devanagari';
 import './globals.css';
