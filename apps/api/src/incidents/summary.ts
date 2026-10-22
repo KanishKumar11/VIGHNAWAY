@@ -1,6 +1,7 @@
 import {
   type Incident,
   INCIDENT_TYPE_LABEL,
+  WALKING_CONCERN_LABEL,
   type ReportOutcome,
   sourceLabel,
   statusLabel,
@@ -17,6 +18,8 @@ export function hazardWhat(i: Incident): string {
       return i.depth ? `Flooding (${i.depth} deep)` : 'Flooding (depth not given)';
     case 'congestion':
       return i.congestion ? `${cap(i.congestion)} congestion` : 'Congestion';
+    case 'walking_concern':
+      return i.concern ? `${WALKING_CONCERN_LABEL[i.concern]} road` : INCIDENT_TYPE_LABEL[i.type];
     case 'debris':
     case 'accident':
       return i.severity ? `${INCIDENT_TYPE_LABEL[i.type]} (${i.severity})` : INCIDENT_TYPE_LABEL[i.type];

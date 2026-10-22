@@ -36,6 +36,9 @@ export const REPORT_RULES = {
   clearDevicesToResolve: 2,
   /** One answer to the data-gap question per road per device per 30 simulated minutes. */
   promptWindowS: 1800,
+  /** Walking concerns (P2-8) are limited more tightly than other reports: this many per device per 30 simulated minutes. */
+  concernPerDevice: 3,
+  concernWindowS: 1800,
 } as const;
 
 const DEPTH_RANK: Record<Depth, number> = { ankle: 1, knee: 2, waist: 3 };
@@ -125,6 +128,7 @@ export class ReportsService {
           maxDistanceM: REPORT_RULES.snapM,
         });
       }
+      if (input.type === 'walking_concern') await this.requireWithinConcernLimit(tx, scenarioId, deviceHash, nowS);
       if (origin === 'prompt') await this.requireNoRecentPromptAnswer(tx, scenarioRow.graphVersion, scenarioId, deviceHash, snap, nowS);
       const base = {
         scenarioId,
@@ -132,6 +136,7 @@ export class ReportsService {
         depth: input.type === 'flood' ? (input.depth ?? null) : null,
         congestion: input.type === 'congestion' ? (input.congestion ?? null) : null,
         severity: input.type === 'debris' || input.type === 'accident' ? (input.severity ?? null) : null,
+        concern: input.type === 'walking_concern' ? (input.concern ?? null) : null,
         impassable: input.impassable ?? false,
         observedPersonally: input.observedPersonally,
         description: plainText(input.description),
@@ -206,7 +211,7 @@ export class ReportsService {
       }
 
       const extent = await this.extent(tx, scenarioRow.graphVersion, pt, snap, input.type);
-      const openId = (await this.openNear(tx, scenarioId, pt, input.type))[0] ?? null;
+      const openId = (await this.openNear(tx, scenarioId, pt, input.type, base.concern))[0] ?? null;
       let draft: IncidentDraft;
       let outcome: ReportOutcome;
       let reportId: string;
@@ -247,6 +252,7 @@ export class ReportsService {
           depth: base.depth,
           congestion: base.congestion,
           severity: base.severity,
+          concern: base.concern,
           impassable: input.type === 'closure' || base.impassable,
           conflicting: false,
           edgeIds: extent,
@@ -402,6 +408,17 @@ export class ReportsService {
     }
   }
 
+  /** A device may send only a few walking concerns per half hour (P2-8): 429 after that. */
+  private async requireWithinConcernLimit(tx: Tx, scenarioId: string, deviceHash: string, nowS: number): Promise<void> {
+    const rows = await tx.execute<{ n: number }>(sql`
+      SELECT count(*)::int AS n FROM incident_reports
+      WHERE scenario_id = ${scenarioId} AND device_hash = ${deviceHash} AND type = 'walking_concern'
+        AND received_at_s > ${nowS - REPORT_RULES.concernWindowS}`);
+    if (Number(rows[0]?.n ?? 0) >= REPORT_RULES.concernPerDevice) {
+      throw new ApiException('RATE_LIMITED', 'Too many walking concern reports from this device. Try again later.', { windowS: REPORT_RULES.concernWindowS });
+    }
+  }
+
   /** Nearest road edge within 30 m (geodesic distance; ties broken by id). */
   private async snap(tx: Tx, graphVersion: string, pt: SQL): Promise<Snap | null> {
     const rows = await tx.execute<{ id: string; reverse_id: string | null; name: string | null; d: number }>(sql`
@@ -431,13 +448,14 @@ export class ReportsService {
   }
 
   /** Open incidents (of `type`, or any type for Road clear) with a supporting report within 150 m. */
-  private async openNear(tx: Tx, scenarioId: string, pt: SQL, type: string | null): Promise<string[]> {
+  private async openNear(tx: Tx, scenarioId: string, pt: SQL, type: string | null, concern: string | null = null): Promise<string[]> {
     const rows = await tx.execute<{ id: string }>(sql`
       SELECT DISTINCT i.id FROM incidents i
       JOIN incident_reports r ON r.incident_id = i.id AND r.type <> 'road_clear'
       WHERE i.scenario_id = ${scenarioId}
         AND i.status IN ${OPEN}
-        ${type ? sql`AND i.type = ${type}` : sql``}
+        ${type ? sql`AND i.type = ${type}` : sql`AND i.type <> 'walking_concern'`}
+        ${concern ? sql`AND i.concern = ${concern}` : sql``}
         AND ST_DWithin(r.geom::geography, ${pt}::geography, ${REPORT_RULES.nearM})
       ORDER BY i.id`);
     return rows.map((r) => r.id);

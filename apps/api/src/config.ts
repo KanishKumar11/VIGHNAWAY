@@ -28,6 +28,12 @@ const EnvSchema = z.object({
   TRAFFIC_FEED_SCENARIO: z.string().default('andheri-live'),
   /** Seconds between polls (one request each); 0 = only on POST /scenarios/:id/feed/poll. */
   TRAFFIC_POLL_SECONDS: z.coerce.number().int().min(0).default(120),
+  /** CAP 1.2 rain-alert feed (SACHET publishes CAP). Empty disables the alert feed. */
+  ALERT_FEED_URL: z.string().default(''),
+  /** The live scenario the alert feed writes into. It never touches simulated scenarios. */
+  ALERT_FEED_SCENARIO: z.string().default('andheri-live'),
+  /** Seconds between alert reads; 0 = only on POST /scenarios/:id/alerts/poll. */
+  ALERT_POLL_SECONDS: z.coerce.number().int().min(0).default(600),
   /** How far (m) a feed geometry may be from a graph edge to count as on it. */
   TRAFFIC_MATCH_DISTANCE_M: z.coerce.number().min(1).max(200).default(25),
   NODE_ENV: z.string().default('development'),
@@ -72,6 +78,11 @@ export interface AppConfig {
     otpMaxPerIpPerHour: number;
     sessionTtlWebS: number;
     sessionTtlMobileS: number;
+  };
+  alerts: {
+    url: string;
+    scenarioId: string;
+    pollSeconds: number;
   };
   traffic: {
     tomtomApiKey: string;
@@ -120,6 +131,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       otpMaxPerIpPerHour: e.OTP_MAX_PER_IP_PER_HOUR,
       sessionTtlWebS: e.SESSION_TTL_WEB_HOURS * 3600,
       sessionTtlMobileS: e.SESSION_TTL_MOBILE_DAYS * 86400,
+    },
+    alerts: {
+      url: e.ALERT_FEED_URL,
+      scenarioId: e.ALERT_FEED_SCENARIO,
+      pollSeconds: e.ALERT_POLL_SECONDS,
     },
     traffic: {
       tomtomApiKey: e.TOMTOM_API_KEY,

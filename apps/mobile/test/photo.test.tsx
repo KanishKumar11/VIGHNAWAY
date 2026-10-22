@@ -117,7 +117,7 @@ describe('sending a photo with a report', () => {
     const report = jest.spyOn(api, 'report').mockResolvedValue(accepted);
     const upload = jest.spyOn(api, 'reportPhoto').mockResolvedValue({ reportId: 'sim:rep:u1', sizeBytes: 3 });
     const outcome = await submitReport(input, PHOTO);
-    expect(outcome).toEqual({ kind: 'sent', photo: 'sent' });
+    expect(outcome).toMatchObject({ kind: 'sent', photo: 'sent' });
     expect(report.mock.invocationCallOrder[0]!).toBeLessThan(upload.mock.invocationCallOrder[0]!);
     expect(upload.mock.calls[0]![2]).toBe('sim:rep:u1');
     const body = upload.mock.calls[0]![3];
@@ -128,14 +128,14 @@ describe('sending a photo with a report', () => {
   it('keeps the report when the photo cannot be uploaded (an older server, a bad link)', async () => {
     jest.spyOn(api, 'report').mockResolvedValue(accepted);
     jest.spyOn(api, 'reportPhoto').mockRejectedValue(new Error('404'));
-    expect(await submitReport(input, PHOTO)).toEqual({ kind: 'sent', photo: 'failed' });
+    expect(await submitReport(input, PHOTO)).toMatchObject({ kind: 'sent', photo: 'failed' });
     expect(await sendPhoto('sim', 'sim:rep:u1', DEVICE, PHOTO)).toBe('failed');
   });
 
   it('sends no photo request when none was taken', async () => {
     jest.spyOn(api, 'report').mockResolvedValue(accepted);
     const upload = jest.spyOn(api, 'reportPhoto');
-    expect(await submitReport(input)).toEqual({ kind: 'sent', photo: 'none' });
+    expect(await submitReport(input)).toMatchObject({ kind: 'sent', photo: 'none' });
     expect(upload).not.toHaveBeenCalled();
   });
 

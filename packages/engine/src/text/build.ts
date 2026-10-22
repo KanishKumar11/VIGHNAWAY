@@ -20,6 +20,8 @@ export function hazardLabelText(inc: Incident): Text {
       return tx(inc.impassable ? 'hazard.debris.impassable' : 'hazard.debris');
     case 'accident':
       return tx(inc.impassable ? 'hazard.accident.impassable' : 'hazard.accident');
+    case 'walking_concern':
+      return tx(inc.concern === 'isolated' ? 'hazard.walking.isolated' : 'hazard.walking.poorly_lit');
     default:
       // An incident type this build does not know (a newer API): say so rather than fail.
       return tx('hazards.unknown');

@@ -16,7 +16,7 @@ describe('tokens', () => {
 describe('incident icons', () => {
   it('has a pictogram for every incident type and for road clear', async () => {
     const { incidentIcons } = await import('../src');
-    expect(Object.keys(incidentIcons).sort()).toEqual(['accident', 'closure', 'congestion', 'debris', 'flood', 'road_clear']);
+    expect(Object.keys(incidentIcons).sort()).toEqual(['accident', 'closure', 'congestion', 'debris', 'flood', 'road_clear', 'walking_concern']);
   });
   it('carries no colour: surfaces pass their own ink', async () => {
     const { incidentIcons } = await import('../src');

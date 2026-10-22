@@ -5,6 +5,7 @@ import {
   IncidentSchema,
   ReportTypeSchema,
   SeveritySchema,
+  WalkingConcernSchema,
 } from './incidents';
 import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 
@@ -33,6 +34,8 @@ export const ReportInputSchema = z
     depth: DepthSchema.nullable().optional(),
     congestion: CongestionLevelSchema.nullable().optional(),
     severity: SeveritySchema.nullable().optional(),
+    /** Walking concern reports only (P2-8): what is wrong with the road. */
+    concern: WalkingConcernSchema.optional(),
     impassable: z.boolean().optional(),
     point: LatLngSchema,
     observedPersonally: z.boolean(),
@@ -69,6 +72,19 @@ export const ReportInputSchema = z
     }
     if (r.type === 'congestion' && r.congestion == null) {
       ctx.addIssue({ code: 'custom', path: ['congestion'], message: 'Choose a congestion level' });
+    }
+    // Walking concerns (P2-8) describe a road and a condition and nothing else: no note a report could use to name a
+    // person or a place, and none of the hazard fields.
+    if (r.type === 'walking_concern') {
+      if (!r.concern) ctx.addIssue({ code: 'custom', path: ['concern'], message: 'Choose what is wrong with the road' });
+      for (const field of ['description', 'severity', 'depth', 'congestion'] as const) {
+        if (r[field] != null && r[field] !== '') {
+          ctx.addIssue({ code: 'custom', path: [field], message: 'A walking concern report has no ' + field });
+        }
+      }
+      if (r.impassable) ctx.addIssue({ code: 'custom', path: ['impassable'], message: 'A walking concern never closes a road' });
+    } else if (r.concern != null) {
+      ctx.addIssue({ code: 'custom', path: ['concern'], message: 'Concern applies to walking concern reports only' });
     }
     if (r.type !== 'debris' && r.type !== 'accident' && r.severity != null) {
       ctx.addIssue({

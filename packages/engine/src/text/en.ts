@@ -20,6 +20,8 @@ export const en = {
   'hazard.debris': 'Debris',
   'hazard.debris.impassable': 'Debris (reported impassable)',
   'hazard.accident': 'Accident',
+  'hazard.walking.poorly_lit': 'Poorly lit road',
+  'hazard.walking.isolated': 'Isolated stretch',
   'hazard.accident.impassable': 'Accident (reported impassable)',
   'hazard.at': '{hazard} at {road}',
   'hazard.on': '{hazard} on {road}',

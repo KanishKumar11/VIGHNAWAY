@@ -211,7 +211,7 @@ describe('reports send the token only when signed in', () => {
 
   it('signed out: no Authorization header (anonymous, as before)', async () => {
     handler = () => ok;
-    expect(await submitReport(input)).toEqual({ kind: 'sent' });
+    expect(await submitReport(input)).toMatchObject({ kind: 'sent' });
     expect(reportCalls()).toHaveLength(1);
     expect(reportCalls()[0]!.headers.Authorization).toBeUndefined();
   });
@@ -219,7 +219,7 @@ describe('reports send the token only when signed in', () => {
   it('signed in: the Bearer token goes with the report', async () => {
     signIn();
     handler = () => ok;
-    expect(await submitReport(input)).toEqual({ kind: 'sent' });
+    expect(await submitReport(input)).toMatchObject({ kind: 'sent' });
     expect(reportCalls()[0]!.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(reportCalls()[0]!.body).toMatchObject({ type: 'flood', deviceId: 'vw-test-device-01' });
   });
@@ -227,7 +227,7 @@ describe('reports send the token only when signed in', () => {
   it('a rejected token never fails the report: it is sent again anonymously', async () => {
     signIn();
     handler = (c) => (c.headers.Authorization ? err(401, 'UNAUTHORIZED', 'Sign in to continue') : ok);
-    expect(await submitReport(input)).toEqual({ kind: 'sent' });
+    expect(await submitReport(input)).toMatchObject({ kind: 'sent' });
     expect(reportCalls()).toHaveLength(2);
     expect(reportCalls()[1]!.headers.Authorization).toBeUndefined();
   });

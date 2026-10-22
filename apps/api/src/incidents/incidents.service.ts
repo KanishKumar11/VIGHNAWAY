@@ -48,6 +48,7 @@ export function toIncident(row: IncidentRow): Incident {
     depth: row.depth as Incident['depth'],
     congestion: row.congestion as Incident['congestion'],
     severity: row.severity as Incident['severity'],
+    ...(row.concern ? { concern: row.concern as Incident['concern'] } : {}),
     impassable: row.impassable,
     conflicting: row.conflicting,
     edgeIds: [...row.edgeIds].sort(),

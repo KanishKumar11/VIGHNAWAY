@@ -86,6 +86,8 @@ export const incidents = pgTable(
     depth: text('depth'),
     congestion: text('congestion'),
     severity: text('severity'),
+    /** Walking concern incidents only (P2-8): poorly_lit or isolated. */
+    concern: text('concern'),
     impassable: boolean('impassable').notNull().default(false),
     conflicting: boolean('conflicting').notNull().default(false),
     edgeIds: text('edge_ids').array().notNull(),
@@ -125,6 +127,8 @@ export const incidentReports = pgTable(
     depth: text('depth'),
     congestion: text('congestion'),
     severity: text('severity'),
+    /** Walking concern reports only (P2-8): poorly_lit or isolated. */
+    concern: text('concern'),
     impassable: boolean('impassable').notNull().default(false),
     observedPersonally: boolean('observed_personally').notNull(),
     description: text('description'),

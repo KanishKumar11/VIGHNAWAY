@@ -12,7 +12,7 @@
  * Paths carry no colour: the surface passes its own ink, so every theme and the colour-vision
  * tests keep working. Drawn for VIGHNAWAY; not copies of any third-party icon set.
  */
-export type IncidentIconKey = 'flood' | 'closure' | 'congestion' | 'debris' | 'accident' | 'road_clear';
+export type IncidentIconKey = 'flood' | 'closure' | 'congestion' | 'debris' | 'accident' | 'walking_concern' | 'road_clear';
 
 export interface IncidentIconLayer {
   paint: 'fill' | 'stroke';
@@ -55,6 +55,12 @@ export const incidentIcons: Record<IncidentIconKey, readonly IncidentIconLayer[]
       tone: 'solid',
       d: 'M12 2.6c.7 0 1.3.4 1.7 1l8 13.9c.8 1.4-.2 3.1-1.7 3.1H4c-1.5 0-2.5-1.7-1.7-3.1l8-13.9c.4-.6 1-1 1.7-1zM11 8.8h2v5.6h-2zM12 15.7a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z',
     },
+  ],
+  // A street lamp: a lamp head on a post, with two short rays. For walking concerns (poorly lit, isolated).
+  walking_concern: [
+    { paint: 'fill', tone: 'soft', d: 'M3.4 7.6 6 8.5l-.8 1.9-2.6-.9zM20.6 7.6 18 8.5l.8 1.9 2.6-.9z' },
+    { paint: 'fill', tone: 'solid', round: true, d: 'M6.6 8.6a5.4 5.4 0 0 1 10.8 0z' },
+    { paint: 'fill', tone: 'solid', d: 'M10.9 9.6h2.2v10.8h-2.2zM7.8 20.4h8.4v2H7.8z' },
   ],
   // A disc with a tick, for "road clear" reports.
   road_clear: [

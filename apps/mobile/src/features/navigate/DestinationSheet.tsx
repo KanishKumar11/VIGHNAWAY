@@ -1,5 +1,5 @@
 import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetTextInput, type BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
-import { forwardRef, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, View, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haversineM } from '@vighnaway/engine';
@@ -39,6 +39,8 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
+import { useHospitals } from '@/stores/hospitals';
+import { hospitalStateNote } from './hospitalState';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, shadowUp, spacing, text, useColors, withAlpha } from '@/theme';
 
 interface Props {
@@ -125,6 +127,11 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
   const destinationId = useTrip((s) => s.destinationId);
   const canEditFrom = useTrip((s) => s.mode === 'planning');
   const recent = useRecentPlaces((s) => s.places);
+  const hospitalStates = useHospitals((s) => s.states);
+  const hospitalsSimulated = useHospitals((s) => s.simulated);
+  useEffect(() => {
+    void useHospitals.getState().load();
+  }, []);
   const [field, setField] = useState<PlaceRole>('to');
   const [draft, setDraft] = useState<Draft>(FRESH);
   const [texts, setTexts] = useState(NO_TEXT);
@@ -334,7 +341,8 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
     const selected = entry.id === selectedId;
     const Icon = KIND_ICON[entry.kind];
     const labelKey = KIND_LABEL[entry.kind];
-    const sub = entry.subtitle || t(labelKey ?? 'placeRoad');
+    const stateNote = entry.kind === 'hospital' ? hospitalStateNote(hospitalStates[entry.id], hospitalsSimulated) : null;
+    const sub = stateNote ?? (entry.subtitle || t(labelKey ?? 'placeRoad'));
     const hasMap = regionOfPoint(entry.point) !== null;
     return (
       <Pressable

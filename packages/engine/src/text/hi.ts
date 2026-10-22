@@ -17,6 +17,8 @@ export const hi: Record<TextKey, string> = {
   'hazard.debris': 'मलबा',
   'hazard.debris.impassable': 'मलबा (गुज़रना संभव नहीं बताया गया)',
   'hazard.accident': 'दुर्घटना',
+  'hazard.walking.poorly_lit': 'कम रोशनी वाली सड़क',
+  'hazard.walking.isolated': 'सुनसान हिस्सा',
   'hazard.accident.impassable': 'दुर्घटना (गुज़रना संभव नहीं बताया गया)',
   'hazard.at': '{road} पर {hazard}',
   'hazard.on': '{road} पर {hazard}',

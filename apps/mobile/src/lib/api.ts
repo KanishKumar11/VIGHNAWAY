@@ -4,6 +4,7 @@ import {
   AuthSessionResponseSchema,
   FeedStatusSchema,
   HealthResponseSchema,
+  HospitalStatesResponseSchema,
   IncidentsResponseSchema,
   MeResponseSchema,
   MyStatsResponseSchema,
@@ -15,6 +16,7 @@ import {
   type AuthSessionResponse,
   type FeedStatus,
   type HealthResponse,
+  type HospitalStatesResponse,
   type IncidentsResponse,
   type MeResponse,
   type MyStatsResponse,
@@ -110,6 +112,9 @@ export const api = {
     request(baseUrl, API_PATHS.health, HealthResponseSchema, { timeoutMs: 5000 }),
   scenarios: (baseUrl: string): Promise<ScenarioListResponse> =>
     request(baseUrl, API_PATHS.scenarios, ScenarioListResponseSchema, { timeoutMs: 5000 }),
+  /** Hospital states set by the control room (P2-4); public. */
+  hospitals: (baseUrl: string, id: string): Promise<HospitalStatesResponse> =>
+    request(baseUrl, API_PATHS.hospitals(id), HospitalStatesResponseSchema, { timeoutMs: 5000 }),
   feed: (baseUrl: string, id: string): Promise<FeedStatus> => request(baseUrl, API_PATHS.feed(id), FeedStatusSchema, { timeoutMs: 5000 }),
   scenario: (baseUrl: string, id: string): Promise<ScenarioResponse> =>
     request(baseUrl, API_PATHS.scenario(id), ScenarioResponseSchema),

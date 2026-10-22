@@ -19,7 +19,6 @@ jest.mock('expo-router', () => ({
 /** The route engine must not re-plan (or rebuild a 23,000-edge graph) behind a screen that does not show the map. */
 
 beforeEach(() => {
-  jest.useFakeTimers();
   setPlanningPaused(false);
   useSettings.setState({ profile: 'car', language: 'en', dataMode: 'simulated' });
 });
@@ -30,6 +29,11 @@ afterEach(() => {
 });
 
 describe('planning pause', () => {
+  // Fake timers only here: the screen tests below need real ones to render.
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   it('does not plan while paused, and plans once when it resumes', () => {
     const getGraph = jest.spyOn(engine, 'getGraph').mockImplementation(() => {
       throw new Error('graph requested');
@@ -37,9 +41,7 @@ describe('planning pause', () => {
     setPlanningPaused(true);
     schedulePlan({ delayMs: 0 });
     schedulePlan({ showEvaluating: true, delayMs: 0 });
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
+    jest.advanceTimersByTime(2000);
     expect(getGraph).not.toHaveBeenCalled();
     setPlanningPaused(false);
     expect(() => jest.advanceTimersByTime(500)).toThrow('graph requested');
@@ -50,26 +52,28 @@ describe('planning pause', () => {
     const getGraph = jest.spyOn(engine, 'getGraph');
     setPlanningPaused(true);
     setPlanningPaused(false);
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
+    jest.advanceTimersByTime(2000);
     expect(getGraph).not.toHaveBeenCalled();
   });
 
-  it('the map screens keep the profile they had while paused, then follow the setting', () => {
-    const { result } = renderHook(() => useActiveProfile());
+  it('the map screens keep the profile they had while paused, then follow the setting', async () => {
+    const { result } = await renderHook(() => useActiveProfile());
     expect(result.current).toBe('car');
-    act(() => setPlanningPaused(true));
-    act(() => useSettings.getState().setProfile('step_free'));
+    await act(async () => setPlanningPaused(true));
+    await act(async () => useSettings.getState().setProfile('step_free'));
     expect(useSettings.getState().profile).toBe('step_free');
     expect(result.current).toBe('car');
     expect(usePlanGate.getState().paused).toBe(true);
-    act(() => setPlanningPaused(false));
+    await act(async () => setPlanningPaused(false));
     expect(result.current).toBe('step_free');
   });
 });
 
 describe('Settings layout', () => {
+  beforeEach(() => {
+    jest.useRealTimers();
+  });
+
   it('pauses planning while it is in front and resumes when it goes away', async () => {
     const view = await render(<SettingsScreen />);
     expect(usePlanGate.getState().paused).toBe(true);

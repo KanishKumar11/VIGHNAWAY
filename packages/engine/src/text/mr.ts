@@ -17,6 +17,8 @@ export const mr: Record<TextKey, string> = {
   'hazard.debris': 'राडारोडा',
   'hazard.debris.impassable': 'राडारोडा (जाता येत नाही असे नोंदवले)',
   'hazard.accident': 'अपघात',
+  'hazard.walking.poorly_lit': 'कमी प्रकाश असलेला रस्ता',
+  'hazard.walking.isolated': 'निर्जन भाग',
   'hazard.accident.impassable': 'अपघात (जाता येत नाही असे नोंदवले)',
   'hazard.at': '{road} येथे {hazard}',
   'hazard.on': '{road} वर {hazard}',

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 
-export const INCIDENT_TYPES = ['flood', 'closure', 'congestion', 'debris', 'accident'] as const;
+export const INCIDENT_TYPES = ['flood', 'closure', 'congestion', 'debris', 'accident', 'walking_concern'] as const;
 export const IncidentTypeSchema = z.enum(INCIDENT_TYPES);
 export type IncidentType = z.infer<typeof IncidentTypeSchema>;
 
@@ -26,6 +26,19 @@ export const isOpenStatus = (s: IncidentStatus): boolean => OPEN_STATUSES.includ
 /** Where the evidence came from. Shown on every incident. */
 export const IncidentSourceSchema = z.enum(['simulated', 'user_report', 'operator', 'live_feed']);
 export type IncidentSource = z.infer<typeof IncidentSourceSchema>;
+
+/**
+ * What a walking-concern report says about a road (P2-8): a condition of that road, never of a neighbourhood or of
+ * people. Display only: no routing rule reads it unless the traveller turns on "Prefer well-lit roads" (P2-9).
+ */
+export const WALKING_CONCERNS = ['poorly_lit', 'isolated'] as const;
+export const WalkingConcernSchema = z.enum(WALKING_CONCERNS);
+export type WalkingConcern = z.infer<typeof WalkingConcernSchema>;
+
+export const WALKING_CONCERN_LABEL: Record<WalkingConcern, string> = {
+  poorly_lit: 'Poorly lit',
+  isolated: 'Isolated stretch',
+};
 
 export const DepthSchema = z.enum(['ankle', 'knee', 'waist']);
 export type Depth = z.infer<typeof DepthSchema>;
@@ -75,6 +88,8 @@ export const IncidentSchema = z.object({
   congestion: CongestionLevelSchema.nullable(),
   /** Debris or accident only. */
   severity: SeveritySchema.nullable(),
+  /** Walking concern only (P2-8). Absent for every other type. */
+  concern: WalkingConcernSchema.nullable().optional(),
   /** Reported as impassable (debris, accident). Closures are always impassable. */
   impassable: z.boolean(),
   /**
@@ -136,6 +151,7 @@ export const INCIDENT_TYPE_LABEL: Record<IncidentType, string> = {
   congestion: 'Congestion',
   debris: 'Debris',
   accident: 'Accident',
+  walking_concern: 'Walking concern',
 };
 
 export const REPORT_TYPE_LABEL: Record<ReportType, string> = {

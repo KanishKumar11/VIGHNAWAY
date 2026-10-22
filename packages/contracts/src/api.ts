@@ -25,6 +25,7 @@ export const API_PATHS = {
   clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
   closures: (id: string) => `/scenarios/${encodeURIComponent(id)}/closures`,
   offmapReports: (id: string) => `/scenarios/${encodeURIComponent(id)}/offmap-reports`,
+  alertFeed: (id: string) => `/scenarios/${encodeURIComponent(id)}/alerts`,
   hospitals: (id: string) => `/scenarios/${encodeURIComponent(id)}/hospitals`,
   hospital: (id: string, placeId: string) => `/scenarios/${encodeURIComponent(id)}/hospitals/${encodeURIComponent(placeId)}`,
   authOtpRequest: '/auth/otp/request',
@@ -247,6 +248,41 @@ export const FeedStatusSchema = z.object({
   attribution: z.string(),
 });
 export type FeedStatus = z.infer<typeof FeedStatusSchema>;
+
+/**
+ * GET /scenarios/:id/alerts (P2-5.b): the read-only rain-alert feed for the live scenario. A CAP 1.2 feed named by
+ * ALERT_FEED_URL is read on a timer and the active Mumbai rain alerts are written into the scenario's alerts[]
+ * with the sender as provenance. A failure keeps the alerts already stored; lastSuccessAtS gives their age.
+ */
+export const AlertFeedStatusSchema = z.object({
+  scenarioId: IdSchema,
+  enabled: z.boolean(),
+  /** Why it is off, e.g. "ALERT_FEED_URL not set". */
+  reason: z.string().nullable(),
+  pollIntervalS: z.number().int().positive(),
+  lastPollAtS: z.number().int().nullable(),
+  lastSuccessAtS: z.number().int().nullable(),
+  lastError: z.string().nullable(),
+  activeAlerts: z.number().int().min(0),
+  /** What the last good read found and what it left out, and why. */
+  lastStats: z
+    .object({
+      read: z.number().int().min(0),
+      kept: z.number().int().min(0),
+      skipped: z.object({
+        notActual: z.number().int().min(0),
+        cancelled: z.number().int().min(0),
+        expired: z.number().int().min(0),
+        otherArea: z.number().int().min(0),
+        notRain: z.number().int().min(0),
+        invalid: z.number().int().min(0),
+      }),
+    })
+    .nullable(),
+  /** The scenario clock now, so a client can say how old lastSuccessAtS is. */
+  nowS: z.number().int().min(0),
+});
+export type AlertFeedStatus = z.infer<typeof AlertFeedStatusSchema>;
 
 export const ERROR_CODES = [
   'VALIDATION_FAILED',

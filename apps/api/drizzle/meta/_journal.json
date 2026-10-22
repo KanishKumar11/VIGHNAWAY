@@ -64,6 +64,13 @@
       "when": 1792844400000,
       "tag": "0008_offmap_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792848000000,
+      "tag": "0009_walking_concern",
+      "breakpoints": true
     }
   ]
 }

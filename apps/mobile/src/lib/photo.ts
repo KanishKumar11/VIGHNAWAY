@@ -29,8 +29,10 @@ export async function takePhoto(): Promise<PhotoResult> {
   try {
     // Loaded only now: a phone whose installed build predates these native modules still opens the report screen
     // (and everything else), and Take photo reports "failed" instead of the whole app throwing on import.
-    const ImagePicker = await import('expo-image-picker');
-    const ImageManipulator = await import('expo-image-manipulator');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ImagePicker = require('expo-image-picker') as typeof import('expo-image-picker');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ImageManipulator = require('expo-image-manipulator') as typeof import('expo-image-manipulator');
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) return { ok: false, reason: perm.canAskAgain ? 'denied' : 'blocked' };
     const shot = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], allowsEditing: false, exif: false, quality: 1 });

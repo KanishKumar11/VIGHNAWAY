@@ -559,12 +559,20 @@ treatments plus ring style and an explicit label).
 
 ## Appendix B: First-run identity, "Monsoon Signal"
 
-The first-run story (three panels) moved off the app's blue-and-white and onto its own identity,
-because the royal-blue phone themes read as a generic maps app and the first screens are where
-the product has to look like itself. Tokens: `identity` in `packages/tokens/src/identity.ts`
-(contrast pairs in `test/identity.test.ts`). The rest of the app keeps the phone themes for now;
-rolling the identity out is a token swap plus map styles and is tracked in `docs/ROADMAP.md`.
+The first-run story, then the whole phone app, moved off the royal blue and white of mainstream
+maps apps and onto one identity. Tokens: `identity` in `packages/tokens/src/identity.ts` (first-run
+night scene, contrast pairs in `test/identity.test.ts`) and the re-skinned `phoneThemes`,
+`phoneBrand`, phone map styles and legacy `colors` (icon, splash) in `packages/tokens/src`. The
+control room keeps its own Porcelain and Midnight themes.
 
+- **Dark ("monsoon night"):** aubergine-black surfaces, cream text, signal-lime primary action and
+  route. **Light ("monsoon paper"):** warm cream surfaces, plum-black text, the same lime button
+  (dark label), an olive-lime route (`#4D7C0F`) that holds 3:1 on the map. Warning, resolved and
+  the dark Critical hues are unchanged. **One deliberate hue change:** light-mode `danger` is
+  raspberry (`#9D174D`) instead of red, because a red blocked line and an olive route merge under
+  deuteranopia (the CVD test caught it); `dangerInk` text is unchanged.
+- **Map styles:** plum night land with a deep aqua sea (dark); cream land, lime-green parks and
+  aqua sea (light). Flood-prone underlay is aqua in both.
 - **Idea:** a night map in the monsoon. Rain-dark aubergine sky, a signal-lime route (the colour of
   "go" on a rail signal), flood-aqua water, marigold for the warning ring, coral for blocked.
   None of these is the blue/teal/white of mainstream navigation.

@@ -39,7 +39,8 @@ export interface IncidentIndex {
 const byId = (a: Incident, b: Incident) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 export function buildIncidentIndex(incidents: readonly Incident[]): IncidentIndex {
-  const sorted = [...incidents].sort(byId);
+  // Walking concerns (P2-8) are display only: they never reach routing, data-gap coverage or the incident count.
+  const sorted = incidents.filter((i) => i.type !== 'walking_concern').sort(byId);
   const map = new Map<string, Incident>();
   const openByEdge = new Map<string, Incident[]>();
   const lastReportByEdge = new Map<string, number>();
@@ -133,6 +134,8 @@ export function incidentEffect(inc: Incident, ctx: EvalContext): IncidentEffect 
         reason: 'congestion_unverified',
       };
     }
+    case 'walking_concern':
+      return { ...none, reason: 'display_only' };
     case 'debris':
     case 'accident': {
       const p = sev[inc.severity ?? SCORING_RULES.defaultSeverity.value] * w * f;

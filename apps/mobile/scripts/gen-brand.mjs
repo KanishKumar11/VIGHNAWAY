@@ -1,4 +1,4 @@
-// Generates the VIGHNAWAY mark (a route line bending around an obstacle, teal on navy) as SVG
+// Generates the VIGHNAWAY mark (a route line bending around an obstacle, signal lime on monsoon ink) as SVG
 // sources in assets/brand/ and exports the PNGs Expo needs into assets/images/.
 // Run: node scripts/gen-brand.mjs   (uses sharp, already installed in the workspace)
 import { mkdirSync, writeFileSync } from 'node:fs';
