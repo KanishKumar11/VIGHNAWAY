@@ -228,6 +228,8 @@ export const googleMapStyle = [
 
 export { themes, phoneThemes, phoneBrand, phoneBrandContrastPairs, phoneRadius, phoneElevation, consoleThemes, consoleChrome, consoleBrand, chromeContrastPairs, brandContrastPairs, defaultTheme, contrastPairs } from './themes';
 export type { PhoneBrand, ThemeColors, ThemeName } from './themes';
+export { identity, identityContrastPairs } from './identity';
+export type { Identity } from './identity';
 
 /** Google Maps style for the light theme: warm neutral land, white roads, quiet blue water, visible railway. */
 export const googleMapStyleLight = [

@@ -556,3 +556,25 @@ breathing confidence meter, ambient rain texture, looping flow dashes, looping f
 coloured glows around ordinary UI, uppercase/monospace labels outside technical information,
 extra accent hues (orange for Corroborated, indigo for Live data; both now use the state
 treatments plus ring style and an explicit label).
+
+## Appendix B: First-run identity, "Monsoon Signal"
+
+The first-run story (three panels) moved off the app's blue-and-white and onto its own identity,
+because the royal-blue phone themes read as a generic maps app and the first screens are where
+the product has to look like itself. Tokens: `identity` in `packages/tokens/src/identity.ts`
+(contrast pairs in `test/identity.test.ts`). The rest of the app keeps the phone themes for now;
+rolling the identity out is a token swap plus map styles and is tracked in `docs/ROADMAP.md`.
+
+- **Idea:** a night map in the monsoon. Rain-dark aubergine sky, a signal-lime route (the colour of
+  "go" on a rail signal), flood-aqua water, marigold for the warning ring, coral for blocked.
+  None of these is the blue/teal/white of mainstream navigation.
+- **Meaning is unchanged:** dashed marigold ring = Unverified, double ring = Corroborated, coral
+  dashed = Not viable, lime = Recommended. Every chip names its status; the scenario badge says
+  Simulated on every panel.
+- **Composition:** one full-bleed scene per beat (a report, the evidence it waits for, the way
+  around), the water wider at each step, the route bending around it. Copy sits below the scene.
+- **Deliberate departures from the rules above, flagged for review:** a fixed dark scene in light
+  mode too (like a splash); a static field of faint rain strokes (decoration, no motion, not the
+  ambient rain the earlier draft dropped); a soft glow under the route line and destination; the
+  step number in monospace as an identifier. The route draws once on entry and nothing loops;
+  reduce motion shows the finished scene.

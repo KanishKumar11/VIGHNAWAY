@@ -40,6 +40,7 @@ import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
 import { activeRoute, recommendedRoute, useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
+import { useActiveProfile } from '@/features/trip/planGate';
 import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, shadowUp, spacing, useColors, withAlpha } from '@/theme';
 import { DestinationSheet } from './DestinationSheet';
 import { EvidenceSheet } from './EvidenceSheet';
@@ -95,7 +96,7 @@ function SheetBody({
   const recents = useRecentPlaces((s) => s.places);
   const scenario = useScenario((s) => s.scenario);
   const graphFile = useScenario((s) => s.graphFile);
-  const profile = useSettings((s) => s.profile);
+  const profile = useActiveProfile();
   const plan = useTrip((s) => s.plan);
   const mode = useTrip((s) => s.mode);
   const vehicle = useTrip((s) => s.vehicle);

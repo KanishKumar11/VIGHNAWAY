@@ -1,5 +1,3 @@
-import * as ImageManipulator from 'expo-image-manipulator';
-import * as ImagePicker from 'expo-image-picker';
 import { PHOTO_MAX_BYTES } from '@vighnaway/contracts';
 
 /** A photo ready to send: a small JPEG, re-encoded on the phone (which also drops its EXIF data). */
@@ -29,6 +27,10 @@ export const base64Bytes = (b64: string): number => Math.floor((b64.length * 3) 
  */
 export async function takePhoto(): Promise<PhotoResult> {
   try {
+    // Loaded only now: a phone whose installed build predates these native modules still opens the report screen
+    // (and everything else), and Take photo reports "failed" instead of the whole app throwing on import.
+    const ImagePicker = await import('expo-image-picker');
+    const ImageManipulator = await import('expo-image-manipulator');
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) return { ok: false, reason: perm.canAskAgain ? 'denied' : 'blocked' };
     const shot = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], allowsEditing: false, exif: false, quality: 1 });

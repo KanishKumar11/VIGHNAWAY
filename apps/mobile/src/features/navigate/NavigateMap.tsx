@@ -18,6 +18,7 @@ import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
+import { useActiveProfile } from '@/features/trip/planGate';
 import { createStyles, motion } from '@/theme';
 import { GoogleMapLayer } from './GoogleMapLayer';
 import { useLaunchReveal, useMapModel } from './mapModel';
@@ -54,7 +55,7 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   const mapRef = useRef<MapView>(null);
   const graphFile = useScenario((s) => s.graphFile);
   const scenario = useScenario((s) => s.scenario);
-  const profile = useSettings((s) => s.profile);
+  const profile = useActiveProfile();
   const plan = useTrip((s) => s.plan);
   const planContext = useTrip((s) => s.planContext);
   const vehicle = useTrip((s) => s.vehicle);

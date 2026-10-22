@@ -12,6 +12,7 @@ import { strings, t } from '@/i18n/en';
 import { ruleText } from '@/i18n/engineText';
 import { getLanguage } from '@/i18n/lang';
 import { useReduceMotion } from '@/lib/motion';
+import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { useScenario } from '@/stores/scenario';
 import { createStyles, hairline, radius, shadow, spacing, useBrand } from '@/theme';
 
@@ -19,6 +20,7 @@ const rules = scoringRulesTable();
 
 /** Renders SCORING_RULES from the engine, the known limitations and the attribution. */
 export default function HowItDecides() {
+  usePausePlanning();
   const styles = useStyles();
   const brand = useBrand();
   const insets = useSafeAreaInsets();

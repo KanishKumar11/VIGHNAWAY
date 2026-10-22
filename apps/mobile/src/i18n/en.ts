@@ -364,6 +364,14 @@ export const en = {
   // Settings
   settingsProfile: 'Profile',
   settingsMode: 'Mode',
+  settingsTrips: 'Trips',
+  settingsTravel: 'How you travel',
+  settingsData: 'Data',
+  modeSimulatedShort: 'Simulated',
+  modeLiveShort: 'Live',
+  settingsDisplay: 'Display and voice',
+  settingsAdvanced: 'Advanced',
+  settingsAdvancedHint: 'Server and offline data',
   modeSimulated: 'Simulated demo',
   modeSimulatedHint: 'The scripted Andheri monsoon scenario. Everything is labelled Simulated.',
   modeLive: 'Live: Andheri',
@@ -594,6 +602,12 @@ export const en = {
   story2Title: 'It waits for evidence',
   story2Body: 'One report is a hint. A second device, or an operator, makes it count.',
   story3Title: 'It finds the way around',
+  storyEyebrow1: 'Report',
+  storyEyebrow2: 'Evidence',
+  storyEyebrow3: 'Detour',
+  storyNote1: '1 report so far',
+  storyNote2: '2 devices agree',
+  storyNote3: 'Avoids the flooded road',
 
   openStreetMapFixture: 'Schematic road fixture drawn for testing, not OpenStreetMap data.',
 

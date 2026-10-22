@@ -13,6 +13,7 @@ import { useActivity } from '@/stores/activity';
 import { useIncidents } from '@/stores/incidents';
 import { isCustomPlaceId, placeById, registerCustomPlace, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
+import { usePlanGate } from './planGate';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
 import { activeRoute, recommendedRoute, useTrip, type Transition } from '@/stores/trip';
@@ -95,6 +96,20 @@ const notificationTitle = () => t(useSettings.getState().dataMode === 'live' ? '
 let timer: ReturnType<typeof setTimeout> | null = null;
 let evaluatingSince = 0;
 
+/** A plan asked for while planning was paused (a screen without the map is in front); made when it resumes. */
+let owed: { showEvaluating: boolean } | null = null;
+
+/** Pauses or resumes planning (features/trip/planGate.ts). Resuming makes the plan that was asked for meanwhile, once. */
+export function setPlanningPaused(paused: boolean): void {
+  usePlanGate.getState().setPaused(paused);
+  if (!paused && owed) {
+    const o = owed;
+    owed = null;
+    // A short delay lets a hand-over between two paused screens settle first.
+    schedulePlan({ showEvaluating: o.showEvaluating, delayMs: 60 });
+  }
+}
+
 /** Debounced recompute: waits for interactions and bursts of incident events to settle. */
 export function schedulePlan(opts: { showEvaluating?: boolean; delayMs?: number } = {}): void {
   if (timer) clearTimeout(timer);
@@ -102,8 +117,17 @@ export function schedulePlan(opts: { showEvaluating?: boolean; delayMs?: number 
     evaluatingSince = Date.now();
     useTrip.getState().setEvaluating(true);
   }
+  if (usePlanGate.getState().paused) {
+    owed = { showEvaluating: !!opts.showEvaluating || !!owed?.showEvaluating };
+    timer = null;
+    return;
+  }
   timer = setTimeout(() => {
     timer = null;
+    if (usePlanGate.getState().paused) {
+      owed = { showEvaluating: owed?.showEvaluating ?? false };
+      return;
+    }
     runPlanNow();
   }, opts.delayMs ?? 150);
 }

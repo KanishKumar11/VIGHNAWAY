@@ -4,6 +4,7 @@ import { FlatList, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { Button } from '@/components/Button';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Activity as ActivityIcon, CircleCheck, Clock, Flag, Info, Route, TriangleAlert, type LucideIcon } from '@/components/icons';
@@ -44,6 +45,7 @@ const TONE: Record<ActivityKind, Tone> = {
 
 /** Journey-relevant changes, newest first, as a timeline on the simulation clock. */
 export default function ActivityScreen() {
+  usePausePlanning();
   const tc = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
