@@ -129,7 +129,7 @@ describe('report page account area', () => {
     render(<ReportAccount />);
     expect(await screen.findByText(t.account.signedInAs('citizen@example.org'))).toBeTruthy();
     expect(await screen.findByText(t.reportAccount.statsNone)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: t.account.signOut }));
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${t.account.signOut}`) }));
     expect(await screen.findByRole('button', { name: t.reportAccount.prompt })).toBeTruthy();
   });
 

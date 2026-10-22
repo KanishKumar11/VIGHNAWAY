@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import type { Incident, OperatorAction, SimAction } from '@vighnaway/contracts';
+import type { ClosureRequest, Incident, OperatorAction, SimAction } from '@vighnaway/contracts';
 import { t } from '@/i18n';
 import { api, ApiError } from '@/lib/api';
 import { dropCredential, getOperatorCredential, type Credential } from '@/lib/credential';
@@ -101,6 +101,19 @@ export function useClearAudience() {
     onSuccess: (resp) => toast.success(t.audience.cleared(resp.cleared)),
     onError: (e) => {
       toast.error(t.audience.clearFailed(errorMessage(e)));
+    },
+  });
+}
+
+/** Close a road (P2-6): a preview (confirm false) creates nothing; confirm creates one Verified closure. */
+export function useCloseRoad() {
+  return useMutation({
+    mutationFn: async (body: ClosureRequest) => {
+      if (isReplaying()) throw new ApiError('CONFLICT', t.replay.readOnly, 409);
+      return withCredential((token) => api.closeRoad(useScenarioStore.getState().id, body, token));
+    },
+    onSuccess: (resp) => {
+      if (resp.incident) toast.success(t.closeRoad.done(resp.preview.roadNames[0] ?? t.closeRoad.unnamed));
     },
   });
 }

@@ -270,7 +270,7 @@ Priority P0 · Status todo · Effort 1–2 h · Depends —
 - **Acceptance:** `curl /health` returns `ok: true` from the container; the image contains no CA or secret (checked with
   `docker history` and a file listing).
 
-### P0-6.b TomTom against the real service
+### P0-6.b TomTom against the real service (done 2026-10-22: see docs/live-traffic.md)
 Priority P0 (optional) · Status **blocked**: key and network · Effort 1 h
 - **Acceptance:** One live poll creates labelled incidents. Any differences from the recorded fixture are noted in
   docs/live-traffic.md.
@@ -524,6 +524,8 @@ Priority P1 · Status done (console: Create receipt card with QR, copy and open;
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-6.a API | `POST /scenarios/:id/closures` (operator) with a polyline. It matches edges with the existing extent matcher (deterministic, sorted), returns a **preview** of the matched edges, then a confirm creates a Verified closure with source `operator` through the incident path | auth; deterministic matching; preview creates nothing; confirm logs an event and advances the seq | 2–3 h |
+| P2-6.a status | **done and run** against the developer's database: `POST /scenarios/:id/closures` (operator credential): 401 without it, 400 for a bad body, 422 for a line that is not on a road, 400 when the line matches more than 80 segments; a preview returns the matched edges (both directions, sorted), road names and length and creates nothing; `confirm: true` creates one Verified closure, source `operator`, verifiedBy `operator`, through the incident change log (seq, history, live event); a second confirm over the same roads is 409. An edge matches when at least two of its start, middle and end are within 15 m of the line, so cross streets that only touch it are left out (some short service roads beside the line can still match: the operator sees the preview before confirming). Test file apps/api/test/closures.test.ts (written; the suite itself could not run here: no database on 127.0.0.1) | | |
+| P2-6.b status | **done**: "Close a road" in the console's left column for an operator credential (components/console/CloseRoadCard.tsx): tap points along the road on the map, Preview (matched edges drawn on the map, road names, metres), then Close these roads; en/hi/mr; vitest closeRoad 6 | | |
 | P2-6.b Console | Click a road (or draw two points) → highlight the matched edges → confirm dialog → the closure appears; the route changes if affected | vitest; Playwright screenshots in both themes | 2–3 h |
 
 Docs: CONTRACTS.md, UX_FLOWS.md §9.

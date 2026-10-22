@@ -1,4 +1,4 @@
-import type { Incident, LatLng, Place } from '@vighnaway/contracts';
+import { HOSPITAL_STATES, type HospitalStateValue, type Incident, type LatLng, type Place } from '@vighnaway/contracts';
 import { evaluate } from './evaluate';
 import { snapToNode, type Graph } from './graph';
 import { buildIncidentIndex, type EvalContext, type IncidentIndex } from './incidents';
@@ -14,8 +14,8 @@ import { SCORING_RULES } from './rules';
  * the arrival time shown to the traveller is unchanged, and an unreachable hospital is never assigned.
  */
 
-export const HOSPITAL_STATES = ['accepting', 'busy', 'diverting'] as const;
-export type HospitalState = (typeof HOSPITAL_STATES)[number];
+export { HOSPITAL_STATES };
+export type HospitalState = HospitalStateValue;
 
 export interface HospitalTrip {
   id: string;

@@ -49,19 +49,19 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
   }
   return (
     <div className="flex min-w-0 shrink-0 items-center gap-2" aria-label={t.account.menuLabel} role="group">
-      <span className={cn('min-w-0 truncate text-meta text-ink-on-shell-muted', compact && 'max-[1899px]:sr-only')} title={user.email}>
+      <span className={cn('min-w-0 max-w-56 truncate text-meta text-ink-on-shell-muted max-sm:sr-only', compact && 'max-[1899px]:sr-only')} title={user.email}>
         {user.email}
       </span>
       <RoleBadge role={user.role} />
       <button
         type="button"
         onClick={() => void signOut()}
-        aria-label={compact ? `${t.account.signOut} (${user.email})` : undefined}
+        aria-label={`${t.account.signOut} (${user.email})`}
         title={t.account.signOut}
-        className={cn('vw-press ctl h-10 shrink-0 text-body whitespace-nowrap', compact ? 'px-3' : 'px-4')}
+        className={cn('vw-press ctl h-10 shrink-0 text-body whitespace-nowrap', compact ? 'px-3' : 'px-4 max-sm:px-3')}
       >
         <LogOut aria-hidden className="size-4" />
-        <span className={cn(compact && 'max-[1899px]:sr-only')}>{t.account.signOut}</span>
+        <span className={cn('max-sm:sr-only', compact && 'max-[1899px]:sr-only')}>{t.account.signOut}</span>
       </button>
     </div>
   );

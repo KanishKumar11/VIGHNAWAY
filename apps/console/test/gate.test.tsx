@@ -47,7 +47,7 @@ describe('control room gate', () => {
     expect(await screen.findByRole('heading', { name: t.gate.citizenTitle })).toBeTruthy();
     expect(t.gate.citizenTitle).toBe('This account can report incidents but cannot run the control room');
     expect(screen.queryByTestId('control-room')).toBeNull();
-    expect(screen.getByRole('button', { name: t.account.signOut })).toBeTruthy();
+    expect(screen.getByRole('button', { name: new RegExp(`^${t.account.signOut}`) })).toBeTruthy();
     expect(screen.getByRole('link', { name: t.gate.reportLink }).getAttribute('href')).toBe('/report');
     // No sign-in form and no operator-token door for someone who is already signed in.
     expect(screen.queryByLabelText(t.account.emailLabel)).toBeNull();
@@ -96,7 +96,7 @@ describe('account menu', () => {
     render(<AccountMenu />);
     expect(await screen.findByText('admin@example.org')).toBeTruthy();
     expect(screen.getByTestId('role-badge').textContent).toBe(t.account.roles.admin);
-    fireEvent.click(screen.getByRole('button', { name: t.account.signOut }));
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${t.account.signOut}`) }));
     expect(useSession.getState().token).toBeNull();
     expect(await screen.findByRole('link', { name: t.account.signIn })).toBeTruthy();
   });

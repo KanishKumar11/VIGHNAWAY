@@ -15,6 +15,7 @@ seconds** (`…S` fields) assigned by the server.
 | `GET /scenarios/:id/incidents` | none | `?sinceSeq=n` (optional) | `IncidentsResponse { scenarioId, seq, full, runId, simTimeS, incidents, observations? }` |
 | `POST /scenarios/:id/reports` | none (throttled); an optional session links the report to the account | `ReportInput` | `201 ReportResponse { receipt, incident \| null }` |
 | `POST /scenarios/:id/audience/clear` | Bearer | `{}` | `ClearAudienceResponse { cleared, incidentIds }`: dismisses every open incident supported only by audience reports (one logged change each, broadcast like any change); scripted and mixed-origin incidents stay |
+| `POST /scenarios/:id/closures` | Operator. Body `{ polyline: LatLng[2..20], confirm?: boolean, note?: string }`. Preview (no `confirm`) returns `{ preview: { edgeIds, roadNames, lengthM }, incident: null }` and creates nothing; `confirm: true` creates one Verified closure (source `operator`) and returns it. 422 NOT_ON_ROAD, 400 when it matches more than 80 segments, 409 when an open closure already covers those roads | 
 | `POST /scenarios/:id/incidents/:incidentId/verify` | Bearer | `{ note? }` | `OperatorActionResponse { incident }` |
 | `POST /scenarios/:id/incidents/:incidentId/resolve` | Bearer | `{ note? }` | same |
 | `POST /scenarios/:id/incidents/:incidentId/dismiss` | Bearer | `{ note? }` | same |

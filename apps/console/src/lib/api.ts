@@ -8,6 +8,7 @@ import {
   MyStatsResponseSchema,
   OtpRequestResponseSchema,
   ClearAudienceResponseSchema,
+  ClosureResponseSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
   OperatorActionResponseSchema,
@@ -23,6 +24,8 @@ import {
   type AdminUsersResponse,
   type AuthSessionResponse,
   type ClearAudienceResponse,
+  type ClosureRequest,
+  type ClosureResponse,
   type MeResponse,
   type MyStatsResponse,
   type OtpRequestResponse,
@@ -170,6 +173,9 @@ export const api = {
   /** Operator: dismisses every open incident that only demo-audience reports support. */
   clearAudience: (id: string, token: string, o?: RequestOptions): Promise<ClearAudienceResponse> =>
     request(API_PATHS.clearAudience(id), ClearAudienceResponseSchema, { ...o, method: 'POST', body: {}, token }),
+  /** Operator: preview (confirm false) or create a Verified closure along a drawn line. */
+  closeRoad: (id: string, body: ClosureRequest, token: string, o?: RequestOptions): Promise<ClosureResponse> =>
+    request(API_PATHS.closures(id), ClosureResponseSchema, { ...o, method: 'POST', body, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),

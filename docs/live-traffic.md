@@ -70,3 +70,37 @@ its data in a third-party routing engine, which is why TomTom is the engine's fe
   estimate, while ETAs use VIGHNAWAY's own rules.
 - A user report near a feed incident creates its own incident rather than joining the feed one.
 - Check TomTom's terms for your plan (display of TomTom data alongside a Google basemap, caching).
+
+## Run against the real TomTom service (2026-10-22 night)
+
+**Status: works.** The API that was running on the developer's machine (`TRAFFIC_FEED_SCENARIO` set, key in `apps/api/.env`, which this
+document does not print) polled `api.tomtom.com` and wrote labelled incidents into the live scenario `andheri-live`, on the real
+OpenStreetMap graph `osm-7efdf89a8094`. One manual poll (`POST /scenarios/andheri-live/feed/poll`) returned:
+
+| Figure | Value |
+| --- | --- |
+| Fetched from TomTom | 14 |
+| Invalid / skipped | 0 / 0 |
+| Unmatched to the graph | 6 |
+| Created / updated / cleared | 2 / 0 / 0 |
+| Active live-feed incidents afterwards | 8 |
+| Status line | `Traffic data © TomTom`, last success at the poll, no error |
+
+The feed had already been polling every 120 s for a while: the live scenario held 775 incidents, 767 of them Resolved (conditions
+that cleared) and 8 open. The 8 open ones were 5 closures ("Closed", "Bridge closed", magnitude 4) and 3 congestion incidents
+(standstill, heavy, moderate, one of them roadworks), on named roads such as Mahakali Caves Road, Shree Yavateshwar Marg,
+Sant Gadge Maharaj Marg and B D Sawant Marg.
+
+**Differences from the recorded fixture (to keep in mind when reading the tests):**
+- **Real closures arrive Unverified, not Corroborated.** The fixture's closure carried `probabilityOfOccurrence: certain`, which the
+  mapping counts as corroboration. The real closures had no usable probability, so they stay Unverified (a ranking penalty and a
+  visible warning, not a hard block), which is what the rules say for an unverified closure. Only an operator ever sets Verified.
+- **Unmatched incidents are normal.** 6 of 14 could not be matched to graph edges within the matching distance (incidents on roads
+  outside the extract or with geometry that does not line up). They are counted, not shown.
+- **Several incidents share the same road name** (for example roadworks and a closure on one corridor); each stays its own incident.
+- **Delay is absent for closures and roadworks** (`delayS` null); congestion carries it.
+- **History accumulates quickly:** Resolved feed incidents stay in the database (775 after a long run). `/incidents` returns them
+  all; clients should filter by status, as the console and phone already do.
+
+**Not verified here:** how the TomTom incidents look on the phone's map (no Google Maps key), and the accuracy of TomTom's data. The
+feed is evidence, never a router; the engine still decides.

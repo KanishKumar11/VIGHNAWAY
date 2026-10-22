@@ -126,7 +126,22 @@ check('a prompt "Road clear" never resolves an incident', no.status === 201 && s
 const obs = (await incidents()).observations;
 check('observations list the flood-prone road, Road clear included', Array.isArray(obs) && obs.length > 0, JSON.stringify(obs)?.slice(0, 120));
 
-// 6. Leave the scenario clean.
+// 6. Operator-drawn closure (P2-6): preview creates nothing, confirm creates one Verified closure from the operator.
+await sim('reset');
+const line = [
+  { lat: 19.12423, lng: 72.84912 },
+  { lat: 19.12371, lng: 72.8513 },
+];
+const pv = await post(`/scenarios/${SID}/closures`, { polyline: line }, true);
+check('closure preview names the road and creates nothing', pv.status === 200 && pv.json?.incident === null && pv.json?.preview?.roadNames?.includes('Andheri Subway') && (await incidents()).incidents.length === 0, JSON.stringify(pv.json)?.slice(0, 120));
+const unauthClose = await post(`/scenarios/${SID}/closures`, { polyline: line }, false);
+check('closing a road needs the operator credential', unauthClose.status === 401 || unauthClose.status === 403, `status ${unauthClose.status}`);
+const cf = await post(`/scenarios/${SID}/closures`, { polyline: line, confirm: true }, true);
+check('confirm creates one Verified closure, source operator', cf.status === 200 && cf.json?.incident?.status === 'verified' && cf.json?.incident?.source === 'operator' && cf.json?.incident?.verifiedBy === 'operator', JSON.stringify(cf.json?.incident)?.slice(0, 120));
+const cf2 = await post(`/scenarios/${SID}/closures`, { polyline: line, confirm: true }, true);
+check('the same roads cannot be closed twice (409)', cf2.status === 409, `status ${cf2.status}`);
+
+// 7. Leave the scenario clean.
 await sim('reset');
 
 const failed = results.filter((r) => !r.ok);

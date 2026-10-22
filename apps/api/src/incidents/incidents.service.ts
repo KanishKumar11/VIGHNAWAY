@@ -1,7 +1,10 @@
+import { randomBytes } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
 import {
   type ClearAudienceResponse,
+  type ClosureRequest,
+  type ClosureResponse,
   type HistoryResponse,
   type Incident,
   type IncidentsResponse,
@@ -19,6 +22,10 @@ import { LiveService } from '../live/live.service';
 import { ScenariosService } from '../scenarios/scenarios.service';
 import { SimClockService } from '../scenarios/sim-clock.service';
 import { type ChangeKind, summarize } from './summary';
+
+/** P2-6: how close a drawn closure must run to a road to match it, and how many segments it may cover. */
+const CLOSURE_MATCH_M = 15;
+const CLOSURE_MAX_EDGES = 80;
 
 /** One committed incident change: what incident.upserted carries. */
 export interface IncidentChange {
@@ -159,6 +166,87 @@ export class IncidentsService {
     });
     this.publish(changes);
     return { cleared: changes.length, incidentIds: changes.map((c) => c.incident.id) };
+  }
+
+  /**
+   * P2-6: edges within CLOSURE_MATCH_M of the drawn line (both directions; deterministic, sorted),
+   * previewed or, with `confirm`, recorded as one Verified closure by the operator. A line that
+   * matches no road is 422; one that matches more than CLOSURE_MAX_EDGES is refused as too long.
+   */
+  async closeRoad(scenarioId: string, body: ClosureRequest): Promise<ClosureResponse> {
+    const scenarioRow = await this.scenarios.requireRow(scenarioId);
+    const wkt = `LINESTRING(${body.polyline.map((p) => `${Number(p.lng)} ${Number(p.lat)}`).join(', ')})`;
+    const rows = await this.db.execute<{ id: string; name: string | null; length_m: number }>(sql`
+      WITH line AS (SELECT ST_GeomFromText(${wkt}, 4326)::geography AS g)
+      SELECT e.id, e.name, e.length_m FROM road_edges e, line
+      WHERE e.graph_version = ${scenarioRow.graphVersion}
+        AND ST_DWithin(e.geom::geography, line.g, ${CLOSURE_MATCH_M})
+        -- An edge follows the line when at least two of its start, middle and end are near it; a cross street
+        -- that only touches the line at a junction has one.
+        AND ((ST_DWithin(ST_StartPoint(e.geom)::geography, line.g, ${CLOSURE_MATCH_M}))::int
+           + (ST_DWithin(ST_LineInterpolatePoint(e.geom, 0.5)::geography, line.g, ${CLOSURE_MATCH_M}))::int
+           + (ST_DWithin(ST_EndPoint(e.geom)::geography, line.g, ${CLOSURE_MATCH_M}))::int) >= 2
+      ORDER BY e.id`);
+    if (rows.length === 0) throw new ApiException('NOT_ON_ROAD', 'The line does not follow a known road');
+    if (rows.length > CLOSURE_MAX_EDGES) {
+      throw new ApiException('VALIDATION_FAILED', `The line matches ${rows.length} road segments; draw a shorter closure (at most ${CLOSURE_MAX_EDGES})`);
+    }
+    const edgeIds = rows.map((r) => r.id);
+    const names = new Map<string, number>();
+    for (const r of rows) if (r.name) names.set(r.name, (names.get(r.name) ?? 0) + Number(r.length_m));
+    const roadNames = [...names.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([n]) => n);
+    // Both directions of a two-way road are in the match, so count each road length once.
+    const lengthM = Math.round(rows.reduce((n, r) => n + Number(r.length_m), 0) / 2);
+    const preview = { edgeIds, roadNames, lengthM };
+    if (!body.confirm) return { preview, incident: null };
+
+    const nowS = await this.clock.nowS(scenarioId);
+    const first = body.polyline[0]!;
+    const change = await this.db.transaction(async (tx) => {
+      await this.scenarios.lock(tx, scenarioId);
+      const open = await tx
+        .select({ id: incidents.id, edgeIds: incidents.edgeIds })
+        .from(incidents)
+        .where(and(eq(incidents.scenarioId, scenarioId), eq(incidents.type, 'closure'), inArray(incidents.status, ['unverified', 'corroborated', 'verified'])));
+      if (open.some((o) => edgeIds.every((id) => (o.edgeIds as string[]).includes(id)))) {
+        throw new ApiException('CONFLICT', 'These roads are already covered by an open closure');
+      }
+      const draft: IncidentDraft = {
+        id: `${scenarioId}:inc:op${randomBytes(8).toString('hex')}`,
+        scenarioId,
+        type: 'closure',
+        status: 'verified',
+        source: 'operator',
+        depth: null,
+        congestion: null,
+        severity: null,
+        impassable: true,
+        conflicting: false,
+        edgeIds,
+        roadName: roadNames[0] ?? null,
+        reportCount: 0,
+        deviceCount: 0,
+        createdAtS: nowS,
+        lastReportAtS: nowS,
+        updatedAtS: nowS,
+        verifiedAtS: nowS,
+        audienceOnly: false,
+        verifiedBy: 'operator',
+        closedAtS: null,
+        linkedIncidentId: null,
+        note: body.note ?? null,
+        geom: [first.lng, first.lat],
+      } as IncidentDraft;
+      return this.recordChange(tx, draft, {
+        kind: 'created_incident',
+        actor: 'operator',
+        atS: nowS,
+        payload: { control: 'drawn_closure', points: body.polyline.length, edges: edgeIds.length },
+        summaryOpts: { note: body.note ?? null },
+      });
+    });
+    this.publish([change]);
+    return { preview, incident: change.incident };
   }
 
   async findRow(q: Db | Tx, scenarioId: string, id: string): Promise<IncidentRow | null> {

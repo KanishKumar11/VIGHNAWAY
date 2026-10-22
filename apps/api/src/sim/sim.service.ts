@@ -163,6 +163,7 @@ export class SimService implements OnApplicationBootstrap, OnApplicationShutdown
             simState: 'idle',
             simTimeS: 0,
             nextEventIndex: 0,
+            hospitalStates: {},
           })
           .where(eq(scenarios.id, scenarioId))
           .returning();

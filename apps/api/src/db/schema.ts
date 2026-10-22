@@ -71,6 +71,8 @@ export const scenarios = pgTable('scenarios', {
   simState: text('sim_state').notNull().default('idle'),
   simTimeS: integer('sim_time_s').notNull().default(0),
   nextEventIndex: integer('next_event_index').notNull().default(0),
+  /** Operator-set hospital states (P2-4): { [placeId]: { state, setAtS } }. Cleared on reset. */
+  hospitalStates: jsonb('hospital_states').notNull().default({}),
 });
 
 export const incidents = pgTable(

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type Incident, IncidentSchema } from './incidents';
-import { IdSchema, SimSecondsSchema } from './primitives';
+import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 import { ScenarioSchema } from './scenario';
 import { SimStateSchema } from './events';
 
@@ -20,6 +20,9 @@ export const API_PATHS = {
   feed: (id: string) => `/scenarios/${encodeURIComponent(id)}/feed`,
   history: (id: string) => `/scenarios/${encodeURIComponent(id)}/history`,
   clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
+  closures: (id: string) => `/scenarios/${encodeURIComponent(id)}/closures`,
+  hospitals: (id: string) => `/scenarios/${encodeURIComponent(id)}/hospitals`,
+  hospital: (id: string, placeId: string) => `/scenarios/${encodeURIComponent(id)}/hospitals/${encodeURIComponent(placeId)}`,
   authOtpRequest: '/auth/otp/request',
   authOtpVerify: '/auth/otp/verify',
   authLogout: '/auth/logout',
@@ -101,6 +104,63 @@ export const OperatorActionBodySchema = z
   .object({ note: z.string().trim().max(200).optional() })
   .strict();
 export type OperatorActionBody = z.infer<typeof OperatorActionBodySchema>;
+
+/**
+ * POST /scenarios/:id/closures (operator): a closure the control room draws as a line along a road
+ * (P2-6). Without `confirm` it is a preview: the roads the line matches, nothing created. With
+ * `confirm: true` it creates one Verified closure, source "operator", through the incident path.
+ */
+export const CLOSURE_MAX_POINTS = 20;
+export const ClosureRequestSchema = z
+  .object({
+    polyline: z.array(LatLngSchema).min(2).max(CLOSURE_MAX_POINTS),
+    confirm: z.boolean().default(false),
+    note: z.string().trim().max(200).optional(),
+  })
+  .strict();
+export type ClosureRequest = z.infer<typeof ClosureRequestSchema>;
+
+export const ClosureResponseSchema = z.object({
+  preview: z.object({
+    /** Matched road edges, both directions, sorted. */
+    edgeIds: z.array(z.string()),
+    roadNames: z.array(z.string()),
+    lengthM: z.number().min(0),
+  }),
+  /** Set only when the request confirmed it. */
+  incident: IncidentSchema.nullable(),
+});
+export type ClosureResponse = z.infer<typeof ClosureResponseSchema>;
+
+/**
+ * Hospital state (P2-4): set by an operator, one value per hospital, "accepting" when never set.
+ * GET /scenarios/:id/hospitals lists every hospital of the scenario; PUT /scenarios/:id/hospitals/:placeId
+ * (operator) sets one. The state only ranks which hospital a "nearest hospital" trip is assigned to;
+ * it never closes a road and is labelled "Set by control room" (and "Simulated" in the demo).
+ */
+export const HOSPITAL_STATES = ['accepting', 'busy', 'diverting'] as const;
+export const HospitalStateSchema = z.enum(HOSPITAL_STATES);
+export type HospitalStateValue = z.infer<typeof HospitalStateSchema>;
+
+export const HospitalStatusSchema = z.object({
+  placeId: IdSchema,
+  name: z.string(),
+  state: HospitalStateSchema,
+  /** Simulation seconds when the operator last set it; null when it was never set. */
+  setAtS: SimSecondsSchema.nullable(),
+  setBy: z.literal('operator').nullable(),
+});
+export type HospitalStatus = z.infer<typeof HospitalStatusSchema>;
+
+export const HospitalStatesResponseSchema = z.object({
+  scenarioId: IdSchema,
+  simulated: z.boolean(),
+  hospitals: z.array(HospitalStatusSchema),
+});
+export type HospitalStatesResponse = z.infer<typeof HospitalStatesResponseSchema>;
+
+export const SetHospitalStateRequestSchema = z.object({ state: HospitalStateSchema }).strict();
+export type SetHospitalStateRequest = z.infer<typeof SetHospitalStateRequestSchema>;
 
 /** POST /scenarios/:id/audience/clear: dismisses every open incident that only audience reports support. */
 export const ClearAudienceResponseSchema = z.object({ cleared: z.number().int().min(0), incidentIds: z.array(IdSchema) });
