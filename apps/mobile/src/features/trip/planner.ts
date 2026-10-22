@@ -1,5 +1,6 @@
 import type { PlanResult, RouteEvaluation } from '@vighnaway/contracts';
-import { followPlan, planTrip, replanFrom, startVehicle, vehiclePosition, type VehicleState } from '@vighnaway/engine';
+import type { Place } from '@vighnaway/contracts';
+import { followPlan, haversineM, planTrip, replanFrom, snapToNode, startVehicle, vehiclePosition, type Graph, type VehicleState } from '@vighnaway/engine';
 import { t } from '@/i18n/en';
 import { changeText, noticeText, routeLabel, speechFor } from '@/i18n/engineText';
 import { getGraph } from '@/lib/engine';
@@ -9,7 +10,7 @@ import { notifyIfBackgrounded } from '@/lib/notifications';
 import { speakChange } from '@/lib/speech';
 import { useActivity } from '@/stores/activity';
 import { useIncidents } from '@/stores/incidents';
-import { placeById, useScenario } from '@/stores/scenario';
+import { isCustomPlaceId, placeById, registerCustomPlace, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
@@ -32,6 +33,11 @@ export interface PlanOutcome {
   vehicle: VehicleState | null;
 }
 
+/** A searched place or the phone's position is re-snapped for the profile, whose graph can differ. */
+function nodeFor(graph: Graph, place: Place): string {
+  return isCustomPlaceId(place.id) ? (snapToNode(graph, place.point) ?? place.nodeId) : place.nodeId;
+}
+
 export function computePlan(): PlanOutcome | null {
   const { scenario, graphFile } = useScenario.getState();
   const { profile } = useSettings.getState();
@@ -42,6 +48,8 @@ export function computePlan(): PlanOutcome | null {
   const origin = placeById(scenario, trip.originId);
   const dest = placeById(scenario, trip.destinationId);
   if (!origin || !dest) return null;
+  const originNode = nodeFor(graph, origin);
+  const destNode = nodeFor(graph, dest);
   const conditions = {
     incidents,
     nowS,
@@ -57,7 +65,7 @@ export function computePlan(): PlanOutcome | null {
     if (pos) {
       const plan = replanFrom({
         graph,
-        destination: dest.nodeId,
+        destination: destNode,
         currentRoute: trip.vehicle.edgeIds.slice(trip.vehicle.index),
         vehicle: { edgeId: pos.edgeId, fraction: trip.vehicle.fraction },
         ...conditions,
@@ -70,8 +78,8 @@ export function computePlan(): PlanOutcome | null {
   const prev = trip.planContext === context ? recommendedRoute(trip.plan) : null;
   const plan = planTrip({
     graph,
-    origin: origin.nodeId,
-    destination: dest.nodeId,
+    origin: originNode,
+    destination: destNode,
     previousRecommendation: prev ? { routeId: prev.routeId, edgeIds: prev.edgeIds } : null,
     ...conditions,
   });
@@ -248,6 +256,35 @@ export function startTrip(): void {
 export function endTrip(): void {
   useTrip.getState().endTrip();
   schedulePlan({ delayMs: 0 });
+}
+
+export type PlaceRole = 'from' | 'to';
+export type ChooseResult = 'ok' | 'same' | 'en_route';
+
+/** Two ends this close are the same place for routing purposes. */
+const SAME_PLACE_M = 50;
+
+/**
+ * Sets the trip's start or destination from a search result or the phone's position. The start
+ * cannot change mid-trip (the vehicle is the start then); a start equal to the destination is refused.
+ */
+export function choosePlace(role: PlaceRole, place: Place): ChooseResult {
+  const trip = useTrip.getState();
+  if (role === 'from' && trip.mode !== 'planning') return 'en_route';
+  const scenario = useScenario.getState().scenario;
+  registerCustomPlace(place);
+  const other = placeById(scenario, role === 'from' ? trip.destinationId : trip.originId);
+  if (other && (other.id === place.id || haversineM(other.point, place.point) < SAME_PLACE_M)) return 'same';
+  if (role === 'to') {
+    changeDestination(place.id);
+    return 'ok';
+  }
+  if (trip.originId !== place.id) {
+    trip.setOrigin(place.id);
+    useActivity.getState().add({ atS: useSim.getState().simTimeS, kind: 'trip', text: t('activityOrigin', { place: place.name }) });
+  }
+  schedulePlan({ showEvaluating: true, delayMs: 0 });
+  return 'ok';
 }
 
 /** Switch destination (e.g. "Go to {place}" when the destination is not reachable). */

@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn';
 import { useTheme } from '@/stores/theme';
 
 /** Sun / moon switch for light and dark. */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, bare = false }: { className?: string; bare?: boolean }) {
   const theme = useTheme((s) => s.theme);
   const setTheme = useTheme((s) => s.setTheme);
   useEffect(() => useTheme.getState().hydrate(), []);
@@ -21,7 +21,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={t.theme.toggle}
       title={dark ? t.theme.toLight : t.theme.toDark}
       onClick={() => setTheme(dark ? 'light' : 'dark')}
-      className={cn('vw-press relative inline-flex size-10 items-center justify-center overflow-hidden rounded-chip border border-shell-hairline-strong bg-shell-overlay text-ink-on-shell', className)}
+      className={cn('vw-press relative overflow-hidden', bare ? 'ctl-quiet h-full w-9 justify-center' : 'ctl size-10', className)}
     >
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span

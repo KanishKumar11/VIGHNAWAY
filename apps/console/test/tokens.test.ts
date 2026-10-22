@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { colors, radius, spacing, themes } from '@vighnaway/tokens';
+import { colors, consoleThemes as themes, radius, spacing } from '@vighnaway/tokens';
 import { themeColor, themeCssVariables, themeVar, tokenCss, tokenCssVariables } from '@/lib/theme';
 import { resolveTheme, themeBootScript } from '@/lib/themeMode';
 

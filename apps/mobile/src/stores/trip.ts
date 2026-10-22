@@ -53,6 +53,7 @@ interface TripState {
   /** Live mode only: whether the trip follows the device location, or location was refused. */
   liveLocation: 'idle' | 'following' | 'denied';
   setLiveLocation: (v: 'idle' | 'following' | 'denied') => void;
+  setOrigin: (id: string) => void;
   setDestination: (id: string) => void;
   setEvaluating: (v: boolean) => void;
   setPlan: (plan: PlanResult, context: string, vehicle?: VehicleState | null) => void;
@@ -89,6 +90,7 @@ export const useTrip = create<TripState>()((set, get) => ({
   transition: null,
   liveLocation: 'idle',
   setLiveLocation: (liveLocation) => set({ liveLocation }),
+  setOrigin: (originId) => set({ originId }),
   setDestination: (destinationId) => set({ destinationId }),
   setEvaluating: (evaluating) => set({ evaluating }),
   setPlan: (plan, planContext, vehicle) => {

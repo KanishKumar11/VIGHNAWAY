@@ -119,7 +119,7 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
   return (
     <div className="relative h-17">
       <ol className="absolute inset-0" aria-label={t.sim.timelineLabel}>
-        {clusters.map((c) => {
+        {clusters.map((c, i) => {
           const passed = c.ticks.every((tick) => tick.atS <= shownS);
           return (
             <li key={c.key} className="absolute top-0 flex -translate-x-3 flex-col items-start" style={{ left: `${c.pct}%` }}>
@@ -131,7 +131,7 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
                   </span>
                 ))}
               </span>
-              <span aria-hidden className={cn('tech mt-6 -ml-1.5', passed ? 'text-ink-on-shell' : 'text-ink-on-shell-muted')}>
+              <span aria-hidden className={cn('tech mt-6 -ml-1.5', passed ? 'text-ink-on-shell' : 'text-ink-on-shell-muted', i > 0 && i < clusters.length - 1 && 'max-[1599px]:hidden')}>
                 {clock(c.atS)}
               </span>
             </li>
@@ -140,7 +140,7 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
       </ol>
       {/* Track: what has happened is solid; a replayed moment shows how far back it is. */}
       <div ref={track} aria-hidden className="absolute inset-x-0 top-9 h-1 rounded-chip bg-shell-line">
-        <div className="vw-playhead absolute inset-y-0 left-0 w-full origin-left rounded-chip bg-control-border" style={{ transform: `scaleX(${livePct / 100})` }} />
+        <div className="vw-playhead vw-brand-fill absolute inset-y-0 left-0 w-full origin-left rounded-chip" style={{ transform: `scaleX(${livePct / 100})` }} />
         {replayAtS !== null && <span className="absolute -top-1.5 h-4 w-0.5 rounded-chip bg-ink-on-shell-muted" style={{ left: `${livePct}%` }} />}
       </div>
       <div
@@ -178,7 +178,7 @@ function Ticker() {
     <div className="flex min-w-0 items-baseline gap-4" aria-label={t.ticker.title}>
       <span className="shrink-0 text-meta font-semibold text-ink-on-shell-muted">{t.ticker.title}</span>
       {items.length === 0 ? (
-        <span className="text-meta text-ink-on-shell-muted">{t.ticker.empty}</span>
+        <span className="truncate text-meta text-ink-on-shell-muted">{t.ticker.empty}</span>
       ) : (
         <ol className="flex min-w-0 flex-1 gap-6 overflow-hidden" aria-live="polite">
           <AnimatePresence initial={false} mode="popLayout">
@@ -202,8 +202,9 @@ function Ticker() {
   );
 }
 
-const ghost =
-  'vw-press inline-flex h-11 items-center gap-2 rounded-button border border-control-border px-4 text-body font-semibold text-ink-on-shell disabled:opacity-40';
+const ghost = 'vw-press ctl h-11 px-4 text-body whitespace-nowrap disabled:opacity-40 max-[1599px]:w-11 max-[1599px]:px-0';
+/** Transport labels collapse to icons on narrow screens so the scrubber keeps its room. */
+const LABEL = 'max-[1599px]:sr-only';
 
 /** Live mode: no simulation to drive; the feed's state and the ticker take the bar. */
 function LiveBar() {
@@ -212,7 +213,7 @@ function LiveBar() {
   const feed = useFeedStatus(scenario.id, true);
   const line = feedLine(feed.data ?? null, nowS);
   return (
-    <footer className="grid shrink-0 grid-cols-[minmax(0,22rem)_1fr] items-center gap-x-8 border-t border-shell-line bg-shell-raised px-6 py-4" aria-label={t.feed.title}>
+    <footer className="panel-card grid shrink-0 grid-cols-[minmax(0,22rem)_1fr] items-center gap-x-8 px-6 py-4" aria-label={t.feed.title}>
       <div className="flex items-start gap-3">
         <span className={cn('mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-button', line.tone === 'error' ? 'bg-warn-surface text-warn-ink' : 'bg-panel-sunken text-ink-on-shell')}>
           <TrafficCone aria-hidden className="size-5" />
@@ -252,54 +253,66 @@ function SimTimeline({ replayAtS }: { replayAtS: number | null }) {
   const finished = sim?.state === 'finished';
   const showTransport = !presenter;
 
+  const status = (
+    <p id="sim-title" className="flex w-0 min-w-full items-center gap-2 text-meta text-ink-on-shell-muted">
+      <span className="sr-only">{t.sim.title}: </span>
+      {replaying ? <History aria-hidden className="size-3.5 shrink-0" /> : !token && <Lock aria-hidden className="size-3.5 shrink-0" />}
+      <span className="line-clamp-2">
+        {replaying
+          ? t.replay.readOnly
+          : !token
+            ? t.sim.needsToken
+            : sim
+              ? `${t.sim.states[sim.state]} · ${t.sim.events(sim.nextEventIndex, sim.eventCount)} · ${t.sim.speed(sim.simSecondsPerRealSecond)}`
+              : t.sim.noServer}
+      </span>
+    </p>
+  );
+
+  /*
+   * Two rows on one grid, so everything lines up: row 1 holds the transport and the scrubber (the
+   * transport is nudged to the track's height), row 2 the status line and the latest changes, which
+   * share a baseline. Without transport (presenter mode) the scrubber and ticker fill the card.
+   */
   return (
     <footer
-      className={cn('grid shrink-0 gap-x-8 border-t border-shell-line bg-shell-raised px-6 pt-3 pb-3.5', showTransport ? 'grid-cols-[auto_1fr]' : 'grid-cols-1')}
+      className={cn('panel-card grid shrink-0 items-center gap-x-8 gap-y-1 px-5 py-4', showTransport ? 'grid-cols-[minmax(14rem,auto)_minmax(0,1fr)]' : 'grid-cols-1')}
       aria-labelledby="sim-title"
     >
       {showTransport && (
-        <div className="flex flex-col justify-center gap-2">
-          <div className="flex items-center gap-2">
-            <motion.button
-              type="button"
-              whileTap={{ scale: motionTokens.buttonPressScale }}
-              onClick={() => run(playing ? 'pause' : 'play')}
-              disabled={busy || finished}
-              aria-label={playing ? t.sim.pause : t.sim.play}
-              className="inline-flex h-11 items-center gap-2 rounded-button bg-accent px-5 text-body font-semibold text-on-accent disabled:opacity-40"
-            >
-              {playing ? <Pause aria-hidden className="size-4.5 fill-current" /> : <Play aria-hidden className="size-4.5 fill-current" />}
-              {playing ? t.sim.pause : t.sim.play}
-            </motion.button>
-            <button type="button" onClick={() => run('step')} disabled={busy || playing || finished} aria-label={t.sim.step} className={ghost}>
-              <StepForward aria-hidden className="size-4.5" />
-              {t.sim.step}
-            </button>
-            <button type="button" onClick={() => run('reset')} disabled={busy} aria-label={t.sim.reset} className={ghost}>
-              <RotateCcw aria-hidden className="size-4.5" />
-              {t.sim.reset}
-            </button>
-          </div>
-          <p id="sim-title" className="flex items-center gap-2 text-meta text-ink-on-shell-muted">
-            <span className="sr-only">{t.sim.title}: </span>
-            {replaying ? <History aria-hidden className="size-3.5" /> : !token && <Lock aria-hidden className="size-3.5" />}
-            {replaying
-              ? t.replay.readOnly
-              : !token
-                ? t.sim.needsToken
-                : sim
-                  ? `${t.sim.states[sim.state]} · ${t.sim.events(sim.nextEventIndex, sim.eventCount)} · ${t.sim.speed(sim.simSecondsPerRealSecond)}`
-                  : t.sim.noServer}
-          </p>
+        <div className="flex items-center gap-2 pt-1">
+          <motion.button
+            type="button"
+            whileTap={{ scale: motionTokens.buttonPressScale }}
+            onClick={() => run(playing ? 'pause' : 'play')}
+            disabled={busy || finished}
+            aria-label={playing ? t.sim.pause : t.sim.play}
+            className="ctl-primary h-11 px-5 text-body whitespace-nowrap disabled:opacity-40 max-[1599px]:w-11 max-[1599px]:px-0"
+          >
+            {playing ? <Pause aria-hidden className="size-4.5 fill-current" /> : <Play aria-hidden className="size-4.5 fill-current" />}
+            <span className={LABEL}>{playing ? t.sim.pause : t.sim.play}</span>
+          </motion.button>
+          <button type="button" onClick={() => run('step')} disabled={busy || playing || finished} aria-label={t.sim.step} className={ghost}>
+            <StepForward aria-hidden className="size-4.5" />
+            <span className={LABEL}>{t.sim.step}</span>
+          </button>
+          <button type="button" onClick={() => run('reset')} disabled={busy} aria-label={t.sim.reset} className={ghost}>
+            <RotateCcw aria-hidden className="size-4.5" />
+            <span className={LABEL}>{t.sim.reset}</span>
+          </button>
         </div>
       )}
-      {!showTransport && (
+      <div className="min-w-0">
+        <Scrubber replayAtS={replayAtS} />
+      </div>
+      {showTransport ? (
+        status
+      ) : (
         <span id="sim-title" className="sr-only">
           {t.sim.title}
         </span>
       )}
-      <div className="flex min-w-0 flex-col gap-1">
-        <Scrubber replayAtS={replayAtS} />
+      <div className="min-w-0">
         <Ticker />
       </div>
     </footer>

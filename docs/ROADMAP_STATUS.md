@@ -127,6 +127,7 @@ in "Real graph landed". `tsc` and `eslint` are clean for engine, contracts, cons
 
 See docs/limitations.md. The main ones:
 - schematic road fixture;
+- place search covers only the roads and places inside the bundled Andheri map (no street numbers, no landmarks other than the scenario places; no hosted geocoder);
 - no device run;
 - translations not reviewed by native speakers;
 - device-id corroboration is a heuristic;

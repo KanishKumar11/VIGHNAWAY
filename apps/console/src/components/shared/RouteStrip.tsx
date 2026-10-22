@@ -1,16 +1,11 @@
 import type { RouteEvaluation } from '@vighnaway/contracts';
 import { Hospital } from 'lucide-react';
+import { Fragment } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { IncidentGlyph } from './IncidentGlyph';
 
 const pct = (m: number, total: number) => `${Math.max(0, Math.min(100, (m / Math.max(1, total)) * 100)).toFixed(2)}%`;
-
-/** Keeps a label inside the strip near its ends. */
-const labelAlign = (m: number, total: number) => {
-  const f = m / Math.max(1, total);
-  return f < 0.18 ? 'translate-x-0' : f > 0.82 ? '-translate-x-full' : '-translate-x-1/2';
-};
 
 /**
  * Route strip (DESIGN.md section 5): the route from origin to destination as a slim bar, with
@@ -21,6 +16,11 @@ export function RouteStrip({ route, compact = false }: { route: RouteEvaluation;
   const active = route.hazards.filter((h) => h.effect !== 'none');
   const blocked = route.role === 'blocked' || !route.viable;
   const bar = route.role === 'recommended' ? 'bg-route-recommended' : 'bg-route-muted';
+  // Labels sit in one row, first crossing to last, so long names can never overlap; the crossings
+  // in between are counted (the screen-reader text, routeStripText, still lists every one).
+  const ordered = [...route.crossings].sort((a, b) => a.positionM - b.positionM);
+  const labelled = ordered.length > 2 ? [ordered[0]!, ordered[ordered.length - 1]!] : ordered;
+  const hidden = ordered.length - labelled.length;
   return (
     <div className="w-full" aria-hidden>
       <div className={cn('relative mx-1', compact ? 'h-6' : 'h-8')}>
@@ -67,15 +67,14 @@ export function RouteStrip({ route, compact = false }: { route: RouteEvaluation;
         ))}
       </div>
       {!compact && route.crossings.length > 0 && (
-        <div className="relative mx-1 mt-1 h-5 text-meta text-ink-muted">
-          {route.crossings.map((c) => (
-            <span
-              key={`l-${c.name}-${c.positionM}`}
-              className={cn('absolute top-0 whitespace-nowrap', labelAlign(c.positionM, total))}
-              style={{ left: pct(c.positionM + c.lengthM / 2, total) }}
-            >
-              <span className="font-semibold text-ink">{c.name}</span> · {t.route.strip.kinds[c.kind]}
-            </span>
+        <div className="mx-1 mt-2 flex items-baseline justify-between gap-3 text-meta text-ink-muted">
+          {labelled.map((c, i) => (
+            <Fragment key={`l-${c.name}-${c.positionM}`}>
+              {i === 1 && hidden > 0 && <span className="shrink-0 tabular">+{hidden}</span>}
+              <span className={cn('min-w-0 truncate', i > 0 && 'text-right')}>
+                <span className="font-semibold text-ink">{c.name}</span> · {t.route.strip.kinds[c.kind]}
+              </span>
+            </Fragment>
           ))}
         </div>
       )}

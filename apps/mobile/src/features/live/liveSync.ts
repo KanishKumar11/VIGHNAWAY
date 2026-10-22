@@ -26,7 +26,7 @@ import { useConnection } from '@/stores/connection';
 import { useFeed } from '@/stores/feed';
 import { useIncidents } from '@/stores/incidents';
 import { usePendingReports } from '@/stores/reports';
-import { useScenario } from '@/stores/scenario';
+import { isCustomPlaceId, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { recommendedRoute, useTrip } from '@/stores/trip';
@@ -58,7 +58,9 @@ function shouldBeConnected(appState: AppStateStatus | string | null | undefined)
 
 function createSocket(url: string): Socket {
   const s = io(`${url}${LIVE_NAMESPACE}`, {
-    transports: ['websocket'],
+    // Start on plain HTTPS long-polling and upgrade to WebSocket when the network allows it: some
+    // phone networks and proxies reject WebSocket upgrades while ordinary HTTPS works.
+    transports: ['polling', 'websocket'],
     autoConnect: false,
     reconnection: true,
     reconnectionDelay: 1000,
@@ -72,7 +74,10 @@ function createSocket(url: string): Socket {
   s.on('disconnect', () => {
     if (useConnection.getState().socket !== 'unreachable') useConnection.getState().setSocket('connecting');
   });
-  s.on('connect_error', (err: Error) => useConnection.getState().setSocket('unreachable', err.message));
+  s.on('connect_error', (err: Error) => {
+    if (__DEV__) console.warn('[live] socket connect_error:', err.message, JSON.stringify((err as { description?: unknown }).description ?? null));
+    useConnection.getState().setSocket('unreachable', err.message);
+  });
   s.on(SOCKET_EVENTS.incidentUpserted, (raw: unknown) => {
     const parsed = IncidentUpsertedSchema.safeParse(raw);
     if (!parsed.success) return;
@@ -207,6 +212,8 @@ function emitTripPosition(): void {
   if (now - lastPositionEmit < 1000) return;
   const trip = useTrip.getState();
   if (!trip.vehicle || trip.mode === 'planning') return;
+  // The console only knows the scenario's own places; a searched start or destination stays on the phone.
+  if (isCustomPlaceId(trip.originId) || isCustomPlaceId(trip.destinationId)) return;
   const { graphFile, scenario } = useScenario.getState();
   const profile = useSettings.getState().profile;
   const graph = getGraph(graphFile, profile);

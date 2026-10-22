@@ -56,8 +56,13 @@ tells you why."; button "Continue". No permission prompts here.
 └──────────────────────────────┘
 ```
 
-Sheet snap points: peek (recommendation, ETA, reason, confidence, route strip, Start trip),
-half (comparison cards for every route), full (Why this route card, evidence list, activity).
+**Search card (start and destination).** Tapping the card opens one search sheet with a From and a To field and a text box. It searches offline, over the scenario places and every named road of the bundled map, so any road in the Andheri map area can be the destination or the start. An empty query lists the scenario places. From also offers "My location" (foreground permission; refused with a calm message outside the map area or when permission is off). Every pick is a point that the engine snaps to its road graph for the active profile. The start cannot be changed during a trip, and a start equal to the destination is refused. Searched places stay on the phone: their trips are not published to the console.
+
+Sheet snap points (v5): **small** (the default and lowest stop: ETA, route name and Start trip, plus a
+one-line "Route changed · Details" notice when the route has changed; about a sixth of the screen so the
+map is mostly visible), **half** (status and confidence, what to do now, the reason, the full change
+banner, Drive mode and Share, the comparison cards), **full** (Why this route card, evidence list,
+activity). A flick up opens it; a flick down returns to small.
 
 | State | What shows | Copy |
 | --- | --- | --- |

@@ -150,6 +150,196 @@ const light: ThemeColors = {
 export const themes = { dark: dark as ThemeColors, light } as const;
 export type ThemeName = keyof typeof themes;
 
+/**
+ * Phone themes ("Royal blue", DESIGN.md section 14): a blue accent and recommended route on a cool
+ * white page (light) or a graphite page (dark). The control room keeps `themes` / `consoleThemes`
+ * above. Warning, critical and resolved hues are unchanged, so hazards read the same; the key names
+ * `tealSoft` / `tealGlow` are historical and now hold the blue tints. Same keys as every theme.
+ */
+const phoneLight: ThemeColors = {
+  ...light,
+  // Sky-tinted page and cards instead of flat white: the surfaces carry the colour.
+  shell: '#EEF3FF',
+  shellDeep: '#E2ECFB',
+  shellRaised: '#FFFFFF',
+  shellOverlay: '#FFFFFF',
+  shellLine: '#D6E2F7',
+  shellHairline: 'rgba(37, 99, 235, 0.14)',
+  shellHairlineStrong: 'rgba(51, 65, 120, 0.45)',
+  panel: '#FFFFFF',
+  panelRaised: '#F3F7FF',
+  panelDark: '#0B1B4D',
+  panelLine: '#D6E2F7',
+  panelSunken: '#E8F0FF',
+  panelHairline: 'rgba(37, 99, 235, 0.12)',
+  ink: '#0A1330',
+  inkMuted: '#3F4C6B',
+  inkSubtle: '#47547A',
+  inkOnShell: '#0A1330',
+  inkOnShellMuted: '#3F4C6B',
+  accent: '#2563EB',
+  onAccent: '#FFFFFF',
+  accentInk: '#1D4ED8',
+  brand: '#2563EB',
+  brandAlt: '#7C3AED',
+  focus: '#2563EB',
+  routeRecommended: '#2563EB',
+  routeTravelled: '#1E40AF',
+  routeMuted: '#6B7AA6',
+  tealSoft: '#E0EBFF',
+  tealGlow: 'rgba(37, 99, 235, 0.28)',
+  recommendedSurface: '#E0EBFF',
+  recommendedInk: '#1D4ED8',
+  warnSurface: '#FFF1CC',
+  dangerSurface: '#FFE3E3',
+  positiveSoft: '#D9F7E3',
+  live: '#3F4C6B',
+  liveInk: '#0A1330',
+  liveSurface: '#E8F0FF',
+  roadMajor: '#C9D6EE',
+  roadMinor: '#DAE4F5',
+  railway: '#3F4C6B',
+  scrim: 'rgba(10, 19, 48, 0.42)',
+};
+
+const phoneDark: ThemeColors = {
+  ...dark,
+  shell: '#0A1020',
+  shellDeep: '#0A1020',
+  shellRaised: '#131C36',
+  shellOverlay: '#172146',
+  shellLine: '#26335C',
+  panel: '#121A33',
+  panelRaised: '#1B2750',
+  panelDark: '#121A33',
+  panelLine: '#2A3866',
+  panelSunken: '#0C1329',
+  ink: '#F4F7FF',
+  inkMuted: '#C3CDEA',
+  inkSubtle: '#97A5CE',
+  inkOnShell: '#F4F7FF',
+  inkOnShellMuted: '#C3CDEA',
+  accent: '#4F8CFF',
+  onAccent: '#08101F',
+  accentInk: '#9CC2FF',
+  brand: '#5B9BFF',
+  brandAlt: '#A78BFA',
+  focus: '#5B9BFF',
+  routeRecommended: '#5B9BFF',
+  routeRecommendedCasing: '#0A1020',
+  routeTravelled: '#2563EB',
+  tealSoft: '#0F1F4D',
+  tealGlow: 'rgba(91, 155, 255, 0.3)',
+  recommendedSurface: '#112557',
+  recommendedInk: '#9CC2FF',
+  liveInk: '#F4F7FF',
+  liveSurface: '#1B2750',
+  roadMajor: '#26335C',
+  roadMinor: '#1B2750',
+  scrim: 'rgba(3, 6, 16, 0.64)',
+};
+
+/** The phone's themes (the app's useTheme reads these). */
+export const phoneThemes = { dark: phoneDark, light: phoneLight } as const;
+
+/**
+ * Console light theme ("Porcelain", DESIGN.md section 13): the control room's own light palette.
+ * A cool porcelain canvas with white floating panels replaces the phone's warm paper environment;
+ * the status hues (recommended, warning, critical, resolved) and every contrast pair are unchanged,
+ * so meaning reads the same. Keys are identical to the other themes. The phone keeps `themes.light`.
+ */
+const consoleLight: ThemeColors = {
+  ...light,
+  shell: '#EDF0F5',
+  shellDeep: '#E4E9F1',
+  shellRaised: '#FFFFFF',
+  shellOverlay: '#FFFFFF',
+  shellLine: '#E2E7EF',
+  shellHairline: 'rgba(15, 23, 42, 0.07)',
+  shellHairlineStrong: 'rgba(71, 85, 105, 0.45)',
+  panelLine: '#E2E7EF',
+  panelSunken: '#F3F5F9',
+  panelHairline: 'rgba(15, 23, 42, 0.07)',
+  ink: '#0B1324',
+  inkSubtle: '#566176',
+  inkOnShell: '#0B1324',
+  accentInk: '#0B5F58',
+  tealSoft: '#E7F5F3',
+  tealGlow: 'rgba(15, 118, 110, 0.18)',
+  recommendedSurface: '#EAF7F5',
+  recommendedInk: '#0B5F58',
+  warnSurface: '#FFF6E5',
+  dangerSurface: '#FDEEEE',
+  positiveSoft: '#EDF8F0',
+  liveInk: '#0B1324',
+  liveSurface: '#EEF1F6',
+  floodProne: 'rgba(2, 132, 199, 0.2)',
+  roadMajor: '#CBD3DF',
+  roadMinor: '#DAE0E9',
+  scrim: 'rgba(16, 24, 48, 0.4)',
+};
+
+/** Themes for the web control room: Porcelain light, and the shared dark. */
+export const consoleThemes = { dark: dark as ThemeColors, light: consoleLight } as const;
+
+/**
+ * Control-room chrome: the deep-navy command bar and hero card, identical in light and dark so the
+ * room's anchor reads the same in both. Luminous teal (chromeAccent) is for graphics and large
+ * numerals on the navy; status colours never sit on it (chips bring their own surface).
+ */
+export const consoleChrome = {
+  chromeBg: '#0B1426',
+  chromeRaised: '#111C33',
+  /** Deep indigo the hero card's gradient starts from. */
+  chromeIndigo: '#1E1B4B',
+  chromeLine: 'rgba(148, 163, 184, 0.22)',
+  chromeFill: 'rgba(248, 250, 252, 0.07)',
+  chromeFillStrong: 'rgba(248, 250, 252, 0.14)',
+  chromeInk: '#F8FAFC',
+  chromeInkMuted: '#CBD5E1',
+  chromeAccent: '#2DD4BF',
+  chromeOnAccent: '#0B1426',
+  chromeGlow: 'rgba(45, 212, 191, 0.28)',
+} as const;
+
+/** Chrome text and graphic pairs, checked by test/contrast.test.ts. */
+export const chromeContrastPairs: { fg: keyof typeof consoleChrome; bg: keyof typeof consoleChrome; min: number; what: string }[] = [
+  { fg: 'chromeInk', bg: 'chromeBg', min: 4.5, what: 'text on the command bar' },
+  { fg: 'chromeInkMuted', bg: 'chromeBg', min: 4.5, what: 'muted text on the command bar' },
+  { fg: 'chromeInk', bg: 'chromeRaised', min: 4.5, what: 'text on the hero card' },
+  { fg: 'chromeInkMuted', bg: 'chromeRaised', min: 4.5, what: 'muted text on the hero card' },
+  { fg: 'chromeAccent', bg: 'chromeBg', min: 4.5, what: 'luminous teal on the command bar' },
+  { fg: 'chromeAccent', bg: 'chromeRaised', min: 4.5, what: 'luminous teal on the hero card' },
+  { fg: 'chromeOnAccent', bg: 'chromeAccent', min: 4.5, what: 'primary button label on the command bar' },
+  { fg: 'chromeInk', bg: 'chromeIndigo', min: 4.5, what: 'text on the indigo end of the hero card' },
+  { fg: 'chromeInkMuted', bg: 'chromeIndigo', min: 4.5, what: 'muted text on the indigo end of the hero card' },
+  { fg: 'chromeAccent', bg: 'chromeIndigo', min: 4.5, what: 'luminous teal on the indigo end of the hero card' },
+];
+
+/**
+ * Console brand: the signature indigo-to-teal gradient and the aurora tints behind the panels.
+ * Brand moments and primary actions only (logo, wordmark, primary buttons, the command bar's light
+ * line, timeline progress); never status, routes or body text. Both gradient ends carry white text
+ * at AA, so every point between them does too.
+ */
+export const consoleBrand = {
+  brandFrom: '#4F46E5',
+  brandVia: '#6D28D9',
+  brandTo: '#0F766E',
+  onBrand: '#FFFFFF',
+  brandGlow: 'rgba(79, 70, 229, 0.28)',
+  auroraIndigo: 'rgba(99, 102, 241, 0.24)',
+  auroraTeal: 'rgba(20, 184, 166, 0.24)',
+  auroraViolet: 'rgba(168, 85, 247, 0.16)',
+} as const;
+
+/** Brand pairs, checked by test/contrast.test.ts. */
+export const brandContrastPairs: { fg: keyof typeof consoleBrand; bg: keyof typeof consoleBrand; min: number; what: string }[] = [
+  { fg: 'onBrand', bg: 'brandFrom', min: 4.5, what: 'label on the indigo end of a brand button' },
+  { fg: 'onBrand', bg: 'brandVia', min: 4.5, what: 'label on the violet middle of a brand button' },
+  { fg: 'onBrand', bg: 'brandTo', min: 4.5, what: 'label on the teal end of a brand button' },
+];
+
 /** Default theme per surface (DESIGN.md 12.1): the console projects in lit rooms; phones follow the system. */
 export const defaultTheme = { console: 'light', phone: 'system' } as const;
 

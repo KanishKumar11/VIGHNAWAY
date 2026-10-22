@@ -27,6 +27,7 @@ import { Timeline } from '@/components/console/Timeline';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
 import { MapPanel } from '@/components/map/MapPanel';
 import { t } from '@/i18n';
+import { cn } from '@/lib/cn';
 
 /**
  * The map stage sits between the docked columns, so the camera only needs a little air at its
@@ -118,18 +119,18 @@ export function ConsoleScreen() {
   const toggle = (id: string) => setSelectedId((cur) => (cur === id ? null : id));
 
   return (
-    <div className="flex h-dvh min-h-[calc(var(--spacing)*200)] w-full min-w-[calc(var(--spacing)*320)] flex-col overflow-hidden bg-shell text-base text-ink-on-shell">
+    <div className="vw-canvas flex h-dvh min-h-[calc(var(--spacing)*200)] w-full min-w-[calc(var(--spacing)*320)] flex-col overflow-hidden text-base text-ink-on-shell">
       <Header replayAtS={replay?.atS ?? null} />
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 gap-4 p-4">
         {!presenter && (
-          <aside aria-label={t.queue.title} className="flex w-95 shrink-0 flex-col border-r border-shell-line bg-shell-raised">
+          <aside aria-label={t.queue.title} className="panel-card flex w-80 shrink-0 flex-col overflow-hidden min-[1440px]:w-100">
             <IncidentQueue selectedId={selectedId} onSelect={toggle} incidents={incidents} nowS={nowS} readOnly={!!replay} trip={trip} />
             <QrCard />
           </aside>
         )}
 
-        <main className="flex min-w-0 flex-1 flex-col">
-          <div className="relative min-h-0 flex-1">
+        <main className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="panel-card relative min-h-0 flex-1 overflow-hidden">
             <section className="absolute inset-0" aria-label={t.map.region} aria-hidden={listView || undefined}>
               <MapPanel
                 scene={scene}
@@ -155,7 +156,7 @@ export function ConsoleScreen() {
           <Timeline replayAtS={replay?.atS ?? null} />
         </main>
 
-        <aside aria-label={t.trip.title} className={presenter ? 'w-150 shrink-0 border-l border-shell-line bg-shell-raised' : 'w-115 shrink-0 border-l border-shell-line bg-shell-raised'}>
+        <aside aria-label={t.trip.title} className={cn('panel-card shrink-0 overflow-hidden', presenter ? 'w-150' : 'w-96 min-[1440px]:w-115')}>
           {/* Presenter mode enlarges the whole decision for the room. */}
           <div className="h-full" style={presenter ? { zoom: PRESENTER_ZOOM } : undefined}>
             <DemoTripPanel trip={trip} motion={motion} incidents={incidents} nowS={nowS} />

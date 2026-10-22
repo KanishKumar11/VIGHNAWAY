@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contrastPairs, themes, type ThemeColors } from '../src/themes';
+import { brandContrastPairs, chromeContrastPairs, consoleBrand, consoleChrome, consoleThemes, contrastPairs, phoneThemes, themes, type ThemeColors } from '../src/themes';
 
 type RGBA = [number, number, number, number];
 function parse(c: string): RGBA {
@@ -32,9 +32,23 @@ export function contrast(fg: string, bg: string, base: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe.each(Object.entries(themes))('%s theme meets WCAG AA', (_name, t: ThemeColors) => {
+describe.each([...Object.entries(themes), ...Object.entries(phoneThemes).map(([n, c]) => [`phone ${n}`, c] as const), ...Object.entries(consoleThemes).map(([n, c]) => [`console ${n}`, c] as const)])('%s theme meets WCAG AA', (_name, t: ThemeColors) => {
   it.each(contrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
     const ratio = contrast(t[p.fg], t[p.bg], t.panel);
+    expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
+  });
+});
+
+describe('console chrome meets WCAG AA', () => {
+  it.each(chromeContrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
+    const ratio = contrast(consoleChrome[p.fg], consoleChrome[p.bg], consoleChrome.chromeBg);
+    expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
+  });
+});
+
+describe('console brand meets WCAG AA', () => {
+  it.each(brandContrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
+    const ratio = contrast(consoleBrand[p.fg], consoleBrand[p.bg], consoleBrand.onBrand);
     expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
   });
 });
@@ -42,5 +56,8 @@ describe.each(Object.entries(themes))('%s theme meets WCAG AA', (_name, t: Theme
 describe('themes', () => {
   it('have identical keys', () => {
     expect(Object.keys(themes.light).sort()).toEqual(Object.keys(themes.dark).sort());
+    expect(Object.keys(consoleThemes.light).sort()).toEqual(Object.keys(themes.light).sort());
+    expect(Object.keys(phoneThemes.light).sort()).toEqual(Object.keys(themes.light).sort());
+    expect(Object.keys(phoneThemes.dark).sort()).toEqual(Object.keys(themes.light).sort());
   });
 });

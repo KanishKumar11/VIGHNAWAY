@@ -634,5 +634,7 @@ Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-9.b
 | P3-5.a | Device reputation weight: an optional heuristic; never sets Verified; manipulation tests | todo (after P3-4) | 3–4 h |
 | P3-6.a | SMS gateway for outbound route text | blocked (provider credentials) | 3 h |
 | P3-7.a | Public read-only incidents page: status, source, age, provenance; no device ids or notes metadata | todo | 2 h |
-| P3-8.a | Privacy decision for trip sharing: consent screen, expiry (default 8 h), one-tap revoke, what is stored (latest position only, no history) | needs decision | 1 h |
-| P3-8.b | API token link and a read-only follow page showing position and destination name only, never the route; in the demo the simulated vehicle, labelled Simulated | todo (after P3-8.a); device half blocked (P0-3) | 5 h |
+
+## Requests from other workstreams
+
+- **Console (from Mobile):** the phone no longer publishes `trip.position` when the start or destination was searched (ids `road:*` or `my-location:*`), because the console demo-trip panel only knows the scenario places. If the console should show those trips, it needs a place lookup by point rather than by scenario place id.

@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, type Theme } from 'expo-router';
-import { themes, type ThemeName } from '@vighnaway/tokens';
+import { phoneThemes as themes, type ThemeName } from '@vighnaway/tokens';
 
 /** Navigation theme for each colour theme: page background, card headers, text and borders. */
 export function navThemeFor(name: ThemeName): Theme {

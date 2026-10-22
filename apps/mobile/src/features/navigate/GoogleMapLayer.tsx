@@ -7,7 +7,7 @@ import { Hospital, Navigation, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { StatusRing } from '@/components/StatusRing';
 import { t } from '@/i18n/en';
-import { createStyles, lineStyle, marker, radius, spacing, useColors, useTheme, zIndex } from '@/theme';
+import { createStyles, lineStyle, marker, radius, spacing, type, useColors, useTheme, zIndex } from '@/theme';
 import { sliceCoords, type MapIncident, type MapLine, type MapPin } from './mapModel';
 
 
@@ -38,7 +38,10 @@ function useTracksViewChanges(key: string): boolean {
   return tracks;
 }
 
-const IncidentMarker = memo(function IncidentMarker({ item, onPress }: { item: MapIncident; onPress: (i: Incident) => void }) {
+/** Above this many markers the age labels step aside, so a busy live map stays readable (the age is in the incident sheet). */
+const AGE_LABELS_MAX = 24;
+
+const IncidentMarker = memo(function IncidentMarker({ item, showAge, onPress }: { item: MapIncident; showAge: boolean; onPress: (i: Incident) => void }) {
   const tc = useColors();
   const styles = useStyles();
   const inc = item.incident;
@@ -56,15 +59,17 @@ const IncidentMarker = memo(function IncidentMarker({ item, onPress }: { item: M
       <View style={styles.incident}>
         <View style={[styles.incidentCircle, closed && styles.closed]}>
           <View style={StyleSheet.absoluteFill}>
-            <StatusRing status={inc.status} size={marker.size} strokeWidth={marker.ringWidth + 1} />
+            <StatusRing status={inc.status} size={marker.mapSize} strokeWidth={marker.ringWidth} />
           </View>
-          <IncidentGlyph type={inc.type} size={marker.glyphSize} color={closed ? tc.resolved : tc.ink} />
+          <IncidentGlyph type={inc.type} size={marker.mapGlyphSize} color={closed ? tc.resolved : tc.ink} />
         </View>
-        <View style={styles.agePill}>
-          <AppText variant="label" tone="onShell" maxFontSizeMultiplier={1.3}>
-            {item.ageLabel}
-          </AppText>
-        </View>
+        {showAge ? (
+          <View style={styles.agePill}>
+            <AppText variant="label" tone="onShell" maxFontSizeMultiplier={1} style={styles.ageText}>
+              {item.ageLabel}
+            </AppText>
+          </View>
+        ) : null}
       </View>
     </Marker>
   );
@@ -199,7 +204,7 @@ export const GoogleMapLayer = forwardRef<MapView, Props>(function GoogleMapLayer
         <Pin key={p.key} pin={p} />
       ))}
       {props.markers.map((m) => (
-        <IncidentMarker key={m.incident.id} item={m} onPress={props.onIncidentPress} />
+        <IncidentMarker key={m.incident.id} item={m} showAge={props.markers.length <= AGE_LABELS_MAX} onPress={props.onIncidentPress} />
       ))}
       {props.vehiclePin ? <Pin pin={props.vehiclePin} /> : null}
     </MapView>
@@ -207,19 +212,21 @@ export const GoogleMapLayer = forwardRef<MapView, Props>(function GoogleMapLayer
 });
 
 const useStyles = createStyles((tc) => ({
-  incident: { alignItems: 'center' },
+  // The padding keeps a comfortable touch area around the small circle.
+  incident: { alignItems: 'center', padding: spacing.xxs },
   incidentCircle: {
-    width: marker.size,
-    height: marker.size,
-    borderRadius: marker.size / 2,
+    width: marker.mapSize,
+    height: marker.mapSize,
+    borderRadius: marker.mapSize / 2,
     backgroundColor: tc.panelRaised,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closed: { backgroundColor: tc.panelSunken },
+  ageText: { fontSize: type.meta.size - 2, lineHeight: marker.mapAgePillHeight - 2 },
   agePill: {
     marginTop: spacing.xxs,
-    minHeight: marker.agePillHeight,
+    minHeight: marker.mapAgePillHeight,
     paddingHorizontal: spacing.xs - 2,
     borderRadius: radius.chip,
     backgroundColor: tc.shellOverlay,

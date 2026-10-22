@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { themes, type ThemeColors } from '../src/themes';
+import { phoneThemes, themes, type ThemeColors } from '../src/themes';
 
 /**
  * Colour-vision deficiency check (DESIGN_VISION.md section 3). Machado et al. (2009) matrices at
@@ -48,7 +48,7 @@ const MUST_DIFFER: [keyof ThemeColors, keyof ThemeColors, string, number?][] = [
   ['positive', 'danger', 'Resolved vs Verified', 9],
 ];
 
-describe.each(Object.entries(themes))('%s theme under colour-vision deficiencies', (_name, t: ThemeColors) => {
+describe.each([...Object.entries(themes), ...Object.entries(phoneThemes).map(([n, c]) => [`phone ${n}`, c] as const)])('%s theme under colour-vision deficiencies', (_name, t: ThemeColors) => {
   for (const [kind, m] of Object.entries(M)) {
     it.each(MUST_DIFFER.map(([a, b, what, min]) => [what, a, b, min ?? 12] as const))(`${kind}: %s`, (_what, a, b, min) => {
       const d = deltaE(lab(simulate(t[a], m)), lab(simulate(t[b], m)));

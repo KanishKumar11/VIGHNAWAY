@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { themes } from '@vighnaway/tokens';
+import { consoleThemes as themes } from '@vighnaway/tokens';
 import { t } from '@/i18n';
 import { ATTRIBUTION, isLiveScenario, scenarioFor } from '@/lib/scenario';
 import { ReportForm } from '@/components/report/ReportForm';

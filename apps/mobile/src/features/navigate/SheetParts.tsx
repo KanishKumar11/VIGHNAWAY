@@ -163,45 +163,23 @@ interface PeekProps {
   route: RouteEvaluation;
   etaS: number;
   enRoute: boolean;
-  /** Arrival on the simulation clock ("14:22"). */
-  arriveClock?: string;
-  /** "What to do now" (engine nextAction, localised). */
-  nextStep?: string;
-  /** Hide the reason line (a change banner above already gives it). */
-  compact?: boolean;
   onStart: () => void;
   onEnd: () => void;
-  onShare: () => void;
-  onDrive?: () => void;
-  hint: string | null;
 }
 
 /**
- * The compact route decision (DESIGN_VISION 8, 10): an editorial composition, not a card. ETA
- * and status lead; then the route name, what to do now and the primary reason; actions in the
- * thumb zone. The trade-off, strip and evidence follow in RouteDetail as the sheet opens.
+ * The small decision that stays at the bottom while the map is in use: ETA, route name and the one
+ * main action. Everything else (what to do now, the reason, confidence, share and drive) is in
+ * PeekMore, which the sheet reveals as it is pulled up, so the map stays open by default.
  */
-export const PeekCard = memo(function PeekCard({
-  route,
-  etaS,
-  enRoute,
-  arriveClock,
-  nextStep,
-  compact,
-  onStart,
-  onEnd,
-  onShare,
-  onDrive,
-  hint,
-}: PeekProps) {
-  const tc = useColors();
+export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, onStart, onEnd }: PeekProps) {
   const styles = useStyles();
   const eta = fmtDuration(etaS);
   const conf = route.explanation.confidence;
   const name = routeLabel(route);
   return (
     <View
-      style={styles.peek}
+      style={styles.mini}
       testID="peek-card"
       accessible
       accessibilityLabel={t('recommendationA11y', {
@@ -211,23 +189,49 @@ export const PeekCard = memo(function PeekCard({
         reason: reasonOf(route),
       })}
     >
-      <View style={styles.etaRow}>
-        <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} testID="peek-eta" style={styles.flexShrink} />
-        <View style={styles.statusCol}>
-          <StateTag kind="recommended" label={t('recommended')} />
-          <ConfidenceMeter confidence={conf} />
-        </View>
-      </View>
-      <View style={styles.titleBlock}>
-        <AppText variant="title" numberOfLines={2}>
+      <View style={styles.miniText}>
+        <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="eta" unitVariant="label" testID="peek-eta" style={styles.flexShrink} />
+        <AppText variant="body" tone="muted" numberOfLines={1} style={styles.strong}>
           {name}
         </AppText>
-        <View style={styles.metaRow}>
-          {arriveClock ? <ArriveAt clock={arriveClock} /> : null}
-          <AppText variant="num" tone="muted">
-            {fmtDistance(route.distanceM)}
-          </AppText>
-        </View>
+      </View>
+      {enRoute ? (
+        <Button label={t('endTrip')} kind="secondary" onPress={onEnd} style={styles.miniButton} testID="end-trip" />
+      ) : (
+        <Button label={t('startTrip')} icon={Play} onPress={onStart} style={styles.miniButton} testID="start-trip" />
+      )}
+    </View>
+  );
+});
+
+interface MoreProps {
+  route: RouteEvaluation;
+  /** Arrival on the simulation clock ("14:22"). */
+  arriveClock?: string;
+  /** "What to do now" (engine nextAction, localised). */
+  nextStep?: string;
+  /** Hide the reason line (a change banner already gives it). */
+  compact?: boolean;
+  onShare: () => void;
+  onDrive?: () => void;
+  hint: string | null;
+}
+
+/** The rest of the decision, shown from the half-open sheet: status, next step, reason, share and drive. */
+export const PeekMore = memo(function PeekMore({ route, arriveClock, nextStep, compact, onShare, onDrive, hint }: MoreProps) {
+  const tc = useColors();
+  const styles = useStyles();
+  const conf = route.explanation.confidence;
+  return (
+    <View style={styles.more} testID="peek-more">
+      <View style={styles.moreHead}>
+        <StateTag kind="recommended" label={t('recommended')} />
+        <ConfidenceMeter confidence={conf} />
+        <View style={styles.flex} />
+        {arriveClock ? <ArriveAt clock={arriveClock} /> : null}
+        <AppText variant="num" tone="muted">
+          {fmtDistance(route.distanceM)}
+        </AppText>
       </View>
       {nextStep ? (
         <View style={styles.next} accessible accessibilityLabel={`${t('whatToDoNow')}: ${nextStep}`} testID="what-to-do-now">
@@ -251,19 +255,42 @@ export const PeekCard = memo(function PeekCard({
         </AppText>
       ) : null}
       <View style={styles.actions}>
-        {enRoute ? (
-          <Button label={t('endTrip')} kind="secondary" onPress={onEnd} style={styles.flex} testID="end-trip" />
-        ) : (
-          <Button label={t('startTrip')} icon={Play} onPress={onStart} style={styles.flex} testID="start-trip" />
-        )}
-        {onDrive ? <Button label={t('driveOpen')} accessibilityHint={t('driveOpenHint')} kind="secondary" icon={Car} iconOnly onPress={onDrive} testID="open-drive" /> : null}
+        {onDrive ? <Button label={t('driveOpen')} accessibilityHint={t('driveOpenHint')} kind="secondary" icon={Car} onPress={onDrive} style={styles.flex} testID="open-drive" /> : null}
         <Button label={t('shareRoute')} kind="secondary" icon={Share2} iconOnly onPress={onShare} testID="share-route" />
       </View>
     </View>
   );
 });
 
-/** "Arrive 14:22": words in Inter, the simulation clock in the technical face (DESIGN_VISION 6). */
+/**
+ * One line in the small sheet for a route change or a danger notice, so it is never hidden while
+ * the sheet is low. The full banner (cause, evidence, trade-off) is in the opened sheet.
+ */
+export function MiniChange({ banner, onPress, onDismiss }: { banner: Banner; onPress: () => void; onDismiss: () => void }) {
+  const tc = useColors();
+  const styles = useStyles();
+  const danger = banner.tone === 'danger';
+  const ink = danger ? tc.dangerInk : tc.warnInk;
+  return (
+    <View style={[styles.miniChange, { backgroundColor: danger ? tc.dangerSurface : tc.warnSurface }]} accessibilityRole="alert" accessibilityLiveRegion="polite" testID="mini-change">
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${banner.title}. ${banner.message}`} style={styles.miniChangeMain} hitSlop={spacing.xxs}>
+        <TriangleAlert size={16} color={ink} strokeWidth={2.25} />
+        <AppText variant="label" style={[styles.flex, { color: ink }]} numberOfLines={1}>
+          {banner.title}
+        </AppText>
+        <AppText variant="label" style={{ color: ink }}>
+          {t('details')}
+        </AppText>
+        <ChevronRight size={16} color={ink} />
+      </Pressable>
+      <Pressable onPress={onDismiss} accessibilityRole="button" accessibilityLabel={t('evidenceClose')} hitSlop={spacing.sm} style={styles.iconButton}>
+        <X size={18} color={tc.inkMuted} />
+      </Pressable>
+    </View>
+  );
+}
+
+/** "Arrive 14:22": words in Manrope, the simulation clock in the technical face (DESIGN_VISION 6). */
 export function ArriveAt({ clock }: { clock: string }) {
   const [before, after = ''] = t('arriveAt', { clock: '\u0000' }).split('\u0000');
   return (
@@ -416,7 +443,7 @@ export const RouteRow = memo(function RouteRow({ route, bar, index }: { route: R
   return (
     <Animated.View
       entering={enterUp(index, reduce)}
-      style={[styles.row, index > 0 && styles.rowDivider]}
+      style={[styles.row, rec && styles.rowRecommended, blocked && styles.rowBlocked]}
       accessible
       accessibilityLabel={`${t('routeA11y', { role: roleLabel(route.role), name, eta: fmtDuration(route.etaS) })}. ${reasonOf(route)}${whyNot ? `. ${t('whyNot')} ${whyNot}` : ''}`}
     >
@@ -566,6 +593,13 @@ const useStyles = createStyles((tc) => ({
   iconButton: { minWidth: spacing.lg, alignItems: 'flex-end', marginLeft: spacing.xxs },
   detailsButton: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: spacing.xl, paddingLeft: spacing.xs },
   peek: { gap: spacing.sm },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  miniText: { flex: 1, minWidth: 0, gap: 0 },
+  miniButton: { flexShrink: 0, paddingHorizontal: spacing.md },
+  miniChange: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, paddingLeft: spacing.sm, paddingRight: spacing.xs, minHeight: layout.minTouch - spacing.xs },
+  miniChangeMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: layout.minTouch - spacing.xs },
+  more: { gap: spacing.sm, paddingTop: spacing.xs },
+  moreHead: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs },
   etaRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
   statusCol: { alignItems: 'flex-end', gap: spacing.xs, paddingTop: spacing.xs },
   titleBlock: { gap: 2, marginTop: -spacing.xxs },
@@ -573,7 +607,7 @@ const useStyles = createStyles((tc) => ({
   nextRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
   nextIcon: { marginTop: 2 },
   next: { gap: 2 },
-  detail: { gap: spacing.sm },
+  detail: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   scanRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   skeletonStrip: { marginVertical: spacing.xs },
   evidence: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
@@ -589,9 +623,12 @@ const useStyles = createStyles((tc) => ({
   cause: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.xs, borderTopWidth: hairline, borderBottomWidth: hairline, borderColor: tc.panelHairline },
   reach: { gap: spacing.sm },
   reachHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  row: { gap: spacing.xs, paddingVertical: spacing.md },
+  // Each route is a card: same padding, one head line (role and name left, ETA right), the delta bar, the reason.
+  row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   rowDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
-  rowHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  rowRecommended: { backgroundColor: tc.recommendedSurface, borderColor: tc.routeRecommended, borderWidth: 1.5 },
+  rowBlocked: { borderColor: tc.danger, borderStyle: 'dashed' },
+  rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   rowTitle: { gap: spacing.xxs },
   struck: { textDecorationLine: 'line-through' },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

@@ -33,22 +33,26 @@ export { bannerBody };
 
 /** "What to do now": one plain sentence, rendered from the engine's structured text in the active language. */
 export function whatToDoNow(plan: PlanResult, destName: string | undefined): string {
-  return renderText(nextActionText(plan, destName), currentLang());
+  if (currentLang() === 'en') return nextAction(plan, destName);
+  const rec = recommendedRoute(plan);
+  if (plan.isReversal) return t.decision.reversal;
+  if (!rec) return plan.reachable ? t.decision.headTo(plan.reachable.placeName, t.time.duration(plan.reachable.etaS)) : t.decision.stay;
+  return t.decision.take(rec.name.replace(/^Via /, ''), destName ?? '', t.time.duration(rec.etaS + plan.leadInS));
 }
 
-/** Hero ETA: large Inter numerals (tabular) that roll on change; units quieter. */
+/** Hero ETA on the navy hero card: large Inter numerals (tabular) that roll on change; units quieter. */
 function EtaHero({ seconds }: { seconds: number | null }) {
-  if (seconds === null) return <p className="text-display font-bold text-ink-on-shell">–</p>;
+  if (seconds === null) return <p className="text-display font-bold text-chrome-ink">–</p>;
   const parts = t.time.duration(seconds).split(/(\d+)/).filter(Boolean);
   return (
-    <p className="flex items-baseline text-ink-on-shell tabular">
+    <p className="flex items-baseline text-chrome-ink tabular">
       <span className="sr-only">{t.time.duration(seconds)}</span>
       <span aria-hidden className="flex items-baseline">
         {parts.map((p, i) =>
           /^\d+$/.test(p) ? (
-            <RollingText key={`n${parts.length - i}`} text={p} className="text-display font-bold tracking-tight" />
+            <RollingText key={`n${parts.length - i}`} text={p} className="text-[calc(var(--vw-text-display)*1.2)] leading-none font-bold tracking-tight" />
           ) : (
-            <span key={`u${parts.length - i}`} className="ml-1 mr-2.5 text-title font-semibold text-ink-on-shell-muted">
+            <span key={`u${parts.length - i}`} className="ml-1.5 mr-2.5 text-title font-semibold text-chrome-ink-muted">
               {p.trim()}
             </span>
           ),
@@ -196,31 +200,34 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
 
   return (
     <article aria-label={`${t.decision.label}: ${routeLabel(shown)}`} className="px-6 pt-5 pb-6">
+    <article aria-label={`${t.decision.label}: ${shown.name}`} className="px-5 pt-5 pb-6">
       {reversal && (
         <p role="alert" className="mb-4 flex items-center gap-2.5 rounded-button border border-danger bg-danger-surface px-3.5 py-2.5 text-body font-semibold text-danger-ink">
           <Undo2 aria-hidden className="size-5 shrink-0" />
           {t.decision.reversal}
         </p>
       )}
-      <div className="flex items-center justify-between gap-3">
-        <p className="flex items-center gap-2.5 text-meta font-semibold text-recommended-ink">
-          <LineSwatch role="recommended" className="w-5" />
-          {t.decision.label}
-        </p>
-        {change && !flashing && <span className="text-meta font-semibold text-warn-ink">{t.route.changedAt(clock(change.atS))}</span>}
-      </div>
-
-      <div className="mt-2 flex items-end justify-between gap-4">
-        <div>
-          <EtaHero seconds={shownEta} />
-          <p className="-mt-1 text-meta text-ink-on-shell-muted">{enRoute ? t.trip.remaining : t.decision.estimated}</p>
+      <div className="vw-hero px-5 pt-5 pb-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="flex items-center gap-2.5 text-meta font-semibold text-chrome-accent">
+            <span aria-hidden className="block h-1.5 w-5 rounded-chip bg-chrome-accent" />
+            {t.decision.label}
+          </p>
+          {change && !flashing && <span className="rounded-chip bg-warn-surface px-2.5 py-0.5 text-meta font-semibold text-warn-ink">{t.route.changedAt(clock(change.atS))}</span>}
         </div>
-        <dl className="grid shrink-0 grid-cols-[auto_auto] items-baseline gap-x-3 gap-y-1 pb-1 text-right">
-          <dt className="text-meta text-ink-on-shell-muted">{t.trip.arrive}</dt>
-          <dd className="text-body font-semibold text-ink-on-shell tabular">{shownEta === null ? '–' : clock(trip.simTimeS + shownEta)}</dd>
-          <dt className="text-meta text-ink-on-shell-muted">{t.route.distance}</dt>
-          <dd className="text-body font-semibold text-ink-on-shell tabular">{formatDistance(shown.distanceM)}</dd>
-        </dl>
+
+        <div className="mt-4 flex items-end justify-between gap-5">
+          <div>
+            <EtaHero seconds={shownEta} />
+            <p className="mt-1.5 text-meta text-chrome-ink-muted">{enRoute ? t.trip.remaining : t.decision.estimated}</p>
+          </div>
+          <dl className="grid shrink-0 grid-cols-[auto_auto] items-baseline gap-x-4 gap-y-2 border-l border-chrome-line pb-0.5 pl-5">
+            <dt className="text-meta text-chrome-ink-muted">{t.trip.arrive}</dt>
+            <dd className="text-title font-semibold text-chrome-ink tabular">{shownEta === null ? '–' : clock(trip.simTimeS + shownEta)}</dd>
+            <dt className="text-meta text-chrome-ink-muted">{t.route.distance}</dt>
+            <dd className="text-title font-semibold text-chrome-ink tabular">{formatDistance(shown.distanceM)}</dd>
+          </dl>
+        </div>
       </div>
 
       <AnimatePresence mode="popLayout" initial={false}>
@@ -230,7 +237,7 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3, ease }}
-          className="mt-4 text-console-title font-semibold tracking-tight text-ink-on-shell"
+          className="mt-5 text-console-title font-semibold tracking-tight text-ink-on-shell"
         >
           {routeLabel(shown)}
         </motion.h3>
@@ -243,14 +250,14 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
         </span>
       </p>
 
-      <dl className="mt-4 grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2 text-body">
+      <dl className="well mt-4 grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2.5 px-4 py-3.5 text-body">
         <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.avoids}</dt>
         <dd className="text-ink-on-shell">{rt(shown.explanation.reasonText, shown.explanation.reason)}</dd>
         <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.tradeOff}</dt>
         <dd className="text-ink-on-shell">{shown.explanation.tradeOff ? rt(shown.explanation.tradeOffText, shown.explanation.tradeOff) : t.route.noTradeOff}</dd>
       </dl>
 
-      <div className="mt-5">
+      <div className="mt-6">
         <RouteStrip route={shown} />
         <span className="sr-only">{routeStripText(shown)}</span>
       </div>
@@ -276,7 +283,7 @@ function NoViable({ trip, destName }: { trip: TripState; destName?: string }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: motionTokens.noViableRoute / 1000, ease }}
-      className="px-6 pt-5 pb-6"
+      className="px-5 pt-5 pb-6"
     >
       <p className="flex items-center gap-2.5 text-meta font-semibold text-danger-ink">
         <OctagonX aria-hidden className="size-4.5" />
@@ -304,17 +311,17 @@ function NoViable({ trip, destName }: { trip: TripState; destName?: string }) {
 
 /** Other routes as aligned rows: line sample, name and role, ETA, difference. */
 function Comparison({ rec, others }: { rec: RouteEvaluation | null; others: RouteEvaluation[] }) {
-  if (!others.length) return rec ? <p className="border-t border-shell-line px-6 py-4 text-meta text-ink-on-shell-muted">{t.route.onlyRoute}</p> : null;
+  if (!others.length) return rec ? <p className="border-t border-shell-line px-5 py-4 text-meta text-ink-on-shell-muted">{t.route.onlyRoute}</p> : null;
   return (
-    <section aria-labelledby="compare-title" className="border-t border-shell-line px-6 pt-4 pb-5">
+    <section aria-labelledby="compare-title" className="border-t border-shell-line px-5 pt-4 pb-5">
       <h3 id="compare-title" className="text-meta font-semibold text-ink-on-shell-muted">
         {t.route.compare}
       </h3>
-      <ul className="mt-1">
+      <ul className="mt-2.5 flex flex-col gap-2">
         {others.map((r) => {
           const blocked = r.role === 'blocked' || !r.viable;
           return (
-            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${routeLabel(r)}`} className="border-b border-shell-line py-3 last:border-b-0">
+            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${r.name}`} className="rounded-card border border-shell-line bg-shell-raised px-4 py-3 transition-colors hover:bg-panel-sunken">
               <div className="grid grid-cols-[1.5rem_1fr_auto] items-center gap-x-3">
                 <LineSwatch role={r.role} />
                 <p className="min-w-0 truncate text-body font-semibold text-ink-on-shell">{routeLabel(r)}</p>
@@ -413,7 +420,7 @@ function useRecheck(key: string | null): boolean {
 /** Static placeholder shaped like the decision; the words say what is happening. */
 function DecisionSkeleton({ label }: { label: string }) {
   return (
-    <div className="px-6 pt-5 pb-6" role="status" aria-label={label}>
+    <div className="px-5 pt-5 pb-6" role="status" aria-label={label}>
       <p className="text-meta font-semibold text-ink-on-shell-muted">{label}</p>
       <Skeleton className="mt-4 h-12 w-2/5" />
       <Skeleton className="mt-5 h-6 w-3/5" />
@@ -465,9 +472,10 @@ export function DemoTripPanel({
 
   return (
     <section aria-labelledby="trip-title" className="flex h-full min-h-0 flex-col">
-      <header className="border-b border-shell-line px-6 pt-4 pb-3.5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="trip-title" className="text-meta font-semibold text-ink-on-shell-muted">
+      <header className="border-b border-shell-line px-5 pt-4 pb-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="trip-title" className="flex items-center gap-2.5 text-meta font-semibold text-ink-on-shell-muted">
+            <span aria-hidden className="vw-title-bar" />
             {t.trip.title}
           </h2>
           {trip && rechecking && (
@@ -476,17 +484,23 @@ export function DemoTripPanel({
             </span>
           )}
         </div>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-title font-semibold text-ink-on-shell">
-          <span>{origin?.name}</span>
-          <ArrowRight aria-hidden className="size-4.5 text-ink-on-shell-muted" />
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span key={dest?.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-              {dest?.name}
-            </motion.span>
-          </AnimatePresence>
-        </p>
+        <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-3.5">
+          <span aria-hidden className="flex flex-col items-center py-1.5">
+            <span className="size-3 rounded-chip border-[3px] border-route-recommended bg-shell-raised" />
+            <span className="my-1 w-0.5 flex-1 rounded-chip bg-route-recommended/40" />
+            <Hospital className="size-4 text-ink-on-shell" />
+          </span>
+          <div className="flex flex-col gap-2.5">
+            <p className="text-body text-ink-on-shell-muted">{origin?.name}</p>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.p key={dest?.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="text-title font-semibold text-ink-on-shell">
+                {dest?.name}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        </div>
         <span className="sr-only">{t.trip.fromTo(origin?.name ?? '', dest?.name ?? '')}</span>
-        {trip && <p className="mt-0.5 text-meta text-ink-on-shell-muted">{vehicleLine(trip)}</p>}
+        {trip && <p className="mt-3 text-meta text-ink-on-shell-muted">{vehicleLine(trip)}</p>}
       </header>
 
       <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto *:shrink-0">
@@ -497,7 +511,7 @@ export function DemoTripPanel({
         ) : (
           <>
             {trip.notice && !trip.change && (
-              <p className="flex items-start gap-2.5 border-b border-shell-line bg-panel-sunken px-6 py-3 text-meta text-ink-on-shell">
+              <p className="flex items-start gap-2.5 border-b border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell">
                 <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-ink-on-shell-muted" />
                 {rt(trip.notice.messageText, trip.notice.message)}
               </p>
@@ -509,7 +523,7 @@ export function DemoTripPanel({
           </>
         )}
       </div>
-      <p className="border-t border-shell-line px-6 py-3 text-meta text-ink-on-shell-muted">{t.trip.engineNote}</p>
+      <p className="border-t border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell-muted">{t.trip.engineNote}</p>
     </section>
   );
 }
