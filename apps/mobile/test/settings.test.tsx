@@ -1,4 +1,4 @@
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react-native';
 import SettingsScreen from '../app/(drawer)/settings';
 import { setPlanningPaused, schedulePlan } from '@/features/trip/planner';
 import { useActiveProfile, usePlanGate } from '@/features/trip/planGate';
@@ -86,7 +86,21 @@ describe('Settings layout', () => {
     for (const p of ['car', 'two_wheeler', 'foot', 'step_free']) expect(screen.getByTestId(`settings-profile-${p}`)).toBeTruthy();
     expect(screen.getByText('Two-wheeler')).toBeTruthy();
     await fireEvent.press(screen.getByTestId('settings-profile-step_free'));
-    expect(useSettings.getState().profile).toBe('step_free');
+    await waitFor(() => expect(useSettings.getState().profile).toBe('step_free'));
+  });
+
+  it('answers a touch in the same frame and applies the setting just after', async () => {
+    useSettings.setState({ appearance: 'light', language: 'en' });
+    await render(<SettingsScreen />);
+    await fireEvent.press(screen.getByTestId('appearance-dark'));
+    // The control already shows the choice, the setting is not applied yet.
+    expect(screen.getByTestId('appearance-dark').props.accessibilityState.selected).toBe(true);
+    expect(useSettings.getState().appearance).toBe('light');
+    await waitFor(() => expect(useSettings.getState().appearance).toBe('dark'));
+    await fireEvent.press(screen.getByTestId('language-hi'));
+    expect(useSettings.getState().language).toBe('en');
+    await waitFor(() => expect(useSettings.getState().language).toBe('hi'));
+    useSettings.getState().setLanguage('en');
   });
 
   it('puts language in one row and keeps the server address folded away until asked for', async () => {

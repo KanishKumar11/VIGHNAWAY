@@ -590,6 +590,7 @@ export const mr: Dictionary = {
   accountCodeSent: "आम्ही {email} वर 6 अंकी कोड पाठवला आहे. तो {minutes} मिनिटांत संपेल.",
   accountCodeSentRecent: "{email} वर थोड्या वेळापूर्वी कोड पाठवला होता. तुमचा ईमेल तपासा, किंवा {seconds} सेकंदांनी नवीन कोड मागवा.",
   accountCodeLabel: "6 अंकी कोड",
+  accountStep: "पायरी {n} / 2",
   accountCodePlaceholder: "123456",
   accountNameLabel: "तुमचे नाव (ऐच्छिक)",
   accountNameHint: "यामुळे तुमचे खाते तयार होत असेल तरच वापरले जाते.",

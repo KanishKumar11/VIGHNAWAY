@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { useEffect } from 'react';
 import type { Incident, RouteEvaluation } from '@vighnaway/contracts';
 import { WhyCard } from '@/components/WhyCard';
@@ -69,7 +69,7 @@ describe('Settings switch', () => {
     const sw = screen.getByTestId('prefer-lit');
     expect(sw.props.value).toBe(false);
     await fireEvent(sw, 'valueChange', true);
-    expect(useSettings.getState().preferLit).toBe(true);
+    await waitFor(() => expect(useSettings.getState().preferLit).toBe(true));
   });
 });
 

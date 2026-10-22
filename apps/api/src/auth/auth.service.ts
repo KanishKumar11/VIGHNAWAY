@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import {
   type AdminUser,
   type AuthSessionResponse,
@@ -43,8 +43,8 @@ export class AuthService {
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(AUTH_REPO) private readonly repo: AuthRepo,
     @Inject(MAILER) private readonly mailer: Mailer,
-    /** Overridable so tests control time. */
-    private readonly clock: () => Date = () => new Date(),
+    /** Overridable so tests control time. Not a Nest provider, so DI must skip it. */
+    @Optional() private readonly clock: () => Date = () => new Date(),
   ) {}
 
   private get a() {

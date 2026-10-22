@@ -284,6 +284,8 @@ describe('Account screen: sign in', () => {
       handler = (c) => (c.url === '/auth/otp/request' ? requestOk : sessionOk);
       await render(<AccountScreen />);
       await type('account-email', '  Asha@Example.com ');
+      await type('account-name', ' Asha ');
+      expect(screen.getByText('Step 1 of 2')).toBeTruthy();
       await fireEvent.press(screen.getByTestId('account-send'));
       expect(calls[0]).toMatchObject({ url: '/auth/otp/request', method: 'POST', body: { email: 'asha@example.com', client: 'mobile' } });
       // Code step: a one-time-code numeric field, the countdown and the name field.
@@ -293,7 +295,8 @@ describe('Account screen: sign in', () => {
       expect(code.props.keyboardType).toBe('number-pad');
       expect(code.props.maxLength).toBe(6);
       expect(screen.getByText('Resend code in 30s')).toBeTruthy();
-      expect(screen.getByText('Only used if this creates your account.')).toBeTruthy();
+      expect(screen.getByText('Step 2 of 2')).toBeTruthy();
+      expect(screen.queryByTestId('account-name')).toBeNull();
       await act(async () => {
         jest.advanceTimersByTime(3000);
       });
@@ -301,7 +304,6 @@ describe('Account screen: sign in', () => {
 
       await type('account-code', '12a3456789');
       expect(screen.getByTestId('account-code').props.value).toBe('123456');
-      await type('account-name', ' Asha ');
       await fireEvent.press(screen.getByTestId('account-verify'));
       expect(calls[1]).toMatchObject({
         url: '/auth/otp/verify',

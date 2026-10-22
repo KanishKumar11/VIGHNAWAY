@@ -249,6 +249,9 @@ export function AccountScreen() {
                 </View>
               ) : null}
 
+              <AppText variant="label" tone="muted" testID="account-step">
+                {t('accountStep', { n: step === 'email' ? 1 : 2 })}
+              </AppText>
               {step === 'email' ? (
                 <>
                   <View style={styles.field}>
@@ -276,6 +279,28 @@ export function AccountScreen() {
                       accessibilityLabel={t('accountEmailLabel')}
                       testID="account-email"
                     />
+                  </View>
+                  <View style={styles.field}>
+                    <AppText variant="label" tone="muted">
+                      {t('accountNameLabel')}
+                    </AppText>
+                    <TextInput
+                      value={name}
+                      onChangeText={setName}
+                      onFocus={() => setFocus('name')}
+                      onBlur={() => setFocus(null)}
+                      maxLength={DISPLAY_NAME_MAX}
+                      autoComplete="name"
+                      textContentType="name"
+                      returnKeyType="done"
+                      style={input('name')}
+                      accessibilityLabel={t('accountNameLabel')}
+                      accessibilityHint={t('accountNameHint')}
+                      testID="account-name"
+                    />
+                    <AppText variant="meta" tone="muted">
+                      {t('accountNameHint')}
+                    </AppText>
                   </View>
                   <Button
                     label={busy === 'send' ? t('accountSending') : wait.left > 0 ? t('accountTryAgainIn', { seconds: wait.left }) : t('accountSendCode')}
@@ -319,28 +344,6 @@ export function AccountScreen() {
                       accessibilityLabel={t('accountCodeLabel')}
                       testID="account-code"
                     />
-                  </View>
-                  <View style={styles.field}>
-                    <AppText variant="label" tone="muted">
-                      {t('accountNameLabel')}
-                    </AppText>
-                    <TextInput
-                      value={name}
-                      onChangeText={setName}
-                      onFocus={() => setFocus('name')}
-                      onBlur={() => setFocus(null)}
-                      maxLength={DISPLAY_NAME_MAX}
-                      autoComplete="name"
-                      textContentType="name"
-                      returnKeyType="done"
-                      style={input('name')}
-                      accessibilityLabel={t('accountNameLabel')}
-                      accessibilityHint={t('accountNameHint')}
-                      testID="account-name"
-                    />
-                    <AppText variant="meta" tone="muted">
-                      {t('accountNameHint')}
-                    </AppText>
                   </View>
                   <Button
                     label={busy === 'verify' ? t('accountVerifying') : t('accountVerify')}

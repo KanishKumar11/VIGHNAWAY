@@ -644,6 +644,7 @@ export const en = {
   accountCodeSent: 'We sent a 6-digit code to {email}. It expires in {minutes} minutes.',
   accountCodeSentRecent: 'A code was sent to {email} a moment ago. Check your email, or ask for a new one in {seconds} seconds.',
   accountCodeLabel: '6-digit code',
+  accountStep: 'Step {n} of 2',
   accountCodePlaceholder: '123456',
   accountNameLabel: 'Your name (optional)',
   accountNameHint: 'Only used if this creates your account.',
