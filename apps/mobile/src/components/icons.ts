@@ -71,3 +71,5 @@ export { default as ShoppingBag } from 'lucide-react-native/icons/shopping-bag';
 export { default as Landmark } from 'lucide-react-native/icons/landmark';
 export { default as School } from 'lucide-react-native/icons/school';
 export { default as SearchX } from 'lucide-react-native/icons/search-x';
+export { default as CircleAlert } from 'lucide-react-native/icons/circle-alert';
+export { default as Trash } from 'lucide-react-native/icons/trash';

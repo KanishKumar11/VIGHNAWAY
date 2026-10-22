@@ -123,7 +123,7 @@ KeyboardStickyView.
 | Not on a road (422) | "That point is not on a known road. Move the pin onto a road." A queued report the API rejects later raises a toast and an Activity entry ("Report not accepted: …"); it is never dropped silently. |
 | Rate limited (429) | "Too many reports from this device. Try again in a minute." |
 | Offline | Toast "Saved. Pending send when you are back online."; activity shows "Pending send" |
-| Discard | Alert "Discard this report?" buttons "Keep editing" / "Discard" |
+| Discard | Themed dialog "Discard this report?" ("Nothing you entered will be sent.") buttons "Keep editing" / "Discard" |
 
 ## 6. Activity
 

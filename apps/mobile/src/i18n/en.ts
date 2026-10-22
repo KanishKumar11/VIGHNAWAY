@@ -365,6 +365,7 @@ export const en = {
   discardTitle: 'Discard this report?',
   discardKeep: 'Keep editing',
   discardConfirm: 'Discard',
+  discardBody: 'Nothing you entered will be sent.',
   reportSimulatedNote: 'Reports join the simulated scenario: Andheri, Mumbai.',
   reportLiveNote: 'Reports join live data for Andheri, Mumbai, and show as Unverified at first.',
 

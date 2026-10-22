@@ -1,14 +1,14 @@
 import { formatSimClock, PROFILES, type Profile } from '@vighnaway/contracts';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, Switch, TextInput, View } from 'react-native';
+import { Platform, Pressable, Switch, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ChoiceGrid } from '@/components/ChoiceGrid';
-import { Accessibility, BellRing, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
+import { Accessibility, BellRing, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, Server, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
 import { Card, GUTTER, Row, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
@@ -22,6 +22,7 @@ import { api } from '@/lib/api';
 import { KEYS, storage } from '@/lib/storage';
 import { useCommute } from '@/features/commute/commute';
 import { useActivity } from '@/stores/activity';
+import { showDialog } from '@/stores/dialog';
 import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useIncidents } from '@/stores/incidents';
 import { placeById, useScenario } from '@/stores/scenario';
@@ -150,10 +151,15 @@ export default function SettingsScreen() {
 
   const chooseMode = (mode: DataMode) => {
     if (mode === dataMode) return;
-    Alert.alert(t('switchModeTitle'), t(mode === 'live' ? 'switchModeToLive' : 'switchModeToSimulated'), [
-      { text: t('switchServerCancel'), style: 'cancel' },
-      { text: t('switchServerConfirm'), onPress: () => switchDataMode(mode) },
-    ]);
+    showDialog({
+      title: t('switchModeTitle'),
+      message: t(mode === 'live' ? 'switchModeToLive' : 'switchModeToSimulated'),
+      icon: mode === 'live' ? Radio : FlaskConical,
+      actions: [
+        { label: t('switchServerConfirm'), kind: 'primary', onPress: () => switchDataMode(mode) },
+        { label: t('switchServerCancel'), kind: 'secondary' },
+      ],
+    });
   };
 
   const validUrl = (u: string) => /^https?:\/\/[^\s/]+/i.test(u.trim());
@@ -165,10 +171,15 @@ export default function SettingsScreen() {
       return;
     }
     if (url === apiUrl) return;
-    Alert.alert(t('switchServerTitle'), t('switchServerBody', { url }), [
-      { text: t('switchServerCancel'), style: 'cancel' },
-      { text: t('switchServerConfirm'), onPress: () => useSettings.getState().setApiUrl(url) },
-    ]);
+    showDialog({
+      title: t('switchServerTitle'),
+      message: t('switchServerBody', { url }),
+      icon: Server,
+      actions: [
+        { label: t('switchServerConfirm'), kind: 'primary', onPress: () => useSettings.getState().setApiUrl(url) },
+        { label: t('switchServerCancel'), kind: 'secondary' },
+      ],
+    });
   };
 
   const test = async () => {
@@ -189,19 +200,25 @@ export default function SettingsScreen() {
   };
 
   const clearCache = () =>
-    Alert.alert(t('clearCacheTitle'), t('clearCacheBody'), [
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('clearCacheConfirm'),
-        style: 'destructive',
-        onPress: () => {
-          useIncidents.getState().clearCache();
-          useActivity.getState().clear();
-          storage.remove(KEYS.lastPlan);
-          storage.remove(KEYS.scenario);
+    showDialog({
+      title: t('clearCacheTitle'),
+      message: t('clearCacheBody'),
+      icon: HardDrive,
+      tone: 'warn',
+      actions: [
+        {
+          label: t('clearCacheConfirm'),
+          kind: 'danger',
+          onPress: () => {
+            useIncidents.getState().clearCache();
+            useActivity.getState().clear();
+            storage.remove(KEYS.lastPlan);
+            storage.remove(KEYS.scenario);
+          },
         },
-      },
-    ]);
+        { label: t('cancel'), kind: 'secondary' },
+      ],
+    });
 
   const onVersionTap = () => {
     taps.current += 1;

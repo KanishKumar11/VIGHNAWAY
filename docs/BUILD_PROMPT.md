@@ -479,7 +479,7 @@ Most Expo apps that look broken in demos fail on these six things, almost always
 ### 8.3 Dialogs and modals
 
 - Prefer navigator modals: expo-router screens with `presentation: 'modal'` (Report a hazard) or `'transparentModal'` for custom dialogs. They inherit the safe-area, gesture and keyboard providers.
-- Simple confirmations ("Discard this report?", "Switch server?") use `Alert.alert`, not custom components.
+- Simple confirmations ("Discard this report?", "Switch server?", "Sign out?") never use `Alert.alert`, because the system popup ignores the theme. They call `showDialog` (`apps/mobile/src/stores/dialog.ts`), rendered once at the root by `DialogHost` (a themed card on the scrim, an icon tile, the title and message, full-width stacked buttons). Back and a tap on the scrim close it without choosing.
 - If React Native's `Modal` is unavoidable:
   - set `statusBarTranslucent` and `navigationBarTranslucent` to true on Android;
   - wrap its content in its own SafeAreaProvider, because the root provider's insets do not reliably reach a separate native window;

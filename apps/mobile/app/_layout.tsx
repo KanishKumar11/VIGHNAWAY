@@ -19,6 +19,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { startLiveMode } from '@/features/live/mode';
 import { startLiveSync } from '@/features/live/liveSync';
 import { useTripEngine } from '@/features/trip/useTripEngine';
+import { DialogHost } from '@/components/DialogHost';
 import { configureNotifications } from '@/lib/notifications';
 import { startAuth } from '@/stores/auth';
 import { devanagari, fontFamily, useTheme } from '@/theme';
@@ -83,6 +84,7 @@ export default function RootLayout() {
                 <Stack.Screen name="drive" options={{ animation: 'fade' }} />
                 <Stack.Screen name="map-list" options={{ animation: 'slide_from_right' }} />
               </Stack>
+              <DialogHost />
             </ThemeProvider>
           </BottomSheetModalProvider>
         </QueryClientProvider>

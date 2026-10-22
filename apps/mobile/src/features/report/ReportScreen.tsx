@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, StyleSheet, Switch, TextInput, View, type TextInputInstance } from 'react-native';
+import { Platform, StyleSheet, Switch, TextInput, View, type TextInputInstance } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from 'react-native-maps';
 import Animated, { FadeIn, FadeOut, ZoomIn, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
@@ -14,7 +14,7 @@ import type { CapturedPhoto } from '@/lib/photo';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Check, Crosshair, Eye, LocateFixed, MapPin, TriangleAlert, X } from '@/components/icons';
+import { Check, Crosshair, Eye, LocateFixed, MapPin, Trash, TriangleAlert, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Lottie } from '@/components/Lottie';
 import { MapField } from '@/components/MapField';
@@ -29,12 +29,13 @@ import { getGraph, snapToRoad } from '@/lib/engine';
 import { graphForRegion } from '@/regions';
 import { announce, haptic } from '@/lib/feedback';
 import { useReduceMotion } from '@/lib/motion';
+import { showDialog } from '@/stores/dialog';
 import { placeById, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, glow, shadow, useTheme, withAlpha, hairline, layout, motion, radius, spacing, text, useColors, type ThemeColors } from '@/theme';
+import { createStyles, fontFamily, solidTint, useTheme, hairline, layout, motion, radius, spacing, text, useColors, type ThemeColors } from '@/theme';
 import { DepthSelector } from './DepthSelector';
 import { MapPicker } from './MapPicker';
 import { PhotoField } from './PhotoField';
@@ -53,7 +54,7 @@ const TYPES: { type: ReportType; label: StringKey }[] = [
 
 /** One hue per report type, so each choice is recognisable before it is read. */
 const typeColor = (tc: ThemeColors, type: ReportType): string =>
-  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, walking_concern: tc.accent, road_clear: tc.positive })[type];
+  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, walking_concern: tc.brand, road_clear: tc.positive })[type];
 
 /** A labelled group of controls, with the field's error underneath. */
 function Step({ title, error, index, bare, children }: { title: string; error?: string; index: number; bare?: boolean; children: React.ReactNode }) {
@@ -101,6 +102,8 @@ function TypeCard({ type, label, selected, onPress }: { type: ReportType; label:
   }, [selected, reduce, pop]);
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
   const hue = typeColor(tc, type);
+  // Solid colours only: a see-through tint lets whatever sits behind the card show through as a box.
+  const cardBg = selected ? solidTint(hue, tc.panel, 0.12) : tc.panel;
   return (
     <Animated.View style={[styles.typeWrap, popStyle]}>
       <PressScale
@@ -110,9 +113,9 @@ function TypeCard({ type, label, selected, onPress }: { type: ReportType; label:
         accessibilityRole="radio"
         accessibilityLabel={label}
         accessibilityState={{ selected }}
-        style={[styles.type, selected ? [{ backgroundColor: withAlpha(hue, 0.12), borderColor: hue }, glow(hue, 0.5)] : [{ backgroundColor: tc.panel, borderColor: tc.panelLine }, shadow('sm')]]}
+        style={[styles.type, { backgroundColor: cardBg, borderColor: selected ? hue : tc.panelLine }]}
       >
-        <View style={[styles.typeDisc, { backgroundColor: withAlpha(hue, selected ? 0.22 : 0.14) }]}>
+        <View style={[styles.typeDisc, { backgroundColor: solidTint(hue, cardBg, selected ? 0.22 : 0.14) }]}>
           <IncidentGlyph type={type} size={26} color={hue} />
         </View>
         <AppText variant="label" numberOfLines={2} style={[styles.typeLabel, selected && styles.strong]}>
@@ -224,19 +227,25 @@ export function ReportScreen() {
 
   const [discarded, setDiscarded] = useState(false);
   const dirty = !discarded && status === 'editing' && (draft.type !== null || draft.note.trim().length > 0 || photo !== null);
-  // Back, swipe and Close all ask before dropping a started report (Alert, not a custom dialog).
+  // Back, swipe and Close all ask before dropping a started report (the themed dialog).
   usePreventRemove(dirty, ({ repeat }) => {
-    Alert.alert(t('discardTitle'), undefined, [
-      { text: t('discardKeep'), style: 'cancel' },
-      {
-        text: t('discardConfirm'),
-        style: 'destructive',
-        onPress: () => {
-          setDiscarded(true);
-          repeat();
+    showDialog({
+      title: t('discardTitle'),
+      message: t('discardBody'),
+      icon: Trash,
+      tone: 'danger',
+      actions: [
+        { label: t('discardKeep'), kind: 'primary' },
+        {
+          label: t('discardConfirm'),
+          kind: 'danger',
+          onPress: () => {
+            setDiscarded(true);
+            repeat();
+          },
         },
-      },
-    ]);
+      ],
+    });
   });
 
   const set = useCallback((patch: Partial<ReportDraft>) => {
@@ -600,7 +609,7 @@ const useStyles = createStyles((tc) => ({
   inputError: { borderColor: tc.danger },
   counter: { alignSelf: 'flex-end' },
   formError: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, marginBottom: spacing.sm, borderRadius: radius.card, backgroundColor: tc.dangerSurface },
-  // The action bar sits on the page with a soft blue lift above it, so the form scrolls under it.
+  // The action bar is a flat panel with a hairline top edge, so the form scrolls under it.
   footer: {
     paddingTop: spacing.sm,
     backgroundColor: tc.panel,
@@ -609,9 +618,6 @@ const useStyles = createStyles((tc) => ({
     borderWidth: hairline,
     borderBottomWidth: 0,
     borderColor: tc.panelLine,
-    ...(Platform.OS === 'web'
-      ? ({ boxShadow: `0 -10px 28px -12px ${withAlpha(tc.ink, 0.22)}` } as object)
-      : { shadowColor: tc.ink, shadowOpacity: 0.12, shadowRadius: 18, shadowOffset: { width: 0, height: -6 }, elevation: 10 }),
   },
   sentButton: {
     minHeight: layout.minTouch + spacing.xxs,

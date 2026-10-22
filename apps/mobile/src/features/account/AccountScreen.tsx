@@ -1,6 +1,6 @@
 import { DISPLAY_NAME_MAX, EmailSchema, OTP_LENGTH, isStaffRole, type MyStatsResponse } from '@vighnaway/contracts';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { ActivityIndicator, Alert, Platform, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
@@ -12,6 +12,7 @@ import { t } from '@/i18n/en';
 import { api, ApiRequestError, retryAfterSeconds } from '@/lib/api';
 import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useConnection } from '@/stores/connection';
+import { showDialog } from '@/stores/dialog';
 import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
@@ -146,17 +147,23 @@ export function AccountScreen() {
   };
 
   const confirmSignOut = () =>
-    Alert.alert(t('accountSignOutTitle'), t('accountSignOutBody'), [
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('accountSignOut'),
-        style: 'destructive',
-        onPress: () => {
-          void useAuth.getState().signOut();
-          useToast.getState().show(t('accountSignedOutToast'));
+    showDialog({
+      title: t('accountSignOutTitle'),
+      message: t('accountSignOutBody'),
+      icon: LogOut,
+      tone: 'danger',
+      actions: [
+        {
+          label: t('accountSignOut'),
+          kind: 'danger',
+          onPress: () => {
+            void useAuth.getState().signOut();
+            useToast.getState().show(t('accountSignedOutToast'));
+          },
         },
-      },
-    ]);
+        { label: t('cancel'), kind: 'secondary' },
+      ],
+    });
 
   // The thank-you count: loading, offline and error each have a line of their own.
   const [stats, setStats] = useState<Stats>({ state: 'loading' });

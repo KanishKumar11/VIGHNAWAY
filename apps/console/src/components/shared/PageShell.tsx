@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { AccountMenu, useSessionRole } from '@/components/account/AccountMenu';
-import { BrandMark } from './BrandMark';
+import { Wordmark } from './BrandMark';
 import { SimulatedBadge } from './EvidenceChips';
 import { ThemeToggle } from './ThemeToggle';
 import { ViewMenu } from './ViewMenu';
@@ -56,10 +56,7 @@ export function PageShell({
       <div className="vw-header sticky top-0 z-30">
         <header className={cn(CONTAINER, 'flex min-h-16 flex-wrap items-center gap-x-4 gap-y-1 py-2')}>
           <Link href="/console" className="flex items-center gap-3">
-            <BrandMark className="size-8" />
-            <span className="text-body font-bold tracking-wordmark text-ink-on-shell">
-              {t.app.name}
-            </span>
+            <Wordmark plate className="h-12" />
           </Link>
           <SimulatedBadge onShell />
           <nav className="order-last flex w-full gap-1 overflow-x-auto text-body md:order-none md:ml-auto md:w-auto">

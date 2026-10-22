@@ -346,6 +346,7 @@ export const hi: Dictionary = {
   discardTitle: "यह रिपोर्ट छोड़ दें?",
   discardKeep: "लिखते रहें",
   discardConfirm: "छोड़ें",
+  discardBody: "आपकी लिखी जानकारी भेजी नहीं जाएगी।",
   reportSimulatedNote: "रिपोर्टें सिम्युलेटेड परिदृश्य में जुड़ती हैं: अंधेरी, मुंबई।",
   reportLiveNote: "रिपोर्टें अंधेरी, मुंबई के लाइव डेटा में जुड़ती हैं और पहले असत्यापित दिखती हैं।",
   activityEmpty: "आपकी यात्रा में अभी तक कुछ नहीं बदला।",

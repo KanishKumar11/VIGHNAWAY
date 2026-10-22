@@ -1,3 +1,4 @@
+// SUPERSEDED for the launcher/splash PNGs: scripts/gen-app-icon.mjs now builds them from assets/images/appicon.png. Running this file would overwrite them with the old mark.
 // Generates the VIGHNAWAY mark (a route line bending around an obstacle, signal lime on monsoon ink) as SVG
 // sources in assets/brand/ and exports the PNGs Expo needs into assets/images/.
 // Run: node scripts/gen-brand.mjs   (uses sharp, already installed in the workspace)
