@@ -1,0 +1,182 @@
+{
+ "id": "andheri-monsoon",
+ "name": "Andheri monsoon evening (simulated)",
+ "area": "Andheri, Mumbai",
+ "mode": "simulated",
+ "simulated": true,
+ "timezone": "Asia/Kolkata",
+ "clockStartsAt": "2026-07-14T14:05:00+05:30",
+ "simSecondsPerRealSecond": 10,
+ "graphVersion": "fixture-1f7635ec4925",
+ "alerts": [
+  {
+   "id": "alert-rain-1",
+   "kind": "rain",
+   "label": "Heavy rain alert for Mumbai suburbs (simulated)",
+   "source": "Simulated alert, not from IMD",
+   "simulated": true,
+   "activeFromS": 0,
+   "activeUntilS": null
+  }
+ ],
+ "hasAlertInformation": true,
+ "places": [
+  {
+   "id": "origin-marol",
+   "name": "Marol Naka, Andheri East",
+   "kind": "origin",
+   "point": {
+    "lat": 19.112106,
+    "lng": 72.881128
+   },
+   "nodeId": "fx018",
+   "side": "east",
+   "address": "Andheri-Kurla Road"
+  },
+  {
+   "id": "hosp-kokilaben",
+   "name": "Kokilaben Dhirubhai Ambani Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.132952,
+    "lng": 72.824274
+   },
+   "nodeId": "fx017",
+   "side": "west",
+   "address": "Four Bungalows, Andheri West"
+  },
+  {
+   "id": "hosp-hbt",
+   "name": "HBT Trauma Care Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.14091,
+    "lng": 72.860212
+   },
+   "nodeId": "fx016",
+   "side": "east",
+   "address": "Jogeshwari-Vikhroli Link Road, Jogeshwari East"
+  },
+  {
+   "id": "hosp-holy-spirit",
+   "name": "Holy Spirit Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.131595,
+    "lng": 72.864965
+   },
+   "nodeId": "fx021",
+   "side": "east",
+   "address": "Mahakali Caves Road, Andheri East"
+  }
+ ],
+ "demoTrip": {
+  "profile": "car",
+  "originId": "origin-marol",
+  "destinationId": "hosp-kokilaben",
+  "alternativeDestinationIds": [
+   "hosp-hbt",
+   "hosp-holy-spirit"
+  ],
+  "vehicleSpeedFactor": 1,
+  "startTripAtS": 0
+ },
+ "events": [
+  {
+   "id": "ev01-ankle",
+   "atS": 60,
+   "label": "Ankle-deep water reported at Andheri Subway (simulated device A)",
+   "kind": "report",
+   "report": {
+    "type": "flood",
+    "depth": "ankle",
+    "point": {
+     "lat": 19.116357,
+     "lng": 72.846569
+    },
+    "observedPersonally": true,
+    "description": "Water collecting at the subway entrance",
+    "deviceId": "sim-device-a"
+   }
+  },
+  {
+   "id": "ev02-knee",
+   "atS": 180,
+   "label": "Knee-deep water reported at Andheri Subway by a second device (simulated device B)",
+   "kind": "report",
+   "report": {
+    "type": "flood",
+    "depth": "knee",
+    "point": {
+     "lat": 19.116357,
+     "lng": 72.846569
+    },
+    "observedPersonally": true,
+    "description": "Water up to the knee, cars stalling",
+    "deviceId": "sim-device-b"
+   }
+  },
+  {
+   "id": "ev03-verify",
+   "atS": 270,
+   "label": "Simulated operator verifies the Andheri Subway flooding",
+   "kind": "verify",
+   "targetEventId": "ev02-knee"
+  },
+  {
+   "id": "ev04-congestion-a",
+   "atS": 360,
+   "label": "Heavy congestion reported on Old Nagardas Road towards Gokhale Bridge (simulated device C)",
+   "kind": "report",
+   "report": {
+    "type": "congestion",
+    "congestion": "heavy",
+    "point": {
+     "lat": 19.1254,
+     "lng": 72.854127
+    },
+    "observedPersonally": true,
+    "deviceId": "sim-device-c"
+   }
+  },
+  {
+   "id": "ev05-congestion-b",
+   "atS": 370,
+   "label": "Second device reports the same congestion (simulated device D)",
+   "kind": "report",
+   "report": {
+    "type": "congestion",
+    "congestion": "heavy",
+    "point": {
+     "lat": 19.1254,
+     "lng": 72.854127
+    },
+    "observedPersonally": true,
+    "deviceId": "sim-device-d"
+   }
+  },
+  {
+   "id": "ev06-closure",
+   "atS": 480,
+   "label": "Road into Kokilaben Hospital reported closed (simulated device E)",
+   "kind": "report",
+   "report": {
+    "type": "closure",
+    "point": {
+     "lat": 19.132138,
+     "lng": 72.825035
+    },
+    "observedPersonally": true,
+    "description": "Barricades across the hospital road",
+    "deviceId": "sim-device-e"
+   }
+  },
+  {
+   "id": "ev07-verify-closure",
+   "atS": 490,
+   "label": "Simulated operator verifies the hospital road closure",
+   "kind": "verify",
+   "targetEventId": "ev06-closure"
+  }
+ ]
+}

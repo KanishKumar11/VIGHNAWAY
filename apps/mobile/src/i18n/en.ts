@@ -328,6 +328,8 @@ export const en = {
   shareEvaluated: 'Evaluated at {clock} (simulation clock)',
   shareEvaluatedLive: 'Evaluated at {clock} (IST)',
   shareFooter: 'Conditions are simulated for a demo. Not real road information.',
+  shareReceipt: 'Decision receipt: {hash}',
+  shareReceiptLink: 'Verify it: {url}',
   shareHeaderLive: 'VIGHNAWAY route (Live data: Andheri, Mumbai)',
   shareFooterLive: 'Live data from user reports, operators and live traffic. Conditions change: check before you travel.',
   shareTitle: 'Share route',

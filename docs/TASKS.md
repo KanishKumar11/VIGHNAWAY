@@ -55,11 +55,11 @@ release.
 
 # Roadmap tasks (docs/ROADMAP.md)
 
-> **▶ Continue from here:** **P0-2.b**, in progress. The resume steps and the hash baseline are in
-> docs/ROADMAP_STATUS.md under "Paused work".
+> **▶ Continue from here:** **P1-2.b** (console /verify). P0-2 and P1-1 are done apart from screenshots and native-speaker
+> review. **P0-4.d (re-tune on the real graph) is the demo risk**: see docs/ROADMAP_STATUS.md "Real graph landed".
 
 Every unfinished roadmap item, split into small tasks that can each be verified on their own. The roadmap IDs
-(P0-1 … P3-7) are stable. A task ID is the roadmap ID plus a letter. The order and the reasons for it are in
+(P0-1 … P3-8) are stable. A task ID is the roadmap ID plus a letter. The order and the reasons for it are in
 docs/IMPLEMENTATION_PLAN.md, and the dependencies are in docs/DEPENDENCY_MAP.md.
 
 **Status values:**
@@ -130,7 +130,7 @@ Priority P0 · Status **needs decision** · Effort 1 h + dev-client rebuild · D
 ## P0-2 Localise the detailed engine sentences (decision D1)
 
 ### P0-2.a Contracts: structured text type
-Priority P0 · Status in progress (schema added; CONTRACTS.md pending) · Effort 1 h · Depends P0-0
+Priority P0 · Status done (CONTRACTS.md "Structured engine text") · Effort 1 h · Depends P0-0
 - **Files:** packages/contracts/src/evaluation.ts, docs/CONTRACTS.md
 - **Behaviour:**
   - `TextSchema = { key: string, params: Record<string, string | number | Text> }`.
@@ -143,7 +143,7 @@ Priority P0 · Status in progress (schema added; CONTRACTS.md pending) · Effort
 - **Acceptance:** Both clients typecheck unchanged; CONTRACTS.md documents the fields.
 
 ### P0-2.b Engine: one catalog, structured output, English unchanged
-Priority P0 · Status in progress (catalogs written; renderer and wiring pending, see ROADMAP_STATUS) · Effort 3–4 h · Depends P0-2.a
+Priority P0 · Status done (engine 72/72; parity and replay hashes identical to the baseline) · Effort 3–4 h · Depends P0-2.a
 - **Files:**
   - packages/engine/src/text/{catalog.en,catalog.hi,catalog.mr,render}.ts
   - packages/engine/src/explain.ts, plan.ts, present.ts, rules.ts
@@ -163,7 +163,7 @@ Priority P0 · Status in progress (catalogs written; renderer and wiring pending
   plan hashes are unchanged.
 
 ### P0-2.c Console renders engine text through the catalog
-Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
+Priority P0 · Status done (vitest 91/91; Playwright screenshots still to capture) · Effort 1–2 h · Depends P0-2.b
 - **Files:** apps/console/src/components/console/DemoTripPanel.tsx, RulesContent.tsx, Timeline, i18n
 - **Automated tests:** vitest renders the decision panel in hi and mr with no English engine sentence left; a snapshot of
   the key path.
@@ -172,7 +172,7 @@ Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
   shown in that language.
 
 ### P0-2.d Phone renders engine text through the catalog
-Priority P0 · Status todo · Effort 1–2 h · Depends P0-2.b
+Priority P0 · Status done (jest: new test/engineText.test.tsx; preview screenshots still to capture) · Effort 1–2 h · Depends P0-2.b
 - **Files:** apps/mobile/src/i18n/engineText.ts (simplify to `renderText`), WhyCard, How it decides
 - **Automated tests:** jest in hi and mr for WhyCard, the banner label and How it decides.
 - **Manual tests:** preview screenshots `13-navigate-hindi`, plus a Why card in Marathi.
@@ -212,7 +212,7 @@ Priority P0 · Status todo · Effort 1.5 h · Depends —
 | P0-4.a | Run `python3 scripts/extract_graph.py` with Overpass access | blocked (network) |
 | P0-4.b | Review `graph.overlay.html` at the three crossings; check one-ways, bridges, tunnels and access tags | blocked (P0-4.a) |
 | P0-4.c | Fill `flood-prone.json` `osmWayIds` from documented sources; mark the assumptions | blocked |
-| P0-4.d | Re-tune `scenario.json` (`pnpm --filter @vighnaway/scenario-data tune`); regenerate the seeds; record the new route order | blocked |
+| P0-4.d | **Demo risk, now unblocked:** the real graph is merged (Data and sim); the scenario still names Andheri Subway / Gokhale roads that do not exist in it, so the scenario-data, console and phone demo tests fail. Re-tune `scenario.json` (`pnpm --filter @vighnaway/scenario-data tune`); regenerate the seeds; record the new route order | blocked |
 
 ## P0-5 Rehearsals and fallback
 
@@ -265,7 +265,7 @@ Priority P0 (optional) · Status **blocked**: key and network · Effort 1 h
 ## P1-1 "Why not that route?" counterfactuals (decision D3)
 
 ### P1-1.a Engine: counterfactual per shown route
-Priority P1 · Status todo · Effort 3 h · Depends P0-2.b
+Priority P1 · Status done (engine tests incl. property test; perf bench unchanged) · Effort 3 h · Depends P0-2.b
 - **Files:** packages/engine/src/counterfactual.ts, plan.ts, rank.ts; packages/contracts/src/evaluation.ts
 - **Behaviour:** For every non-recommended route, `counterfactual` is one of:
   - **`blocked`:** lists each hard block. A faster ETA can never make it recommended while any block stands. If clearing
@@ -285,14 +285,14 @@ Priority P1 · Status todo · Effort 3 h · Depends P0-2.b
 - **Acceptance:** All tests pass; planTrip on the 3,900-node bench is still under 100 ms in Node.
 
 ### P1-1.b Console: "Why not this route?" in the decision panel and on map hover
-Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
+Priority P1 · Status in progress (decision panel and list view show it; vitest for each kind and screenshots to add) · Effort 2 h · Depends P1-1.a
 - **Automated tests:** vitest for each counterfactual kind.
 - **Manual tests:** Playwright screenshots of the route comparison, light and dark, and in Hindi.
 - **Acceptance:** Each alternative shows its counterfactual sentence. A blocked route never shows "would be faster" as a
   reason to take it.
 
 ### P1-1.c Phone: counterfactual line in the route comparison
-Priority P1 · Status todo · Effort 1.5 h · Depends P1-1.a
+Priority P1 · Status in progress (route comparison row shows it; jest and screenshot to add) · Effort 1.5 h · Depends P1-1.a
 - **Automated tests:** jest. **Manual tests:** preview `05-navigate-half` recaptured.
 - **Acceptance:** As for P1-1.b.
 
@@ -439,7 +439,7 @@ Priority P1 · Status todo · Effort 1 h · Depends P1-4.b
 ## P1-2 Verifiable decision receipt (decision D5)
 
 ### P1-2.a Engine: receipt builder
-Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
+Priority P1 · Status done (engine test/receipt.test.ts, 7 tests) · Effort 2 h · Depends P1-1.a
 - **Behaviour:** `buildReceipt(input, plan)` returns:
   - **Versions:** `graphVersion`, `engineVersion`, `rulesHash` (a hash of SCORING_RULES), `profile`.
   - **Trip inputs:** origin, destination, `evaluatedAtS`.
@@ -453,7 +453,7 @@ Priority P1 · Status todo · Effort 2 h · Depends P1-1.a
   - a change to any field changes it.
 
 ### P1-2.b Console `/verify`
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-2.a
+Priority P1 · Status done (vitest 7/7 incl. tampered token; Playwright check of a step-3 receipt still to do) · Effort 2–3 h · Depends P1-2.a
 - **Behaviour:**
   1. Fetches `/history`.
   2. Rebuilds incidents at the seq (`incidentsAtSeq`).
@@ -466,7 +466,7 @@ Priority P1 · Status todo · Effort 2–3 h · Depends P1-2.a
 - **Manual tests:** Playwright verification of a step-3 receipt.
 
 ### P1-2.c Share receipt (phone and console)
-Priority P1 · Status todo · Effort 1.5 h · Depends P1-2.b
+Priority P1 · Status done (console: Create receipt card with QR, copy and open; phone: share text carries the receipt hash and, with EXPO_PUBLIC_CONSOLE_URL, a verify link; only while planning, not while following a route; jest 3 tests) · Effort 1.5 h · Depends P1-2.b
 - **Behaviour:** A QR code and a link; the shared text includes "Simulated scenario" when `simulated`.
 - **Automated tests:** jest for the share text.
 
@@ -529,6 +529,99 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P2-7.a | Saved trip and leave time (MMKV). A background re-plan uses existing capabilities first; `expo-background-task` is a native install | jest for "notify only when the recommendation differs from the saved usual route" | 3 h |
 | P2-7.b | Device verification of background execution and notification permission | **blocked** (P0-3) | 1 h |
 
+## P2-8 Walking-concern reports (poorly lit, isolated)
+
+Display only: no task here changes routing, scoring or the parity hash. Decisions to confirm before P2-8.a (defaults
+shown): **W1** one incident type `walking_concern` with a `concern` field (`poorly_lit` | `isolated`), not two types;
+**W2** reuse the existing age and stale rules, and record in limitations.md that a persistent condition such as a dead
+street light is understated after 3 h.
+
+### P2-8.a Contracts and API: new type, no note, stricter limit
+Priority P2 · Status todo · Effort 2–3 h · Depends — (one contracts change at a time)
+- **Behaviour:**
+  - `INCIDENT_TYPES` gains `walking_concern`; `Incident` gains `concern: 'poorly_lit' | 'isolated' | null`;
+    labels "Poorly lit" and "Isolated stretch".
+  - `ReportInput` for this type rejects `description` and `severity`, so there is no free text.
+  - Per-device limit stricter than other types (default 3 per hour, 409 on the fourth).
+  - It enters through `ReportsService`, so snapping, corroboration by device and seq are unchanged. Only an operator sets
+    Verified.
+- **Automated tests:**
+  - schema accepts a valid report and rejects a note;
+  - two devices make it Corroborated, one device twice does not;
+  - the limit returns 409;
+  - the TomTom mapper is unaffected.
+- **Docs:** CONTRACTS.md, DATA_MODEL.md.
+
+### P2-8.b Engine keeps the new type out of routing
+Priority P2 · Status todo · Effort 1 h · Depends P2-8.a
+- **Behaviour:** Exhaustive switches handle `walking_concern` as "no routing effect"; explanations never list it as a
+  hazard on a route.
+- **Automated tests:** a plan with a Verified walking concern on the best route is identical to the plan without it;
+  parity and all replay hashes unchanged.
+- **Acceptance:** `pnpm --filter @vighnaway/engine test` passes with the hashes in ROADMAP_STATUS.md unchanged.
+
+### P2-8.c Console layer and queue
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+- **Behaviour:** A "Walking concerns" toggle in the view menu; markers differ by shape as well as colour; the queue lists
+  them with source, status and age; the operator uses the existing Verify, Resolve and Dismiss actions.
+- **Automated tests:** vitest for the filter, labels and the forbidden-words check (en, hi, mr).
+- **Manual tests:** screenshots in light and dark.
+- **Accessibility:** the CVD test still passes.
+- **Acceptance:** no label, legend or tooltip uses a safety word or shades an area.
+
+### P2-8.d Phone report sheet and map labels
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+- **Behaviour:** A "Walking" group in the report sheet with the two options and no note field; a map label reads
+  "Reported poorly lit · 2 reports · Unverified". Offline reports are saved as pending like any other.
+- **Automated tests:** jest for the sheet, the labels, the forbidden-words check and the offline queue.
+- **Device tests:** blocked (P0-3).
+- **Acceptance:** the sheet follows BUILD_PROMPT.md section 8.
+
+## P2-9 Prefer well-lit roads (walking preference)
+
+Decisions to confirm before P2-9.b (defaults shown): **W3** the incident penalty is 300 s × verification weight × age
+factor; **W4** a `lit=no` way costs +25% of its travel time in the ranking; both are tuned by replay on the real graph
+and recorded in scoring.md.
+
+### P2-9.a Data: keep the `lit` tag and report its coverage
+Priority P2 · Status todo · Effort 1–1.5 h · Depends — (Data and sim owns `scripts/` and the graph)
+- **Behaviour:** The extract keeps `lit` as `true | false | null` (unknown) on each edge; a script prints the share of
+  walkable edges with each value for the Andheri graph.
+- **Automated tests:** schema; a fixture with all three values.
+- **Acceptance:** the coverage numbers are written to docs/limitations.md. If `lit` is known on only a small share of
+  edges, the feature ships with that stated plainly, or is cut.
+- **Docs:** DATA_MODEL.md. The graph version changes, so the hash baselines are recomputed.
+
+### P2-9.b Engine: `preferLit` plan input and the two rules
+Priority P2 · Status todo · Effort 2–3 h · Depends P2-9.a, P2-8.a; not parallel with P2-3.b (both extend the plan input)
+- **Behaviour:**
+  - `preferLit?: boolean`, honoured for the foot profile only, default off.
+  - Ranking only: `lit === false` edges add 25% of travel time; open `walking_concern` incidents on the route add the
+    penalty from W3. The displayed ETA and every hard block are unchanged.
+  - Unknown `lit` edges are counted; confidence is Medium with "Lighting data missing on N segments".
+  - New sentences go through the structured-text catalog (en, hi, mr).
+- **Automated tests:**
+  - `lit=no`, unknown and `lit=yes` edges;
+  - the incident penalty at each status and at the age boundaries;
+  - a property test that the preference never makes a viable route non-viable;
+  - parity cases with the toggle on;
+  - with it off, every existing hash is identical.
+- **Docs:** scoring.md (regenerated with `pnpm docs:scoring`, flagged in the final report), CONTRACTS.md.
+
+### P2-9.c Receipt records the preference
+Priority P2 · Status todo · Effort 0.5 h · Depends P2-9.b, P1-2.a
+- **Behaviour:** `inputsHash` covers `preferLit`; `/verify` shows it among the inputs.
+- **Automated tests:** a receipt with the toggle on does not verify against inputs with it off.
+
+### P2-9.d Phone toggle and route card, console decision-panel line
+Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-9.b
+- **Behaviour:** A toggle on the walking profile, "Prefer well-lit roads"; the route card says "Preference: well-lit
+  roads" and counts segments with missing lighting data; the console decision panel shows the same line.
+- **Automated tests:** jest and vitest; the forbidden-words check on every new string and on shared route text.
+- **Manual tests:** screenshots, both themes.
+- **Device tests:** blocked (P0-3).
+- **Acceptance:** with the toggle off the screens are identical to today's.
+
 ## P3
 
 | Task | Behaviour | Status | Effort |
@@ -541,3 +634,5 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | P3-5.a | Device reputation weight: an optional heuristic; never sets Verified; manipulation tests | todo (after P3-4) | 3–4 h |
 | P3-6.a | SMS gateway for outbound route text | blocked (provider credentials) | 3 h |
 | P3-7.a | Public read-only incidents page: status, source, age, provenance; no device ids or notes metadata | todo | 2 h |
+| P3-8.a | Privacy decision for trip sharing: consent screen, expiry (default 8 h), one-tap revoke, what is stored (latest position only, no history) | needs decision | 1 h |
+| P3-8.b | API token link and a read-only follow page showing position and destination name only, never the route; in the demo the simulated vehicle, labelled Simulated | todo (after P3-8.a); device half blocked (P0-3) | 5 h |

@@ -29,6 +29,8 @@ flowchart TD
   P12[P1-2 decision receipt] --> P21[P2-1 after-action report]
   P26[P2-6 operator closures] --> P21
   P23[P2-3 step-free profile]
+  P28[P2-8 walking-concern reports] --> P29[P2-9 prefer well-lit roads]
+  P23 -.-> P29
   P22[P2-2 offline QR relay]
   P25[P2-5 rain alerts] -.-> FCOV
   P24[P2-4 hospital spreading]
@@ -70,6 +72,8 @@ flowchart TD
 | F-COV and P1-4 or P1-5 | Contract, API and engine input change underneath them |
 | P1-1 and P1-2 | The receipt hashes the plan output, including the new counterfactual field |
 | P2-3 and P2-4 | Both extend `Profile` or `planTrip` inputs and the parity cases |
+| P2-9 and P2-3 or P2-4 | P2-9 adds a plan input (`preferLit`) and parity cases in the same places |
+| P2-8 and any other contracts change | P2-8 adds an incident type and a field to `Incident` |
 | Anything that touches `packages/contracts` | One contracts change at a time; CONTRACTS.md updated in the same commit |
 
 ## Safe in parallel

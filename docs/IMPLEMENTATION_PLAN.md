@@ -118,6 +118,8 @@ P1-2 decision receipt
 P2-6 operator-drawn closures
 P2-1 after-action report
 P2-3 step-free profile
+P2-8 walking-concern reports                ← display only; contracts change, one at a time
+P2-9 prefer well-lit roads                  ← after P2-3 (both extend the plan input) and P2-8
 P2-2 offline QR relay
 P2-5 rain alerts (CAP adapter, fixture-tested)
 P2-4 hospital load spreading
@@ -154,11 +156,13 @@ Defer in this order if time runs short:
 1. P3 (all);
 2. P2-7 (commute watch);
 3. P2-4 (hospital load spreading);
-4. P2-5 (rain alerts);
-5. P2-2 (offline QR relay);
-6. P2-3 (step-free profile);
-7. P2-1 (after-action report);
-8. P2-6 (operator-drawn closures).
+4. P2-9 (prefer well-lit roads);
+5. P2-8 (walking-concern reports);
+6. P2-5 (rain alerts);
+7. P2-2 (offline QR relay);
+8. P2-3 (step-free profile);
+9. P2-1 (after-action report);
+10. P2-6 (operator-drawn closures).
 
 Protect these:
 - P0-2, P1-1, P1-3, P1-5 and the rehearsed demo;

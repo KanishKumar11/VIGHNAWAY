@@ -296,6 +296,8 @@ export const mr: Dictionary = {
   shareEvaluated: "{clock} ला तपासले (सिम्युलेशन घड्याळ)",
   shareEvaluatedLive: "{clock} ला तपासले (IST)",
   shareFooter: "परिस्थिती डेमोसाठी सिम्युलेटेड आहे. ही खऱ्या रस्त्यांची माहिती नाही.",
+  shareReceipt: "निर्णय पावती: {hash}",
+  shareReceiptLink: "पडताळा: {url}",
   shareHeaderLive: "VIGHNAWAY मार्ग (लाइव्ह डेटा: अंधेरी, मुंबई)",
   shareFooterLive: "वापरकर्त्यांच्या नोंदी, ऑपरेटर आणि लाइव्ह वाहतुकीचा लाइव्ह डेटा. परिस्थिती बदलते: निघण्यापूर्वी तपासा.",
   shareTitle: "मार्ग शेअर करा",

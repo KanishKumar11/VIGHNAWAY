@@ -13,6 +13,7 @@ const NAV = () =>
   [
     ['/console', t.nav.console],
     ['/rules', t.nav.rules],
+    ['/verify', t.nav.verify],
     ['/debug', t.nav.debug],
     ['/report', t.nav.report],
   ] as const;

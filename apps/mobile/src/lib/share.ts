@@ -6,6 +6,7 @@ import { t } from '@/i18n/en';
 import { evidenceText, routeLabel } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { roadSequence } from './engine';
+import type { PhoneReceipt } from './receipt';
 
 export interface ShareInput {
   plan: PlanResult;
@@ -18,6 +19,8 @@ export interface ShareInput {
   etaS: number;
   /** Live data mode: "Live data" instead of the simulated-scenario label. */
   live?: boolean;
+  /** Decision receipt for this route, when one can be made (not while following a route). */
+  receipt?: PhoneReceipt | null;
 }
 
 /** Hazards on the other routes that the recommended route does not pass. */
@@ -49,6 +52,9 @@ export function buildShareText(input: ShareInput): string {
     `${t('shareTurns')} ${roads.join(' > ')}`,
     avoided.length ? `${t('shareAvoids')} ${avoided.join('; ')}` : t('shareAvoidsNone'),
     t(input.live ? 'shareEvaluatedLive' : 'shareEvaluated', { clock: formatSimClock(input.clockStartsAt, plan.evaluatedAtS) }),
+    ...(input.receipt
+      ? [t('shareReceipt', { hash: input.receipt.hash }), ...(input.receipt.url ? [t('shareReceiptLink', { url: input.receipt.url })] : [])]
+      : []),
     t(input.live ? 'shareFooterLive' : 'shareFooter'),
   ];
   return lines.join('\n');

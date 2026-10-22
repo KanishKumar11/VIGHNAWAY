@@ -17,6 +17,7 @@ import { incidentList } from '@/lib/sync';
 import { useLiveStore } from '@/stores/live';
 import { type RouteMotion } from '@/hooks/useRouteChangeMotion';
 import { tripEnv } from '@/hooks/useDemoTrip';
+import { ReceiptCard } from '@/components/console/ReceiptCard';
 import { ConfidenceMeter } from '@/components/shared/ConfidenceMeter';
 import { EvidenceChips } from '@/components/shared/EvidenceChips';
 import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
@@ -504,6 +505,7 @@ export function DemoTripPanel({
             {trip.plan.noViableRoute && !rec && <NoViable trip={trip} destName={dest?.name} />}
             {rec && <Decision route={rec} trip={trip} motion={m} incidents={incidents} nowS={nowS} destName={dest?.name} />}
             <Comparison rec={compare.rec} others={compare.others} />
+            {rec && !given && <ReceiptCard destinationId={trip.destinationId} />}
           </>
         )}
       </div>
