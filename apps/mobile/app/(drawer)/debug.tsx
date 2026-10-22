@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScreenHeader } from '@/components/ui';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
@@ -74,6 +75,7 @@ export default function DebugScreen() {
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.root}>
+      <ScreenHeader title={t('drawerDebug')} />
       <ThemedStatusBar />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.card}>

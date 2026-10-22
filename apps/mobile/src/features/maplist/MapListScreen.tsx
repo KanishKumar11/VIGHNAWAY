@@ -5,13 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { EvidenceChips, ModeBadge } from '@/components/EvidenceChips';
-import { ArrowLeft } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
-import { PressScale } from '@/components/motion';
-import { RouteStrip } from '@/components/RouteStrip';
+import { GUTTER, ScreenHeader, Section } from '@/components/ui';
 import { StatusRing } from '@/components/StatusRing';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
-import { EmptyEvidence, RouteRow, SectionLabel } from '@/features/navigate/SheetParts';
+import { EmptyEvidence, RouteRow } from '@/features/navigate/SheetParts';
 import { t } from '@/i18n/en';
 import { hazardWhere, incidentA11y } from '@/i18n/engineText';
 import { etaDeltaBars } from '@/lib/geometry';
@@ -19,7 +17,7 @@ import { useIncidents } from '@/stores/incidents';
 import { placeById, useScenario } from '@/stores/scenario';
 import { useSim } from '@/stores/sim';
 import { useTrip } from '@/stores/trip';
-import { createStyles, fontFamily, hairline, layout, radius, spacing, useColors } from '@/theme';
+import { createStyles, fontFamily, hairline, spacing, useColors } from '@/theme';
 
 /**
  * The map as text (DESIGN_VISION 5.4, appendix A): every route the engine evaluated, with its
@@ -51,40 +49,31 @@ export function MapListScreen() {
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]} testID="map-list">
+    <View style={styles.root} testID="map-list">
       <ThemedStatusBar />
-      <View style={[styles.header, { paddingLeft: insets.left + spacing.xs, paddingRight: insets.right + spacing.md }]}>
-        <PressScale onPress={close} accessibilityRole="button" accessibilityLabel={t('listClose')} haptic="selection" style={styles.back} testID="list-close">
-          <ArrowLeft size={22} color={tc.ink} />
-        </PressScale>
-        <View style={styles.flex}>
-          <AppText variant="title" accessibilityRole="header">
-            {t('listTitle')}
-          </AppText>
-          {dest ? (
-            <AppText variant="meta" tone="muted" numberOfLines={1}>
-              {t('shareTo', { place: dest.name })}
-            </AppText>
-          ) : null}
+      <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
+        <View style={styles.headerBleed}>
+          <ScreenHeader
+            title={t('listTitle')}
+            subtitle={dest ? t('shareTo', { place: dest.name }) : null}
+            leading="back"
+            onLeading={close}
+            leadingTestID="list-close"
+            trailing={<ModeBadge onShell={false} />}
+          />
         </View>
-        <ModeBadge onShell={false} />
-      </View>
-      <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]}>
-        <View style={styles.section}>
-          <SectionLabel count={plan?.routes.length ?? 0}>{t('listRoutes')}</SectionLabel>
+        <Section title={t('listRoutes')} count={plan?.routes.length ?? 0} bare>
           {plan?.routes.length ? (
-            plan.routes.map((r, i) => (
-              <View key={r.routeId}>
-                <RouteRow route={r} bar={bars.find((b) => b.routeId === r.routeId)} index={i} />
-                <RouteStrip route={r} />
-              </View>
-            ))
+            <View style={styles.cards}>
+              {plan.routes.map((r, i) => (
+                <RouteRow key={r.routeId} route={r} bar={bars.find((b) => b.routeId === r.routeId)} index={i} strip />
+              ))}
+            </View>
           ) : (
             <AppText tone="muted">{plan?.noViableRoute ? t('noViableTitle') : t('driveNoTrip')}</AppText>
           )}
-        </View>
-        <View style={styles.section}>
-          <SectionLabel count={incidents.length}>{t('listIncidents')}</SectionLabel>
+        </Section>
+        <Section title={t('listIncidents')} count={incidents.length} bare={!incidents.length}>
           {incidents.length ? (
             incidents.map((inc, i) => (
               <View key={inc.id} style={[styles.incident, i > 0 && styles.divider]} accessible accessibilityLabel={incidentA11y(inc, nowS)}>
@@ -103,21 +92,20 @@ export function MapListScreen() {
           ) : (
             <EmptyEvidence />
           )}
-        </View>
+        </Section>
       </ScrollView>
     </View>
   );
 }
 
 const useStyles = createStyles((tc) => ({
-  root: { flex: 1, backgroundColor: tc.panel },
+  root: { flex: 1, backgroundColor: tc.shell },
   flex: { flex: 1 },
   strong: { fontFamily: fontFamily.semibold },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.xs, borderBottomWidth: hairline, borderBottomColor: tc.panelHairline },
-  back: { width: layout.minTouch, height: layout.minTouch, alignItems: 'center', justifyContent: 'center', borderRadius: radius.chip },
-  body: { gap: spacing.xl, paddingTop: spacing.lg },
-  section: { gap: spacing.xs },
-  incident: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', paddingVertical: spacing.sm },
+  headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
+  body: { gap: spacing.lg },
+  cards: { gap: spacing.sm },
+  incident: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: GUTTER },
   divider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   glyph: { width: spacing.xl + spacing.sm, height: spacing.xl + spacing.sm, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },

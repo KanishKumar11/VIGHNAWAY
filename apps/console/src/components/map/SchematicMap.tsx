@@ -16,6 +16,7 @@ import { themeVar } from '@/lib/theme';
 import { useElementSize } from '@/hooks/useElementSize';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { IncidentMarker } from '@/components/shared/IncidentMarker';
+import { markerDensity } from '@/lib/incidents';
 import { BlockedCross, HospitalMarker, OriginMarker, VehicleMarker } from './PlaceMarkers';
 import { MapLegend } from './MapLegend';
 
@@ -451,7 +452,7 @@ export function SchematicMap({
           ))}
           {incidents.map((inc) => (
             <At key={inc.id} proj={proj} point={inc.point} anchor="marker" z={selectedId === inc.id ? 9 : 8}>
-              <IncidentMarker incident={inc} nowS={nowS} pulseKey={pulses[inc.id] ?? 0} selected={selectedId === inc.id} onSelect={onSelectIncident} />
+              <IncidentMarker incident={inc} nowS={nowS} pulseKey={pulses[inc.id] ?? 0} selected={selectedId === inc.id} onSelect={onSelectIncident} density={markerDensity(incidents.length)} />
             </At>
           ))}
           {scene.vehicle && (

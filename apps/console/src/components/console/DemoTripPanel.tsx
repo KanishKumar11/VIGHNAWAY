@@ -32,11 +32,7 @@ export { bannerBody };
 
 /** "What to do now": one plain sentence, rendered from the engine's structured text in the active language. */
 export function whatToDoNow(plan: PlanResult, destName: string | undefined): string {
-  if (currentLang() === 'en') return nextAction(plan, destName);
-  const rec = recommendedRoute(plan);
-  if (plan.isReversal) return t.decision.reversal;
-  if (!rec) return plan.reachable ? t.decision.headTo(plan.reachable.placeName, t.time.duration(plan.reachable.etaS)) : t.decision.stay;
-  return t.decision.take(rec.name.replace(/^Via /, ''), destName ?? '', t.time.duration(rec.etaS + plan.leadInS));
+  return renderText(nextActionText(plan, destName), currentLang());
 }
 
 /** Hero ETA on the navy hero card: large Inter numerals (tabular) that roll on change; units quieter. */
@@ -198,8 +194,7 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
   const doNow = whatToDoNow(flashing ? prev.current.plan : trip.plan, destName);
 
   return (
-    <article aria-label={`${t.decision.label}: ${routeLabel(shown)}`} className="px-6 pt-5 pb-6">
-    <article aria-label={`${t.decision.label}: ${shown.name}`} className="px-5 pt-5 pb-6">
+    <article aria-label={`${t.decision.label}: ${routeLabel(shown)}`} className="px-5 pt-5 pb-6">
       {reversal && (
         <p role="alert" className="mb-4 flex items-center gap-2.5 rounded-button border border-danger bg-danger-surface px-3.5 py-2.5 text-body font-semibold text-danger-ink">
           <Undo2 aria-hidden className="size-5 shrink-0" />

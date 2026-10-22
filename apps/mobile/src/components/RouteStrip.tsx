@@ -19,7 +19,8 @@ const HEIGHT = 24;
 function crossingSummary(route: RouteEvaluation): { kind: CrossingKind; label: string }[] {
   const counts = new Map<CrossingKind, number>();
   for (const c of route.crossings) counts.set(c.kind, (counts.get(c.kind) ?? 0) + 1);
-  return [...counts].map(([kind, n]) => ({ kind, label: n > 1 ? `${crossingWord(kind)} ×${n}` : crossingWord(kind) }));
+  const cap = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
+  return [...counts].map(([kind, n]) => ({ kind, label: n > 1 ? `${cap(crossingWord(kind))} ×${n}` : cap(crossingWord(kind)) }));
 }
 
 /**
