@@ -19,7 +19,7 @@ export function QrCard({ defaultOpen = false }: { defaultOpen?: boolean }) {
   // The report page posts to the scenario the console shows.
   useEffect(() => setUrl(scenarioId === SCENARIO_ID ? reportUrl() : `${reportUrl()}?scenario=${encodeURIComponent(scenarioId)}`), [scenarioId]);
   return (
-    <motion.section layout aria-labelledby="qr-title" className="shrink-0 overflow-hidden border-t border-shell-line" transition={{ type: 'spring', damping: 26, stiffness: 260 }}>
+    <motion.section layout aria-labelledby="qr-title" className="vw-scroll relative z-10 max-h-[60%] shrink-0 overflow-y-auto border-t border-shell-line bg-shell-raised" transition={{ type: 'spring', damping: 26, stiffness: 260 }}>
       <motion.button
         layout="position"
         type="button"

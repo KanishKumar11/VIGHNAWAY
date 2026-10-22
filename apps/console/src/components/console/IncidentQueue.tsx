@@ -285,7 +285,9 @@ export function IncidentQueue({
       {loading ? (
         <QueueSkeleton />
       ) : incidents.length === 0 ? (
-        <SituationBrief trip={trip} />
+        <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <SituationBrief trip={trip} />
+        </div>
       ) : (
         <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
           <LayoutGroup>

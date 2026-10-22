@@ -213,9 +213,40 @@ def reachable(graph: dict, origin: str, profile: str) -> set[str]:
     return seen
 
 
+_DRIVABLE: dict[int, set[str]] = {}
+
+
+def drivable_nodes(graph: dict) -> set[str]:
+    """Nodes in the largest connected component of public, car-allowed roads.
+
+    Place coordinates are approximate, so snapping must not land on a private dead-end lane or an
+    isolated fragment from which nothing is reachable."""
+    parent: dict[str, str] = {}
+
+    def find(a: str) -> str:
+        parent.setdefault(a, a)
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    for e in graph["edges"]:
+        if allowed(e, "car"):
+            parent[find(e["from"])] = find(e["to"])
+    groups: dict[str, list[str]] = {}
+    for n in list(parent):
+        groups.setdefault(find(n), []).append(n)
+    return set(max(groups.values(), key=len)) if groups else set()
+
+
 def nearest_node(graph: dict, lat: float, lng: float) -> tuple[str, float]:
+    ok = _DRIVABLE.get(id(graph))
+    if ok is None:
+        ok = _DRIVABLE[id(graph)] = drivable_nodes(graph)
     best, best_d = None, float("inf")
     for n in graph["nodes"]:
+        if n["id"] not in ok:
+            continue
         d = haversine((lng, lat), (n["lng"], n["lat"]))
         if d < best_d:
             best, best_d = n["id"], d
