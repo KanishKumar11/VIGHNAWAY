@@ -39,6 +39,16 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
   fixture and about 50 ms on a 3,900-node synthetic grid in Node; the 200 ms Hermes budget must be
   checked on the device's debug screen.
 
+- **The scoreboard measures a test set, not the world** (docs/scoreboard.md). Hazards come from a seeded generator that
+  puts about 60% of them on the usual fastest route. A hard block makes "the route avoids it" true by construction, so the
+  report gives the usual route's exposure and the cost of avoiding it, never an avoidance rate, and every figure is
+  "Simulated scenarios on real roads; modelled minutes".
+- **The Andheri Subway is an assumption.** OSM leaves the road under the Andheri railway line unnamed and unmarked, so
+  `flood-prone.json` names it and marks it flood-prone by hand. Confirm against a municipal flood-prone-spot list before any live
+  use.
+- **Data gaps count per stretch.** The data-gap penalty applies once per continuous flood-prone stretch of a route (any recent
+  report on it covers the stretch), because real roads are split into many short edges.
+
 ## Languages
 
 - **Hindi and Marathi translations need review by a native speaker** before any public use. They

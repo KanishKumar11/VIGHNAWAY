@@ -14,6 +14,7 @@ const NAV = () =>
     ['/console', t.nav.console],
     ['/rules', t.nav.rules],
     ['/verify', t.nav.verify],
+    ['/after-action', t.nav.afterAction],
     ['/debug', t.nav.debug],
     ['/report', t.nav.report],
   ] as const;

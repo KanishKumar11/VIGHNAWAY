@@ -367,13 +367,13 @@ Every figure is **modelled**, on real road geometry with **simulated** condition
 - "Extra minutes" is the final recommendation's modelled time minus the usual route's modelled time under the same
   reports (0 when the recommendation is not slower).
 - The last column states the case in words. Unfavourable cases are listed in full below and are not filtered out.
-- No figure here is a safety rate, and the numbers say nothing about real outcomes.
+- None of these figures is a rate of harm avoided, and the numbers say nothing about real outcomes.
 
 ## Unfavourable scenarios
 
 ${
     unfavourable.length
-      ? unfavourable.map((x) => `- Seed ${x.seed}, ${x.origin} → ${x.destination}: ${x.note}${x.extraMin ? ` (${x.extraMin} extra modelled minutes)` : ''}.`).join('\n')
+      ? unfavourable.map((x) => `- Seed ${x.seed}, ${x.origin} → ${x.destination}: ${x.note}${x.extraMin ? ` (${x.extraMin} extra modelled min)` : ''}.`).join('\n')
       : '- None in this set of seeds.'
   }
 

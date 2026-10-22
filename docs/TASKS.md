@@ -415,7 +415,7 @@ Priority P1 · Status partly done: the Situation panel shows the brief line ("N 
 ## P1-6 Scenario scoreboard (batch replay)
 
 ### P1-6.a Seeded scenario generator
-Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
+Priority P1 · Status **done** on the real graph (scenario-data scripts/scoreboard.ts, vitest 5) · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
 - **Files:** `scripts/` (Data and sim). Seeded randomness lives here only and never in packages/engine.
 - **Behaviour:** From a seed, produces a scenario: a trip chosen from a published list of origin and destination pairs, and
   a timed list of incidents (type, status, edges, report times) in the same format `tune` replays. The default set is 20
@@ -423,7 +423,7 @@ Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); 
 - **Automated tests:** the same seed gives an identical scenario; every incident references edges that exist in the graph.
 
 ### P1-6.b `pnpm scoreboard` runner and report
-Priority P1 · Status todo · Effort 2 h · Depends P1-6.a
+Priority P1 · Status **done**: `pnpm scoreboard` writes docs/scoreboard.md and docs/scoreboard.json (20 seeds; two runs are byte-identical; a test fails when the committed files are stale; forbidden-words check) · Effort 2 h · Depends P1-6.a
 - **Behaviour:** For each scenario it replays the incidents through the engine at each step and records:
   - whether the usual fastest route crosses a Verified or Corroborated hard block;
   - the extra modelled minutes of the recommendation (median and worst);
@@ -533,7 +533,8 @@ Docs: CONTRACTS.md, UX_FLOWS.md §9.
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-1.a | `/after-action`: a timeline built from `/history`, with operator actions, every route change and its reason, the modelled minutes compared with the usual route, provenance (graph, rules hash, scenario, Simulated) and receipts per change | vitest builds it from a recorded history; forbidden-words check (no "saved lives", no "hazard-free") | 2–3 h |
-| P2-1.b | Print stylesheet; both themes on screen | screenshots | 0.5 h |
+| P2-1.a status | **done**: apps/console lib/afterAction.ts (built from the history through the same trip steps as the live console), components/afterAction, route /after-action, nav link, en/hi/mr strings; vitest 8 (moments, operator flags, route and destination changes, usual-route comparison, determinism, every receipt re-verified by /verify, forbidden words in en/hi/mr) | | |
+| P2-1.b | Print stylesheet (header hidden, colours kept; Print button); both themes on screen | screenshots still to capture | 0.5 h |
 
 ## P2-3 Step-free walking profile
 

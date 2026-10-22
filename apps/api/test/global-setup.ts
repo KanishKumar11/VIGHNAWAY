@@ -11,7 +11,7 @@ export default async function setup(): Promise<void> {
   const h = createDb(TEST_DATABASE_URL, { max: 1 });
   try {
     await h.sql`DROP SCHEMA IF EXISTS drizzle CASCADE`;
-    for (const t of ['incident_events', 'incident_reports', 'incidents', 'sim_runs', 'scenarios', 'places', 'road_edges']) {
+    for (const t of ['auth_sessions', 'auth_otps', 'users', 'incident_events', 'incident_reports', 'incidents', 'sim_runs', 'scenarios', 'places', 'road_edges']) {
       await h.sql.unsafe(`DROP TABLE IF EXISTS "${t}" CASCADE`);
     }
     await runMigrations(h.db);

@@ -477,3 +477,9 @@
   .vw-route-flow { animation: none !important; }
   .vw-comet { display: none; }
 }
+
+/* Printing the after-action report: no sticky bar, keep the theme colours as shown. */
+@media print {
+  .vw-header { display: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

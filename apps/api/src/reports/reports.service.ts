@@ -48,6 +48,8 @@ export interface ReportContext {
   nowS?: number;
   source: Extract<IncidentSource, 'simulated' | 'user_report'>;
   ip?: string | null;
+  /** Signed-in reporter (users.id). Stored for history and thanks; never read by routing or corroboration. */
+  userId?: string | null;
   /** Deterministic ids for scripted events (`<scenario>:rep:<eventId>`, `<scenario>:inc:<eventId>`). */
   reportId?: string;
   newIncidentId?: string;
@@ -111,6 +113,7 @@ export class ReportsService {
         ipHash: ctx.ip ? saltedHash(this.config.deviceHashSalt, ctx.ip) : null,
         source: ctx.source,
         origin,
+        userId: ctx.userId ?? null,
         receivedAtS: nowS,
         snappedEdgeId: snap.id,
         distanceToRoadM: Math.round(snap.d * 10) / 10,
