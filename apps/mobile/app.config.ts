@@ -49,6 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Routes live in the root app/ directory (never src/app).
     ['expo-router', { root: './app' }],
     'expo-dev-client',
+    ['./plugins/withNetworkSecurityConfig', { cleartext: useCleartext }],
     [
       'react-native-maps',
       {

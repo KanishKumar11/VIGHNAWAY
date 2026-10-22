@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><title>Graph drift check</title>
+<style>html,body,#m{height:100%;margin:0}#p{position:absolute;top:8px;left:8px;background:#fff;padding:8px;font:14px sans-serif}</style>
+<div id="m"></div><div id="p">Graph over Google basemap. Crossings: <span id="c"></span></div>
+<script>
+const KEY = new URLSearchParams(location.search).get('key') || '';
+const crossings = [{"label": "Andheri Subway (route A)", "match": "Subway", "lat": 19.1165, "lng": 72.8463}, {"label": "Gokhale Bridge (route B)", "match": "Gokhale", "lat": 19.119, "lng": 72.8462}, {"label": "Jogeshwari crossing (route C)", "match": "Jogeshwari", "lat": 19.1372, "lng": 72.8495}];
+window.init = () => {
+  const map = new google.maps.Map(document.getElementById('m'), { center: {lat: crossings[0].lat, lng: crossings[0].lng}, zoom: 17 });
+  map.data.loadGeoJson('graph.overlay.geojson');
+  map.data.setStyle(f => ({ strokeColor: f.getProperty('floodProne') ? '#0284c7' : '#e11d48', strokeWeight: 3 }));
+  document.getElementById('c').innerHTML = crossings.map((c, i) => `<a href="#" data-i="${i}">${c.label}</a>`).join(' · ');
+  document.getElementById('c').onclick = (ev) => { const c = crossings[ev.target.dataset.i]; if (c) { map.setCenter(c); map.setZoom(18); } };
+};
+const s = document.createElement('script');
+s.src = `https://maps.googleapis.com/maps/api/js?key=${KEY}&callback=init`;
+document.head.appendChild(s);
+</script>

@@ -7,7 +7,7 @@
  "timezone": "Asia/Kolkata",
  "clockStartsAt": "2026-01-01T00:00:00+05:30",
  "simSecondsPerRealSecond": 1,
- "graphVersion": "fixture-1f7635ec4925",
+ "graphVersion": "osm-8bb15d429936",
  "alerts": [],
  "hasAlertInformation": false,
  "places": [
@@ -16,48 +16,48 @@
    "name": "Marol Naka, Andheri East",
    "kind": "origin",
    "point": {
-    "lat": 19.112106,
-    "lng": 72.881128
+    "lat": 19.10856,
+    "lng": 72.87864
    },
-   "nodeId": "fx018",
    "side": "east",
-   "address": "Andheri-Kurla Road"
+   "address": "Andheri-Kurla Road",
+   "nodeId": "14019451450"
   },
   {
    "id": "live-hosp-kokilaben",
    "name": "Kokilaben Dhirubhai Ambani Hospital",
    "kind": "hospital",
    "point": {
-    "lat": 19.132952,
-    "lng": 72.824274
+    "lat": 19.1315,
+    "lng": 72.8249
    },
-   "nodeId": "fx017",
    "side": "west",
-   "address": "Four Bungalows, Andheri West"
+   "address": "Four Bungalows, Andheri West",
+   "nodeId": "5994692913"
   },
   {
    "id": "live-hosp-hbt",
    "name": "HBT Trauma Care Hospital",
    "kind": "hospital",
    "point": {
-    "lat": 19.14091,
-    "lng": 72.860212
+    "lat": 19.138,
+    "lng": 72.858
    },
-   "nodeId": "fx016",
    "side": "east",
-   "address": "Jogeshwari-Vikhroli Link Road, Jogeshwari East"
+   "address": "Jogeshwari-Vikhroli Link Road, Jogeshwari East",
+   "nodeId": "2233649357"
   },
   {
    "id": "live-hosp-holy-spirit",
    "name": "Holy Spirit Hospital",
    "kind": "hospital",
    "point": {
-    "lat": 19.131595,
-    "lng": 72.864965
+    "lat": 19.124,
+    "lng": 72.8665
    },
-   "nodeId": "fx021",
    "side": "east",
-   "address": "Mahakali Caves Road, Andheri East"
+   "address": "Mahakali Caves Road, Andheri East",
+   "nodeId": "8711653300"
   }
  ],
  "demoTrip": {
