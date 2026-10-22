@@ -1,4 +1,21 @@
-import { colors, consoleBrand, consoleChrome, consoleThemes as themes, elevation, fontFamily, letterSpacing, marker, motion, radius, spacing, type as typeScale, type ThemeName } from '@vighnaway/tokens';
+import {
+  colors,
+  consoleBrand,
+  consoleChrome,
+  consoleThemes as themes,
+  elevation,
+  fontFamily,
+  letterSpacing,
+  marker,
+  motion,
+  phoneBrand,
+  phoneRadius,
+  phoneThemes,
+  radius,
+  spacing,
+  type as typeScale,
+  type ThemeName,
+} from '@vighnaway/tokens';
 
 /**
  * CSS custom properties generated from @vighnaway/tokens at runtime, using the same names as the
@@ -17,6 +34,38 @@ export const DEFAULT_THEME: ThemeName = 'light';
 export function themeCssVariables(name: ThemeName): Record<string, string> {
   const vars: Record<string, string> = {};
   for (const [k, v] of Object.entries(themes[name])) vars[`--vw-${kebab(k)}`] = v;
+  return vars;
+}
+
+/**
+ * The phone app's "Royal blue" look for one page (the sign-in): the phone theme's colours, its deep
+ * hero surface as the brand panel, its rounder radii and Manrope. Set as inline variables on a
+ * wrapper, so only that subtree changes; the rest of the console keeps its own themes.
+ */
+export function royalCssVariables(name: ThemeName): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const [k, v] of Object.entries(phoneThemes[name])) vars[`--vw-${kebab(k)}`] = v;
+  const b = phoneBrand[name];
+  vars['--vw-chrome-bg'] = b.hero;
+  vars['--vw-chrome-ink'] = b.onHero;
+  vars['--vw-chrome-ink-muted'] = b.onHeroMuted;
+  vars['--vw-chrome-line'] = b.heroEdge;
+  vars['--vw-chrome-fill'] = 'color-mix(in srgb, var(--vw-chrome-ink) 8%, transparent)';
+  vars['--vw-chrome-fill-strong'] = 'color-mix(in srgb, var(--vw-chrome-ink) 14%, transparent)';
+  // Light accent and hazard colours that read on the deep surface.
+  vars['--vw-chrome-accent'] = phoneThemes.dark.accentInk;
+  vars['--vw-chrome-on-accent'] = phoneThemes.dark.onAccent;
+  vars['--vw-art-danger'] = phoneThemes.dark.danger;
+  // Tailwind's aliases (--color-*, --radius-*, --font-sans) are resolved once at :root, so they are
+  // set again here, or the utilities would keep the console's own values inside this subtree.
+  for (const k of Object.keys(vars)) vars[`--color-${k.slice('--vw-'.length)}`] = vars[k]!;
+  for (const [k, v] of Object.entries(phoneRadius)) {
+    vars[`--vw-radius-${k}`] = `${v}px`;
+    vars[`--radius-${k}`] = `${v}px`;
+  }
+  const font = "'Manrope Variable', 'Noto Sans Devanagari Variable', system-ui, sans-serif";
+  vars['--vw-font-web'] = font;
+  vars['--font-sans'] = font;
   return vars;
 }
 
@@ -56,7 +105,10 @@ export function tokenCssVariables(): Record<string, string> {
   for (const [k, v] of Object.entries(letterSpacing)) vars[`--vw-tracking-${kebab(k)}`] = `${v}px`;
   for (const [k, v] of Object.entries(elevation.web)) vars[`--vw-elevation-${kebab(k)}`] = v;
   // Devanagari (Hindi, Marathi) falls back to Noto Sans Devanagari, bundled locally.
-  vars['--vw-font-web'] = fontFamily.web.replace("'Inter Variable',", "'Inter Variable', 'Noto Sans Devanagari Variable',");
+  vars['--vw-font-web'] = fontFamily.web.replace(
+    "'Inter Variable',",
+    "'Inter Variable', 'Noto Sans Devanagari Variable',",
+  );
   vars['--vw-font-web-mono'] = fontFamily.webMono;
   for (const [k, v] of Object.entries(consoleChrome)) vars[`--vw-${kebab(k)}`] = v;
   for (const [k, v] of Object.entries(consoleBrand)) vars[`--vw-${kebab(k)}`] = v;
@@ -66,7 +118,9 @@ export function tokenCssVariables(): Record<string, string> {
   vars['--vw-marker-selected-scale'] = String(marker.selectedScale);
   vars['--vw-age-pill-height'] = `${marker.agePillHeight}px`;
   for (const [k, v] of Object.entries(motion)) {
-    if (typeof v === 'number') vars[`--vw-motion-${kebab(k)}`] = k.toLowerCase().includes('scale') || k === 'noViableMapDim' ? String(v) : `${v}ms`;
+    if (typeof v === 'number')
+      vars[`--vw-motion-${kebab(k)}`] =
+        k.toLowerCase().includes('scale') || k === 'noViableMapDim' ? String(v) : `${v}ms`;
   }
   vars['--vw-ease-out'] = cubicBezier(motion.easeOut);
   vars['--vw-ease-in-out'] = cubicBezier(motion.easeInOut);
@@ -85,7 +139,9 @@ const block = (selector: string, vars: Record<string, string>) =>
 export function tokenCss(): string {
   return [
     block(':root', tokenCssVariables()),
-    ...THEME_NAMES.map((n) => block(`:root[data-theme='${n}']`, { ...themeCssVariables(n), 'color-scheme': n })),
+    ...THEME_NAMES.map((n) =>
+      block(`:root[data-theme='${n}']`, { ...themeCssVariables(n), 'color-scheme': n }),
+    ),
     block(":root[data-text='large']", largeTextCssVariables()),
   ].join('');
 }

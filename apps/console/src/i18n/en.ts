@@ -62,6 +62,7 @@ export const en = {
     dialogBody:
       'For the scripted demo: enter the shared operator token to verify, resolve or dismiss incidents and to run the simulation. Operators normally sign in with email instead. The token is kept in this browser tab only.',
     field: 'Operator token',
+    fieldHint: 'Paste the operator token',
     submit: 'Unlock controls',
     checking: 'Checking…',
     rejected: 'Token rejected',
@@ -659,6 +660,7 @@ export const en = {
     title: 'Sign in',
     intro: 'Enter your email and we will send you a 6-digit code. No password is needed.',
     emailLabel: 'Email address',
+    emailPlaceholder: 'name@example.com',
     sendCode: 'Send code',
     sending: 'Sending…',
     codeSent: (email: string, minutes: number) => `We sent a 6-digit code to ${email}. It works for ${minutes} minutes.`,
@@ -671,6 +673,7 @@ export const en = {
     changeEmail: 'Use a different email',
     haveCode: 'I already have a code',
     nameLabel: 'Your name (optional)',
+    namePlaceholder: 'Your name',
     nameHint: 'Only used if this creates your account.',
     invalidCode: 'That code is not valid or has expired',
     invalidEmail: 'Enter a valid email address',

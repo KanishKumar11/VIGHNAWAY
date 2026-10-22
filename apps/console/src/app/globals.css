@@ -576,6 +576,31 @@
 }
 .vw-sink path { transition: stroke-dasharray 240ms var(--vw-ease-out), stroke-width 240ms var(--vw-ease-out), stroke 240ms var(--vw-ease-out); }
 
+/* Sign-in: content rises into place, staggered by --d; the radar sweep turns once every 9 s. */
+@keyframes vw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes vw-radar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.vw-rise {
+  animation: vw-rise 640ms var(--vw-ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+.vw-radar {
+  transform-origin: 50% 50%;
+  animation: vw-radar 9s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -592,6 +617,7 @@
     opacity: 0;
   }
   .vw-route-flow { animation: none !important; }
+  .vw-radar { animation: none !important; }
   .vw-comet { display: none; }
 }
 
