@@ -6,7 +6,7 @@ import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
 import { QrCode } from '@/components/QrCode';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
-import { Card, GUTTER, ScreenHeader } from '@/components/ui';
+import { Card, GUTTER, ScreenHeader, StatusBarScrim } from '@/components/ui';
 import { t } from '@/i18n/en';
 import { newClientReportId, relayMatrix, type QrMatrix } from '@/lib/relay';
 import { usePendingReports, type PendingReport } from '@/stores/reports';
@@ -44,6 +44,7 @@ export function RelayScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       <FlatList
         data={mine}
         keyExtractor={(p) => p.localId}

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { CircleCheck, Info, LogOut, TriangleAlert, WifiOff } from '@/components/icons';
-import { GUTTER, Row, ScreenHeader, Section } from '@/components/ui';
+import { GUTTER, Row, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { t } from '@/i18n/en';
 import { api, ApiRequestError, retryAfterSeconds } from '@/lib/api';
@@ -16,6 +16,7 @@ import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
 import { minutesFor, requestNotice, statsLines, verifyNotice, type Notice } from './signIn';
+import { useLanguage } from '@/i18n/useLanguage';
 
 /** Counts down from a number of seconds; `left` is 0 when nothing is pending. */
 function useCountdown() {
@@ -46,6 +47,7 @@ type Stats = { state: 'loading' } | { state: 'error' } | { state: 'offline' } | 
  * is a score: routes read incidents only.
  */
 export function AccountScreen() {
+  useLanguage();
   const tc = useColors();
   const brand = useBrand();
   const styles = useStyles();
@@ -186,6 +188,7 @@ export function AccountScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"

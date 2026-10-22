@@ -38,6 +38,7 @@ import type { MapCoord } from '@/lib/engine';
 import { useReduceMotion } from '@/lib/motion';
 import { createStyles, devanagari, fontFamily, lineStyle, marker, motion, radius, routeStyles, shadow, spacing, type, useColors, useTheme } from '@/theme';
 import type { MapIncident, MapLine, MapPin, MapRouteLabel } from './mapModel';
+import { useLanguage } from '@/i18n/useLanguage';
 
 interface Props {
   /** Time bubbles on the routes, and the tap that chooses one (as on the Google map). */
@@ -235,6 +236,7 @@ const Labels = memo(function Labels({
   pins: MapPin[];
   markers: MapIncident[];
 }) {
+  useLanguage();
   const { colors: tc, dark } = useTheme();
   const halo = dark ? tc.shellDeep : tc.panel;
   // Obstacles change only when the set of routes or markers changes, not on every reveal step.
@@ -407,6 +409,7 @@ const RouteLine = memo(function RouteLine({ line, project }: { line: MapLine; pr
  * the reported depth. Static; it fades in once when the report appears. Never fills the map.
  */
 const FloodContour = memo(function FloodContour({ item, project }: { item: MapIncident; project: Project }) {
+  useLanguage();
   const tc = useColors();
   const inc = item.incident;
   const p = project(item.coordinate);
@@ -500,6 +503,7 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
 const AGE_LABELS_MAX = 24;
 
 const IncidentMarker = memo(function IncidentMarker({ item, project, showAge, onPress }: { item: MapIncident; project: Project; showAge: boolean; onPress: (i: Incident) => void }) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
@@ -542,6 +546,7 @@ const IncidentMarker = memo(function IncidentMarker({ item, project, showAge, on
 const VEHICLE = spacing.xl * 2;
 
 const Vehicle = memo(function Vehicle({ pin, project }: { pin: MapPin; project: Project }) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();

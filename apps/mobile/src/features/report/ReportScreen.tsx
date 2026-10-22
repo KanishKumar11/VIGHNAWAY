@@ -21,7 +21,7 @@ import { MapField } from '@/components/MapField';
 import { easing, enterUp, PressScale } from '@/components/motion';
 import { Segmented } from '@/components/Segmented';
 import { ToastHost } from '@/components/Toast';
-import { Card, Row, RoundButton, GUTTER } from '@/components/ui';
+import { Card, GUTTER, RoundButton, Row, StatusBarScrim } from '@/components/ui';
 import { googleMapsConfigured } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { getDeviceId } from '@/lib/deviceId';
@@ -309,6 +309,7 @@ export function ReportScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       {/* Android draws the modal edge to edge: the header clears the status bar and side insets. */}
       <View
         style={[styles.header, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}

@@ -7,6 +7,7 @@ import { fmtDistance } from '@/i18n/format';
 import { t } from '@/i18n/en';
 import { createStyles, lineStyle, radius, ringStyle, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
+import { useLanguage } from '@/i18n/useLanguage';
 
 const crossingKey = { underpass: 'crossingUnderpass', flyover: 'crossingFlyover', bridge: 'crossingBridge', footbridge: 'crossingFootbridge' } as const;
 const crossingWord = (k: CrossingKind) => t(crossingKey[k]);
@@ -29,6 +30,7 @@ function crossingSummary(route: RouteEvaluation): { kind: CrossingKind; label: s
  * travelled part tinted when en route.
  */
 export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }: { route: RouteEvaluation; travelledFraction?: number }) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const [width, setWidth] = useState(0);

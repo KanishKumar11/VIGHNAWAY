@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenHeader } from '@/components/ui';
+import { ScreenHeader, StatusBarScrim } from '@/components/ui';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
@@ -15,6 +15,7 @@ import { useConnection } from '@/stores/connection';
 import { useIncidents } from '@/stores/incidents';
 import { useSettings } from '@/stores/settings';
 import { createStyles, hairline, radius, spacing } from '@/theme';
+import { useLanguage } from '@/i18n/useLanguage';
 
 interface Result {
   hash: string;
@@ -52,6 +53,7 @@ function measure(): Result {
 }
 
 export default function DebugScreen() {
+  useLanguage();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const [result, setResult] = useState<Result | null>(null);
@@ -77,6 +79,7 @@ export default function DebugScreen() {
     <SafeAreaView edges={['left', 'right']} style={styles.root}>
       <ScreenHeader title={t('drawerDebug')} />
       <ThemedStatusBar />
+      <StatusBarScrim />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.card}>
           <AppText variant="label" tone="muted">

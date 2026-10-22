@@ -22,7 +22,6 @@ import { useTripEngine } from '@/features/trip/useTripEngine';
 import { configureNotifications } from '@/lib/notifications';
 import { startAuth } from '@/stores/auth';
 import { devanagari, fontFamily, useTheme } from '@/theme';
-import { useSettings } from '@/stores/settings';
 import { navThemeFor } from '@/theme/navTheme';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -48,10 +47,6 @@ export default function RootLayout() {
     [devanagari.semibold]: NotoSansDevanagari_600SemiBold,
     [devanagari.bold]: NotoSansDevanagari_700Bold,
   });
-  // A language switch re-renders every screen in the new language (navigation state is kept by
-  // the container; see the report).
-  const language = useSettings((s) => s.language);
-
   useTripEngine();
   const theme = useTheme();
   const navTheme = useMemo(() => navThemeFor(theme.name), [theme.name]);
@@ -80,7 +75,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <BottomSheetModalProvider>
             <ThemeProvider value={navTheme}>
-              <Stack key={language} screenOptions={{ headerShown: false }}>
+              <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(drawer)" />
                 <Stack.Screen name="first-run" options={{ animation: 'fade' }} />
                 <Stack.Screen name="report" options={{ presentation: 'modal' }} />

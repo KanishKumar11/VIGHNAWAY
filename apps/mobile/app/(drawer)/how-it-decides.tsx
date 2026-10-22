@@ -7,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Mark } from '@/components/Mark';
 import { enterUp } from '@/components/motion';
-import { GUTTER, ScreenHeader, Section } from '@/components/ui';
+import { GUTTER, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { strings, t } from '@/i18n/en';
 import { ruleText } from '@/i18n/engineText';
 import { getLanguage } from '@/i18n/lang';
@@ -15,11 +15,13 @@ import { useReduceMotion } from '@/lib/motion';
 import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { useScenario } from '@/stores/scenario';
 import { createStyles, hairline, radius, shadow, spacing, useBrand } from '@/theme';
+import { useLanguage } from '@/i18n/useLanguage';
 
 const rules = scoringRulesTable();
 
 /** Renders SCORING_RULES from the engine, the known limitations and the attribution. */
 export default function HowItDecides() {
+  useLanguage();
   usePausePlanning();
   const styles = useStyles();
   const brand = useBrand();
@@ -29,6 +31,7 @@ export default function HowItDecides() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
         <View style={styles.headerBleed}>
           <ScreenHeader title={t('drawerHowItDecides')} subtitle={t('howSubtitle')} />

@@ -9,6 +9,7 @@ import { StatusRing } from '@/components/StatusRing';
 import { t } from '@/i18n/en';
 import { createStyles, fontFamily, lineStyle, marker, radius, spacing, type, useColors, useTheme, zIndex } from '@/theme';
 import { sliceCoords, type MapIncident, type MapLine, type MapPin, type MapRouteLabel } from './mapModel';
+import { useLanguage } from '@/i18n/useLanguage';
 
 
 interface Props {
@@ -108,6 +109,7 @@ const RouteBubble = memo(function RouteBubble({ label, onPress }: { label: MapRo
 });
 
 const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const tracks = useTracksViewChanges(pin.kind);

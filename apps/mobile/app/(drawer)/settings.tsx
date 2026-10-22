@@ -11,7 +11,7 @@ import { ChoiceGrid } from '@/components/ChoiceGrid';
 import { Accessibility, BellRing, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
-import { Card, GUTTER, Row, ScreenHeader, Section } from '@/components/ui';
+import { Card, GUTTER, Row, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
 import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { Segmented } from '@/components/Segmented';
@@ -220,6 +220,7 @@ export default function SettingsScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"

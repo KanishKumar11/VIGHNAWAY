@@ -6,7 +6,7 @@ import type { Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { EvidenceChips, ModeBadge } from '@/components/EvidenceChips';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
-import { GUTTER, ScreenHeader, Section } from '@/components/ui';
+import { GUTTER, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { StatusRing } from '@/components/StatusRing';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { EmptyEvidence, RouteRow } from '@/features/navigate/SheetParts';
@@ -51,6 +51,7 @@ export function MapListScreen() {
   return (
     <View style={styles.root} testID="map-list">
       <ThemedStatusBar />
+      <StatusBarScrim />
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
         <View style={styles.headerBleed}>
           <ScreenHeader

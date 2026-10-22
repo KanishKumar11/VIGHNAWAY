@@ -10,13 +10,14 @@ import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Activity as ActivityIcon, CircleCheck, Clock, Flag, Info, Route, TriangleAlert, type LucideIcon } from '@/components/icons';
 import { Illustration } from '@/components/Illustration';
 import { enterUp } from '@/components/motion';
-import { Card, GUTTER, ScreenHeader } from '@/components/ui';
+import { Card, GUTTER, ScreenHeader, StatusBarScrim } from '@/components/ui';
 import { t } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
 import { useActivity, type ActivityKind } from '@/stores/activity';
 import { usePendingReports } from '@/stores/reports';
 import { useScenario } from '@/stores/scenario';
 import { createStyles, hairline, radius, spacing, useColors } from '@/theme';
+import { useLanguage } from '@/i18n/useLanguage';
 
 const ICONS: Record<ActivityKind, LucideIcon> = {
   route_changed: Route,
@@ -45,6 +46,7 @@ const TONE: Record<ActivityKind, Tone> = {
 
 /** Journey-relevant changes, newest first, as a timeline on the simulation clock. */
 export default function ActivityScreen() {
+  useLanguage();
   usePausePlanning();
   const tc = useColors();
   const styles = useStyles();
@@ -56,6 +58,7 @@ export default function ActivityScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
+      <StatusBarScrim />
       <FlatList
         data={entries}
         keyExtractor={(e) => e.id}

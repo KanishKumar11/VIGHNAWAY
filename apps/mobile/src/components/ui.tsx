@@ -23,6 +23,17 @@ export const GUTTER = spacing.md;
 const TILE = spacing.xl + spacing.xxs;
 const ROUND = layout.minTouch - spacing.xxs;
 
+/**
+ * Page-coloured strip over the status bar. Scrolling screens draw edge to edge, so without it the
+ * content passes under the clock and icons. Place it after the scroller, inside the screen root.
+ */
+export function StatusBarScrim() {
+  const styles = useStyles();
+  const insets = useSafeAreaInsets();
+  if (insets.top <= 0) return null;
+  return <View pointerEvents="none" testID="status-bar-scrim" style={[styles.scrim, { height: insets.top }]} />;
+}
+
 /** Round floating button used for menu, back and close. */
 export function RoundButton({ icon: Icon, label, onPress, testID }: { icon: LucideIcon; label: string; onPress: () => void; testID?: string }) {
   const tc = useColors();
@@ -239,6 +250,7 @@ export function Radio({ on }: { on: boolean }) {
 }
 
 const useStyles = createStyles((tc) => ({
+  scrim: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: tc.shell, zIndex: 1 },
   header: { gap: spacing.xxs, paddingBottom: spacing.md },
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: ROUND, marginBottom: spacing.sm },
   headerTrailing: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

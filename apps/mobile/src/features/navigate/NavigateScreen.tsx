@@ -67,6 +67,7 @@ import {
   SectionLabel,
 } from './SheetParts';
 import { TopBar } from './TopBar';
+import { useLanguage } from '@/i18n/useLanguage';
 
 const HANDLE_HEIGHT = spacing.lg;
 
@@ -323,6 +324,7 @@ function SheetBody({
 }
 
 export function NavigateScreen() {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -605,6 +607,8 @@ export function NavigateScreen() {
           />
         </BottomSheetScrollView>
       </BottomSheet>
+      {/* The sheet runs under the system navigation bar; its peek would show the next row through the bar's inset, so the inset is painted in the sheet's own colour. */}
+      {insets.bottom > 0 ? <View pointerEvents="none" testID="nav-inset-cover" style={[styles.insetCover, { height: insets.bottom }]} /> : null}
       {menuOpen ? (
         <MapMenu
           top={headerBottom + layout.minTouch + spacing.sm}
@@ -667,6 +671,7 @@ const useStyles = createStyles((tc) => ({
   sheetContent: { paddingHorizontal: spacing.md, paddingTop: spacing.xxs, gap: spacing.lg },
   peekWrap: { gap: spacing.xs },
   more: { gap: spacing.sm, paddingTop: spacing.sm },
+  insetCover: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: tc.panel },
   section: { gap: spacing.sm },
   half: { gap: spacing.lg },
   rows: { gap: spacing.sm },

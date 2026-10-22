@@ -21,6 +21,7 @@ import { useReduceMotion } from '@/lib/motion';
 import type { ActivityEntry } from '@/stores/activity';
 import type { Banner } from '@/stores/trip';
 import { createStyles, fontFamily, glow, hairline, layout, motion, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
+import { useLanguage } from '@/i18n/useLanguage';
 
 const roleKey: Record<RouteRole, StringKey> = { recommended: 'recommended', usual_fastest: 'usualFastest', alternative: 'alternative', blocked: 'notViable' };
 const roleLabel = (r: RouteRole) => t(roleKey[r]);
@@ -270,6 +271,7 @@ interface PeekProps {
  * PeekMore, which the sheet reveals as it is pulled up, so the map stays open by default.
  */
 export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, chosen, onStart, onEnd }: PeekProps) {
+  useLanguage();
   const styles = useStyles();
   const eta = fmtDuration(etaS);
   const conf = route.explanation.confidence;
@@ -357,6 +359,7 @@ interface MoreProps {
 
 /** The rest of the decision, shown from the half-open sheet: status, next step, reason, share and drive. */
 export const PeekMore = memo(function PeekMore({ route, arriveClock, nextStep, compact, onShare, onDrive, hint }: MoreProps) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const conf = route.explanation.confidence;
@@ -587,6 +590,7 @@ export const RouteRow = memo(function RouteRow({
   /** Tapping the card chooses this route. Absent = the card is read-only. */
   onSelect?: () => void;
 }) {
+  useLanguage();
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
