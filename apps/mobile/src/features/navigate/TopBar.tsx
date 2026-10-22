@@ -247,7 +247,7 @@ const useStyles = createStyles((tc) => ({
   dest: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingVertical: spacing.xxs, minHeight: layout.minTouch },
   destText: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2 },
   searchBadge: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   // "To" and the mode badge share one centred line, so the eyebrow never sits above or below the badge text.
   destHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: spacing.md + spacing.xxs, overflow: 'hidden' },
   destName: { fontFamily: fontFamily.semibold },

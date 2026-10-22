@@ -1,12 +1,13 @@
 import { formatSimClock } from '@vighnaway/contracts';
 import { FlatList, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Activity as ActivityIcon, CircleCheck, Clock, Flag, Info, Route, TriangleAlert, type LucideIcon } from '@/components/icons';
 import { Illustration } from '@/components/Illustration';
 import { enterUp } from '@/components/motion';
+import { Card, GUTTER, ScreenHeader } from '@/components/ui';
 import { t } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
 import { useActivity, type ActivityKind } from '@/stores/activity';
@@ -47,18 +48,30 @@ export default function ActivityScreen() {
   const entries = useActivity((s) => s.entries);
   const clockStartsAt = useScenario((s) => s.scenario.clockStartsAt);
   return (
-    <SafeAreaView edges={['left', 'right']} style={styles.root}>
+    <View style={styles.root}>
       <ThemedStatusBar />
       <FlatList
         data={entries}
         keyExtractor={(e) => e.id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }, !entries.length && styles.listEmpty]}
+        ListHeaderComponent={
+          <View style={styles.headerBleed}>
+            <ScreenHeader title={t('drawerActivity')} subtitle={entries.length ? t('activitySubtitle') : null} />
+          </View>
+        }
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xl, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}
         ListEmptyComponent={
-          <Animated.View entering={enterUp(0, reduce)} style={styles.empty}>
-            <Illustration kind="noIncidents" size={64} />
-            <AppText tone="muted" style={styles.center}>
-              {t('activityEmpty')}
-            </AppText>
+          <Animated.View entering={enterUp(0, reduce)}>
+            <Card style={styles.empty}>
+              <View style={styles.emptyArt}>
+                <Illustration kind="noIncidents" size={64} />
+              </View>
+              <AppText variant="title" style={styles.center}>
+                {t('activityEmptyTitle')}
+              </AppText>
+              <AppText tone="muted" style={styles.center}>
+                {t('activityEmpty')}
+              </AppText>
+            </Card>
           </Animated.View>
         }
         renderItem={({ item, index }) => {
@@ -66,7 +79,7 @@ export default function ActivityScreen() {
           const tone = TONE[item.kind];
           const last = index === entries.length - 1;
           return (
-            <Animated.View entering={enterUp(Math.min(index, 8), reduce)} style={styles.row} accessible>
+            <Animated.View entering={enterUp(Math.min(index, 8), reduce)} style={[styles.row, index === 0 && styles.rowFirst, last && styles.rowLast]} accessible>
               <AppText variant="mono" tone="muted" style={styles.clock}>
                 {formatSimClock(clockStartsAt, item.atS)}
               </AppText>
@@ -81,7 +94,7 @@ export default function ActivityScreen() {
           );
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -89,9 +102,12 @@ const NODE = spacing.xl - spacing.xxs;
 
 const useStyles = createStyles((tc) => ({
   root: { flex: 1, backgroundColor: tc.shell },
-  list: { padding: spacing.md, paddingTop: spacing.lg },
-  listEmpty: { flexGrow: 1, justifyContent: 'center' },
-  row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'stretch' },
+  list: {},
+  headerBleed: { marginHorizontal: -GUTTER },
+  // The timeline reads as one card: the first and last rows round its corners.
+  row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'stretch', paddingHorizontal: GUTTER, backgroundColor: tc.panel, borderLeftWidth: hairline, borderRightWidth: hairline, borderColor: tc.panelHairline },
+  rowFirst: { paddingTop: GUTTER, borderTopWidth: hairline, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet },
+  rowLast: { paddingBottom: spacing.xxs, borderBottomWidth: hairline, borderBottomLeftRadius: radius.sheet, borderBottomRightRadius: radius.sheet },
   clock: { minWidth: spacing.xl + spacing.md, paddingTop: spacing.xxs + 1 },
   rail: { width: NODE, alignItems: 'center' },
   node: {
@@ -110,5 +126,6 @@ const useStyles = createStyles((tc) => ({
   text: { paddingTop: spacing.xxs, paddingBottom: spacing.lg },
   flex: { flex: 1 },
   center: { textAlign: 'center' },
-  empty: { alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
+  empty: { alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.xl },
+  emptyArt: { width: spacing.xl * 3, height: spacing.xl * 3, borderRadius: radius.chip, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
 }));

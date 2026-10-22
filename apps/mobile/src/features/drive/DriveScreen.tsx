@@ -8,7 +8,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
 import { Phone, Play, TriangleAlert, X } from '@/components/icons';
-import { PressScale } from '@/components/motion';
+import { RoundButton } from '@/components/ui';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { beginTrip } from '@/features/trip/deviceTrip';
 import { ArriveAt, StateTag } from '@/features/navigate/SheetParts';
@@ -22,7 +22,7 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { recommendedRoute, useTrip } from '@/stores/trip';
-import { createStyles, fontFamily, hairline, layout, radius, spacing, type, useColors } from '@/theme';
+import { createStyles, fontFamily, hairline, layout, radius, shadow, spacing, type, useColors } from '@/theme';
 import { roadsAhead } from './roads';
 
 const DRIVE_ETA = Math.round(type.display.size * 1.5);
@@ -76,31 +76,36 @@ export function DriveScreen() {
 
   const head = (
     <View style={styles.headRow}>
-      <PressScale
-        onPress={exit}
-        accessibilityRole="button"
-        accessibilityLabel={t('driveExitLabel')}
-        haptic="selection"
-        style={styles.exit}
-        testID="drive-exit"
-      >
-        <X size={20} color={tc.ink} strokeWidth={2.25} />
-        <AppText style={styles.strong}>{t('driveExit')}</AppText>
-      </PressScale>
+      <RoundButton icon={X} label={t('driveExitLabel')} onPress={exit} testID="drive-exit" />
       <ModeBadge onShell={false} />
     </View>
   );
 
+  // The ETA is the hero: the accent fills the card when there is a route, a plain card otherwise.
+  const hero = !!rec;
   const etaBlock = (
-    <View style={styles.etaBlock} accessible accessibilityLabel={rec ? `${enRoute ? t('etaLeft', { eta }) : eta}. ${routeLabel(rec)}` : next}>
-      {rec ? <StateTag kind="recommended" label={t('recommended')} /> : noViable ? <StateTag kind="critical" label={t('notViable')} /> : null}
-      <AppText variant="display" style={styles.eta} numberOfLines={1} adjustsFontSizeToFit testID="drive-eta">
+    <View
+      style={[styles.etaBlock, hero ? styles.etaHero : styles.etaPlain, shadow(hero ? 'md' : 'sm')]}
+      accessible
+      accessibilityLabel={rec ? `${enRoute ? t('etaLeft', { eta }) : eta}. ${routeLabel(rec)}` : next}
+    >
+      {rec ? (
+        <View style={styles.heroTag}>
+          <View style={styles.heroDot} />
+          <AppText variant="label" tone="onAccent">
+            {t('recommended')}
+          </AppText>
+        </View>
+      ) : noViable ? (
+        <StateTag kind="critical" label={t('notViable')} />
+      ) : null}
+      <AppText variant="display" tone={hero ? 'onAccent' : 'ink'} style={styles.eta} numberOfLines={1} adjustsFontSizeToFit testID="drive-eta">
         {eta}
       </AppText>
       {rec ? (
         <>
-          <ArriveAt clock={formatSimClock(scenario.clockStartsAt, minuteS + etaS)} />
-          <AppText variant="title" numberOfLines={2}>
+          <ArriveAt clock={formatSimClock(scenario.clockStartsAt, minuteS + etaS)} tone="onAccent" />
+          <AppText variant="title" tone="onAccent" numberOfLines={2}>
             {routeLabel(rec)}
           </AppText>
         </>
@@ -109,7 +114,7 @@ export function DriveScreen() {
   );
 
   const roadBlock = (
-    <View style={styles.roads}>
+    <View style={[styles.card, shadow('sm')]}>
       {roads.current ? (
         <View style={styles.roadRow}>
           <AppText variant="label" tone="muted" style={styles.roadKey}>
@@ -134,8 +139,8 @@ export function DriveScreen() {
   );
 
   const nowBlock = (
-    <View style={styles.now}>
-      <AppText variant="label" tone="muted">
+    <View style={[styles.card, styles.now, shadow('sm')]}>
+      <AppText variant="label" tone="accent">
         {t('whatToDoNow')}
       </AppText>
       <AppText style={styles.nowText} testID="drive-what-to-do" accessibilityLiveRegion="polite">
@@ -183,32 +188,25 @@ export function DriveScreen() {
 }
 
 const useStyles = createStyles((tc) => ({
-  root: { flex: 1, backgroundColor: tc.panel },
+  root: { flex: 1, backgroundColor: tc.shell },
   flex: { flex: 1 },
   strong: { fontFamily: fontFamily.semibold },
   headRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: layout.minTouch },
-  exit: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    minHeight: layout.minTouch,
-    paddingHorizontal: spacing.md,
-    marginLeft: -spacing.xs,
-    borderRadius: radius.chip,
-    borderWidth: 1,
-    borderColor: tc.controlBorder,
-  },
-  body: { gap: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg },
-  bodyLandscape: { flexDirection: 'row', gap: spacing.xl },
-  col: { flex: 1, gap: spacing.lg },
-  etaBlock: { gap: spacing.xs },
+  body: { gap: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.lg },
+  bodyLandscape: { flexDirection: 'row', gap: spacing.md },
+  col: { flex: 1, gap: spacing.md },
+  etaBlock: { gap: spacing.xs, padding: spacing.lg, borderRadius: radius.sheet },
+  etaHero: { backgroundColor: tc.accent },
+  etaPlain: { backgroundColor: tc.panel },
+  heroTag: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
+  heroDot: { width: spacing.xs, height: spacing.xs, borderRadius: radius.chip, backgroundColor: tc.onAccent },
   eta: { fontSize: DRIVE_ETA, lineHeight: Math.round(DRIVE_ETA * 1.08), letterSpacing: -2 },
-  roads: { borderTopWidth: hairline, borderBottomWidth: hairline, borderColor: tc.panelLine },
-  roadRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.md, paddingVertical: spacing.md },
+  card: { borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelHairline, overflow: 'hidden' },
+  roadRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   roadDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   roadKey: { width: spacing.xl + spacing.md },
   road: { fontFamily: fontFamily.semibold, fontSize: type.eta.size - 8, lineHeight: type.eta.lineHeight - 6 },
-  now: { gap: spacing.xs },
+  now: { gap: spacing.xs, padding: spacing.md },
   nowText: { fontFamily: fontFamily.semibold, fontSize: type.title.size + 4, lineHeight: type.title.lineHeight + 6 },
   change: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start', padding: spacing.md, borderRadius: radius.card, marginTop: spacing.sm },
   actions: { paddingTop: spacing.sm },

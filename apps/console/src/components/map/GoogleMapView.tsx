@@ -14,6 +14,7 @@ import { useTheme } from '@/stores/theme';
 import type { MapScene, SceneLine } from '@/lib/scene';
 import { GRAPH_FILE } from '@/lib/scenario';
 import { IncidentMarker } from '@/components/shared/IncidentMarker';
+import { markerDensity } from '@/lib/incidents';
 import { BlockedCross, HospitalMarker, OriginMarker, VehicleMarker } from './PlaceMarkers';
 import { MapLegend } from './MapLegend';
 
@@ -226,6 +227,7 @@ export function GoogleMapView({
   const theme = useTheme((s) => s.theme);
   const bbox = fit ?? GRAPH_FILE.bbox;
   const pad = insetsOf(insets ?? (compact ? 8 : 32));
+  const density = markerDensity(incidents.length);
   const lines = dimmed ? scene.lines.map((l) => ({ ...l, opacity: l.opacity * 0.4 })) : scene.lines;
   return (
     <div className="relative h-full w-full bg-shell-deep">
@@ -266,7 +268,7 @@ export function GoogleMapView({
         ))}
         {incidents.map((inc) => (
           <HtmlOverlay key={inc.id} position={inc.point} zIndex={selectedId === inc.id ? 9 : 8} anchor="marker">
-            <IncidentMarker incident={inc} nowS={nowS} pulseKey={pulses[inc.id] ?? 0} selected={selectedId === inc.id} onSelect={onSelectIncident} />
+            <IncidentMarker incident={inc} nowS={nowS} pulseKey={pulses[inc.id] ?? 0} selected={selectedId === inc.id} onSelect={onSelectIncident} density={density} />
           </HtmlOverlay>
         ))}
         {scene.vehicle && (

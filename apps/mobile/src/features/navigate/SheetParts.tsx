@@ -291,12 +291,12 @@ export function MiniChange({ banner, onPress, onDismiss }: { banner: Banner; onP
 }
 
 /** "Arrive 14:22": words in Manrope, the simulation clock in the technical face (DESIGN_VISION 6). */
-export function ArriveAt({ clock }: { clock: string }) {
+export function ArriveAt({ clock, tone = 'muted' }: { clock: string; tone?: 'muted' | 'onAccent' }) {
   const [before, after = ''] = t('arriveAt', { clock: '\u0000' }).split('\u0000');
   return (
-    <AppText variant="meta" tone="muted">
+    <AppText variant="meta" tone={tone}>
       {before}
-      <AppText variant="mono" tone="muted">
+      <AppText variant="mono" tone={tone}>
         {clock}
       </AppText>
       {after}
@@ -432,7 +432,7 @@ export function NoViableCard({ plan, onGoTo, cause, onDetails }: { plan: PlanRes
 const barColor = (tc: ThemeColors, role: RouteRole) => (role === 'recommended' ? tc.routeRecommended : tc.routeMuted);
 
 /** One route in the comparison: a row, not a card. Role, name, ETA, a delta bar, the reason. */
-export const RouteRow = memo(function RouteRow({ route, bar, index }: { route: RouteEvaluation; bar: DeltaBar | undefined; index: number }) {
+export const RouteRow = memo(function RouteRow({ route, bar, index, strip }: { route: RouteEvaluation; bar: DeltaBar | undefined; index: number; strip?: boolean }) {
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
@@ -494,6 +494,7 @@ export const RouteRow = memo(function RouteRow({ route, bar, index }: { route: R
           {whyNot}
         </AppText>
       ) : null}
+      {strip ? <RouteStrip route={route} /> : null}
     </Animated.View>
   );
 });
@@ -626,7 +627,7 @@ const useStyles = createStyles((tc) => ({
   // Each route is a card: same padding, one head line (role and name left, ETA right), the delta bar, the reason.
   row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   rowDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
-  rowRecommended: { backgroundColor: tc.recommendedSurface, borderColor: tc.routeRecommended, borderWidth: 1.5 },
+  rowRecommended: { borderColor: tc.routeRecommended, borderWidth: 1.5 },
   rowBlocked: { borderColor: tc.danger, borderStyle: 'dashed' },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   rowTitle: { gap: spacing.xxs },

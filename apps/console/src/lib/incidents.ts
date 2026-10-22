@@ -44,3 +44,11 @@ export function incidentFacts(inc: Incident, nowS: number, clockStartsAt: string
 }
 
 export const isClosed = (inc: Incident): boolean => inc.status === 'resolved' || inc.status === 'dismissed';
+
+/** Above this many incidents on the map (a live feed), markers switch to their compact form. */
+export const DENSE_MARKERS = 20;
+
+export type MarkerDensity = 'full' | 'compact';
+
+/** Full markers for a handful of incidents; compact ones when a feed fills the map. */
+export const markerDensity = (count: number): MarkerDensity => (count > DENSE_MARKERS ? 'compact' : 'full');

@@ -39,6 +39,8 @@ export { default as Radio } from 'lucide-react-native/icons/radio';
 export { default as Languages } from 'lucide-react-native/icons/languages';
 export { default as Server } from 'lucide-react-native/icons/server';
 export { default as Smartphone } from 'lucide-react-native/icons/smartphone';
+export { default as FlaskConical } from 'lucide-react-native/icons/flask-conical';
+export { default as HardDrive } from 'lucide-react-native/icons/hard-drive';
 export { default as Gauge } from 'lucide-react-native/icons/gauge';
 export { default as SquareFunction } from 'lucide-react-native/icons/square-function';
 export { default as ListChecks } from 'lucide-react-native/icons/list-checks';

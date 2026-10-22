@@ -56,6 +56,8 @@ tells you why."; button "Continue". No permission prompts here.
 └──────────────────────────────┘
 ```
 
+**Header (v5).** The search bar holds only the destination (full name, mode badge) and a search icon. The connection and data status is a small pill on its own line under the profile chips; tapping it opens the notices just below it. **Share** always opens the system share sheet, so the traveller picks WhatsApp, Messages or any other app; nothing opens by itself. Route cards in the opened sheet show crossings as bands on the strip with one summary row ("Flyover ×3 · Underpass") instead of a label per crossing.
+
 **Search card (start and destination).** Tapping the card opens one search sheet with a From and a To field and a text box. It searches offline, over the scenario places and every named road of the bundled map, so any road in the Andheri map area can be the destination or the start. An empty query lists the scenario places. From also offers "My location" (foreground permission; refused with a calm message outside the map area or when permission is off). Every pick is a point that the engine snaps to its road graph for the active profile. The start cannot be changed during a trip, and a start equal to the destination is refused. Searched places stay on the phone: their trips are not published to the console.
 
 Sheet snap points (v5): **small** (the default and lowest stop: ETA, route name and Start trip, plus a

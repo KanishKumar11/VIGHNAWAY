@@ -142,6 +142,8 @@ export const text = {
   /** The hero ETA. */
   display: { fontFamily: fontFamily.bold, fontSize: type.display.size, lineHeight: type.display.lineHeight, fontVariant: tabular, letterSpacing: -1 },
   eta: textStyle('eta'),
+  /** Large screen title (DESIGN.md 15): a step under the ETA. */
+  headline: { fontFamily: fontFamily.bold, fontSize: type.eta.size - spacing.xxs, lineHeight: type.eta.lineHeight - spacing.xxs, letterSpacing: -0.5 },
   title: textStyle('title'),
   body: textStyle('body'),
   meta: textStyle('meta'),

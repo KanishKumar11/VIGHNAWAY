@@ -16,6 +16,7 @@ export type TextTone =
   | 'positive'
   | 'live'
   | 'inverse'
+  | 'onAccent'
   | 'accent'
   | 'recommended';
 
@@ -42,6 +43,8 @@ export function toneColor(tc: ThemeColors, _name: ThemeName, tone: TextTone): st
       return tc.liveInk;
     case 'inverse':
       return tc.panel;
+    case 'onAccent':
+      return tc.onAccent;
     case 'accent':
       return tc.accentInk;
     case 'recommended':

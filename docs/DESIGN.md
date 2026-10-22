@@ -360,14 +360,34 @@ Measured in the browser at 1280, 1440, 1600 and 1920 px; keep these when changin
 
 ### 13.2 Brand colour (console)
 
-`consoleBrand` in `@vighnaway/tokens`: the signature gradient indigo `#4F46E5` → violet `#6D28D9`
-→ teal `#0F766E`, white text at AA at every stop (`brandContrastPairs`), plus aurora tints
-(indigo, teal, violet) for the page canvas. Used only for brand moments and primary actions: the
-logo tile, the wordmark (`.vw-brand-text`), primary buttons (`ctl-primary`), the clock badge, the
-command bar's light line, panel title bars (`.vw-title-bar`) and timeline progress. Never for
-status, routes, markers or body text. The hero card (`.vw-hero`) runs from `chromeIndigo`
-`#1E1B4B` into `chromeBg` with teal and violet light. Panels are frosted glass (80% white, blurred)
-so the aurora shows through. Text contrast is tested against solid white; behind the glass the
-surface is white with at most a faint tint (aurora tints are 16 to 24% alpha, then 80% white over
-them), which has not been separately measured. This deliberately goes beyond DESIGN_VISION 4.4's "no extra accent hues", at the
-product owner's request, and is confined to brand surfaces.
+`consoleBrand` in `@vighnaway/tokens`. The console uses one solid brand colour, indigo
+`#4F46E5` (`brandFrom`), with white text at AA (`brandContrastPairs`). No gradients anywhere. It
+is used only for brand moments and primary actions: the logo tile, the wordmark
+(`.vw-brand-text`), primary buttons (`ctl-primary`), the clock badge (`.vw-brand-fill`), panel
+title bars (`.vw-title-bar`) and timeline progress. Never for status, routes, markers or body
+text. The hero card (`.vw-hero`) is solid deep indigo `chromeIndigo` `#1E1B4B`. The page canvas
+is the plain `shell` colour; panels are frosted white (80%, blurred). The `brandVia`, `brandTo`
+and aurora tokens remain in the package but are unused by the console. This goes beyond
+DESIGN_VISION 4.4's "no extra accent hues", at the product owner's request, and is confined to
+brand surfaces.
+
+## 15. v6: Premium layout system (phone)
+
+Replaces the "rules, not cards" grouping of DESIGN_VISION 3.3 on the phone. Every screen is built
+from the kit in `apps/mobile/src/components/ui.tsx`, so gutters, radii and rows line up everywhere:
+
+- **ScreenHeader:** a large title (`text.headline`, 28/34 bold) on the page colour with one round
+  leading button (menu on drawer screens, back or close on stacked ones) and an optional trailing
+  badge. No header bar or hairline. The drawer navigator's own header is off.
+- **Section and Card:** a label (with an optional count pill) above one rounded card (radius
+  `sheet`, white panel, hairline, soft shadow) that groups related rows; a hint sits under it.
+- **Row:** a 36 dp icon tile (tinted by tone), title and subtitle, then a trailing value, switch,
+  radio or chevron; at least 56 dp tall, 16 dp gutter, dividers inset to the text.
+- **Brand hero:** the accent fills one surface per screen at most: the drawer's brand card and the
+  Drive mode ETA card (text in `onAccent`).
+- **Routes:** every route is one card holding its head line, comparison bar, reason, why-not line,
+  strip and crossing summary; the recommended card has an accent border.
+
+Screens on the kit: drawer, Settings, Activity, How it decides, Routes and incidents, Drive mode,
+Debug. Navigate keeps its map layout (top bar, small sheet) and uses the same cards in the sheet.
+

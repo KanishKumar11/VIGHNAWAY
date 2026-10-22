@@ -260,21 +260,21 @@
     border-color: var(--vw-shell-hairline-strong);
   }
 }
-/* Primary action: the brand gradient (indigo to teal), same box as `ctl` (1px edge), with an indigo glow. */
+/* Primary action: solid brand indigo, same box as `ctl` (1px edge), with a soft indigo shadow. */
 @utility ctl-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--vw-space-xs);
   border-radius: var(--vw-radius-button);
-  border: 1px solid transparent;
-  background: linear-gradient(110deg, var(--vw-brand-from) 0%, var(--vw-brand-via) 40%, var(--vw-brand-to) 100%) border-box;
+  border: 1px solid var(--vw-brand-from);
+  background: var(--vw-brand-from);
   color: var(--vw-on-brand);
   font-weight: 600;
-  box-shadow: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-brand-glow), inset 0 1px 0 color-mix(in srgb, var(--vw-on-brand) 22%, transparent);
-  transition: filter 150ms var(--vw-ease-out), box-shadow 150ms var(--vw-ease-out);
+  box-shadow: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-brand-glow);
+  transition: filter 150ms var(--vw-ease-out);
   &:hover:not(:disabled) {
-    filter: brightness(1.08) saturate(1.1);
+    filter: brightness(1.1);
   }
 }
 /* Quiet text action in the header. */
@@ -293,11 +293,7 @@
 }
 /* Page canvas: a faint accent wash at the top that settles into the shell colour. */
 .vw-canvas {
-  background:
-    radial-gradient(ellipse 55% 45% at 8% 0%, var(--vw-aurora-indigo), transparent 70%),
-    radial-gradient(ellipse 50% 50% at 92% 8%, var(--vw-aurora-teal), transparent 70%),
-    radial-gradient(ellipse 60% 55% at 50% 105%, var(--vw-aurora-violet), transparent 70%),
-    var(--vw-shell);
+  background: var(--vw-shell);
 }
 .vw-header {
   background: color-mix(in srgb, var(--vw-shell-raised) 88%, transparent);
@@ -305,54 +301,31 @@
   border-bottom: 1px solid var(--vw-shell-hairline);
   box-shadow: inset 0 1px 0 var(--vw-shell-highlight), 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-sm) * -1) var(--vw-shadow-2);
 }
-.vw-header::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--vw-brand-from) 25%, var(--vw-brand-via) 50%, var(--vw-brand-to) 75%, transparent);
-  opacity: 0.7;
-}
-/* Brand surfaces and text: the signature gradient. Brand moments only (logo, wordmark, progress). */
+/* Brand surfaces and text: solid brand indigo. Brand moments only (logo, wordmark, progress). */
 .vw-brand-fill {
-  background: linear-gradient(135deg, var(--vw-brand-from) 0%, var(--vw-brand-via) 40%, var(--vw-brand-to) 100%);
+  background: var(--vw-brand-from);
   color: var(--vw-on-brand);
 }
 .vw-brand-text {
-  background: linear-gradient(90deg, var(--vw-brand-from), var(--vw-brand-via) 50%, var(--vw-brand-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--vw-brand-from);
 }
-/* Small gradient bar that leads a panel title. */
+/* Small brand bar that leads a panel title. */
 .vw-title-bar {
   display: inline-block;
   width: var(--vw-space-xxs);
   height: var(--vw-space-md);
   border-radius: var(--vw-radius-chip);
-  background: linear-gradient(180deg, var(--vw-brand-from), var(--vw-brand-to));
+  background: var(--vw-brand-from);
 }
-/* Hero card on the decision panel: navy, with a luminous teal edge light at the top. */
+/* Hero card on the decision panel: solid deep indigo. */
 .vw-hero {
   position: relative;
   overflow: hidden;
   border-radius: var(--vw-radius-sheet);
-  background:
-    radial-gradient(ellipse 70% 90% at 100% 0%, color-mix(in srgb, var(--vw-chrome-accent) 26%, transparent), transparent 62%),
-    radial-gradient(ellipse 60% 80% at 0% 100%, color-mix(in srgb, var(--vw-brand-via) 30%, transparent), transparent 65%),
-    linear-gradient(150deg, var(--vw-chrome-indigo), var(--vw-chrome-bg));
+  background: var(--vw-chrome-indigo);
   border: 1px solid var(--vw-chrome-line);
   box-shadow: 0 var(--vw-space-md) var(--vw-space-xl) calc(var(--vw-space-sm) * -1) var(--vw-brand-glow), inset 0 1px 0 var(--vw-chrome-fill-strong);
   color: var(--vw-chrome-ink);
-}
-.vw-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0 var(--vw-space-lg) auto;
-  height: 2px;
-  border-radius: var(--vw-radius-chip);
-  background: linear-gradient(90deg, transparent, var(--vw-chrome-accent), transparent);
-  opacity: 0.9;
 }
 
 /* ---------- Motion (durations from tokens.motion; all instant under reduced motion) ---------- */
