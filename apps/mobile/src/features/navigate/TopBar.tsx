@@ -18,7 +18,7 @@ import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, spacing, useTheme } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, motion, radius, shadow, spacing, useTheme } from '@/theme';
 import { statusPill, type StatusKind, type StatusPill } from './statusModel';
 
 const PROFILE_META: Record<Profile, { label: StringKey; icon: LucideIcon }> = {
@@ -181,7 +181,7 @@ export function TopBar({
             </AppText>
           </View>
           <View style={styles.searchBadge} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <Search size={18} color={tc.accentInk} strokeWidth={2.4} />
+            <Search size={18} color={tc.onAccent} strokeWidth={2.5} />
           </View>
         </PressScale>
       </View>
@@ -262,19 +262,19 @@ const useStyles = createStyles((tc) => ({
     minHeight: BAR_H,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.card + 2,
+    borderRadius: radius.sheet,
     backgroundColor: tc.shellOverlay,
     borderWidth: hairline,
-    borderColor: tc.shellHairlineStrong,
+    borderColor: tc.panelLine,
     paddingHorizontal: spacing.xxs,
     paddingVertical: spacing.xxs,
     gap: spacing.xxs,
   },
   menu: { width: layout.minTouch, height: layout.minTouch, alignItems: 'center', justifyContent: 'center', borderRadius: radius.button },
-  divider: { width: hairline, alignSelf: 'stretch', marginVertical: spacing.xs, backgroundColor: tc.shellHairlineStrong },
+  divider: { width: hairline, alignSelf: 'stretch', marginVertical: spacing.sm, backgroundColor: tc.panelLine },
   dest: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingVertical: spacing.xxs, minHeight: layout.minTouch },
   destText: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2 },
-  searchBadge: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
+  searchBadge: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.button, backgroundColor: tc.accent, alignItems: 'center', justifyContent: 'center', ...glow(tc.accent, 0.5) },
   statusRow: { alignItems: 'flex-end' },
   // Floats under the pill without adding to the bar's height, which the map uses as its top padding.
   menuButton: {
@@ -287,7 +287,7 @@ const useStyles = createStyles((tc) => ({
     borderRadius: radius.chip,
     backgroundColor: tc.shellOverlay,
     borderWidth: hairline,
-    borderColor: tc.shellHairlineStrong,
+    borderColor: tc.panelLine,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -304,7 +304,7 @@ const useStyles = createStyles((tc) => ({
     borderRadius: radius.chip,
     borderWidth: hairline,
   },
-  pillCalm: { backgroundColor: tc.shellRaised, borderColor: tc.shellHairline },
+  pillCalm: { backgroundColor: tc.shellOverlay, borderColor: tc.panelLine },
   pillWarn: { backgroundColor: tc.warnSurface, borderColor: tc.warnSoft },
   flip: { transform: [{ rotate: '180deg' }] },
   liveDotWrap: { width: spacing.xs, height: spacing.xs, alignItems: 'center', justifyContent: 'center' },

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, StyleSheet, Switch, TextInput, useWindowDimensions, View, type TextInputInstance } from 'react-native';
+import { Alert, Platform, StyleSheet, Switch, TextInput, View, type TextInputInstance } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from 'react-native-maps';
 import Animated, { FadeIn, FadeOut, ZoomIn, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
@@ -14,13 +14,14 @@ import type { CapturedPhoto } from '@/lib/photo';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Crosshair, Eye, LocateFixed, TriangleAlert, X } from '@/components/icons';
+import { Check, Crosshair, Eye, LocateFixed, MapPin, TriangleAlert, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Lottie } from '@/components/Lottie';
 import { MapField } from '@/components/MapField';
 import { easing, enterUp, PressScale } from '@/components/motion';
 import { Segmented } from '@/components/Segmented';
 import { ToastHost } from '@/components/Toast';
+import { Card, Row, RoundButton, GUTTER } from '@/components/ui';
 import { googleMapsConfigured } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { getDeviceId } from '@/lib/deviceId';
@@ -33,8 +34,9 @@ import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, LARGER_TEXT, useTheme, withAlpha, hairline, layout, motion, radius, spacing, text, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, shadow, useTheme, withAlpha, hairline, layout, motion, radius, spacing, text, useColors, type ThemeColors } from '@/theme';
 import { DepthSelector } from './DepthSelector';
+import { MapPicker } from './MapPicker';
 import { PhotoField } from './PhotoField';
 import { submitReport } from './submit';
 import { emptyDraft, validateReport, type ReportDraft, type ReportErrors } from './validation';
@@ -48,22 +50,28 @@ const TYPES: { type: ReportType; label: StringKey }[] = [
   { type: 'road_clear', label: 'typeRoadClear' },
 ];
 
-/** Numbered step header: "01  What did you see?" with the error underneath. */
-function Section({ step, label, error, children, index }: { step: number; label: string; error?: string; children: React.ReactNode; index: number }) {
+/** One hue per report type, so each choice is recognisable before it is read. */
+const typeColor = (tc: ThemeColors, type: ReportType): string =>
+  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, road_clear: tc.positive })[type];
+
+/** A labelled group of controls, with the field's error underneath. */
+function Step({ title, error, index, bare, children }: { title: string; error?: string; index: number; bare?: boolean; children: React.ReactNode }) {
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
   return (
-    <Animated.View entering={enterUp(index, reduce)} style={styles.section}>
-      <View style={styles.sectionHead}>
-        <AppText variant="num" tone="muted" style={styles.step}>
-          {String(step).padStart(2, '0')}
-        </AppText>
-        <AppText variant="title" accessibilityRole="header" style={styles.flex}>
-          {label}
+    <Animated.View entering={enterUp(Math.min(index, 8), reduce)} style={styles.step}>
+      <View style={styles.stepHead}>
+        <View style={styles.stepNum} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <AppText variant="label" tone="onAccent" style={styles.stepNumText}>
+            {String(index + 1)}
+          </AppText>
+        </View>
+        <AppText variant="title" accessibilityRole="header">
+          {title}
         </AppText>
       </View>
-      {children}
+      {bare ? children : <Card>{children}</Card>}
       {error ? (
         <View style={styles.errorRow} accessibilityRole="alert">
           <TriangleAlert size={14} color={tc.dangerInk} />
@@ -76,8 +84,8 @@ function Section({ step, label, error, children, index }: { step: number; label:
   );
 }
 
-/** One of the six report tiles: glyph in a disc, label below; selection pops on a spring. */
-function TypeTile({ type, label, selected, onPress, wide }: { type: ReportType; label: string; selected: boolean; onPress: () => void; wide?: boolean }) {
+/** One of the six report choices: a tinted glyph disc and the label; the picked one takes its hue and a tick. */
+function TypeCard({ type, label, selected, onPress }: { type: ReportType; label: string; selected: boolean; onPress: () => void }) {
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
@@ -88,12 +96,12 @@ function TypeTile({ type, label, selected, onPress, wide }: { type: ReportType; 
       first.current = false;
       return;
     }
-    if (selected && !reduce) pop.value = withSequence(withTiming(0.94, { duration: motion.buttonPress }), withSpring(1, motion.springSnappy));
+    if (selected && !reduce) pop.value = withSequence(withTiming(0.95, { duration: motion.buttonPress }), withSpring(1, motion.springSnappy));
   }, [selected, reduce, pop]);
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
-  const fg = selected ? tc.panel : tc.ink;
+  const hue = typeColor(tc, type);
   return (
-    <Animated.View style={[styles.tileWrap, wide && styles.tileWrapWide, popStyle]}>
+    <Animated.View style={[styles.typeWrap, popStyle]}>
       <PressScale
         haptic="selection"
         onPress={onPress}
@@ -101,20 +109,25 @@ function TypeTile({ type, label, selected, onPress, wide }: { type: ReportType; 
         accessibilityRole="radio"
         accessibilityLabel={label}
         accessibilityState={{ selected }}
-        style={[styles.tile, selected && styles.tileSelected]}
+        style={[styles.type, selected ? [{ backgroundColor: withAlpha(hue, 0.12), borderColor: hue }, glow(hue, 0.5)] : [{ backgroundColor: tc.panel, borderColor: tc.panelLine }, shadow('sm')]]}
       >
-        <View style={[styles.tileDisc, selected && styles.tileDiscSelected]}>
-          <IncidentGlyph type={type} size={24} color={fg} />
+        <View style={[styles.typeDisc, { backgroundColor: withAlpha(hue, selected ? 0.22 : 0.14) }]}>
+          <IncidentGlyph type={type} size={26} color={hue} />
         </View>
-        <AppText variant="meta" tone={selected ? 'inverse' : 'ink'} numberOfLines={2} style={[styles.tileLabel, selected && styles.strong]}>
+        <AppText variant="label" numberOfLines={2} style={[styles.typeLabel, selected && styles.strong]}>
           {label}
         </AppText>
+        {selected ? (
+          <Animated.View entering={reduce ? undefined : ZoomIn.duration(motion.statusUpgrade)} style={[styles.tick, { backgroundColor: hue }]}>
+            <Check size={12} color={tc.white} strokeWidth={3} />
+          </Animated.View>
+        ) : null}
       </PressScale>
     </Animated.View>
   );
 }
 
-const TILE_PREVIEW = spacing.xl * 2;
+const TILE_PREVIEW = spacing.xl * 2 + spacing.sm;
 
 function LocationPreview({ point }: { point: LatLng }) {
   const tc = useColors();
@@ -157,9 +170,6 @@ export function ReportScreen() {
   const tc = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
-  const largerText = useSettings((s) => s.largerText);
-  const wideTiles = fontScale * (largerText ? LARGER_TEXT : 1) > 1.2;
   const reduce = useReduceMotion();
   const params = useLocalSearchParams<{ fixture?: string }>();
   const fixture = useSettings((s) => s.fixtureMode === 'report') || params.fixture === '1';
@@ -170,7 +180,8 @@ export function ReportScreen() {
   );
   const [errors, setErrors] = useState<ReportErrors>({});
   const [status, setStatus] = useState<'editing' | 'sending' | 'sent'>('editing');
-  const [locationSource, setLocationSource] = useState<'map' | 'device'>('map');
+  const [locationSource, setLocationSource] = useState<'auto' | 'map' | 'device'>('auto');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [photo, setPhoto] = useState<CapturedPhoto | null>(null);
   const [noteFocused, setNoteFocused] = useState(false);
@@ -232,22 +243,20 @@ export function ReportScreen() {
 
   const takeMyLocation = async () => {
     setLocationNote(null);
-    setLocationSource('device');
     try {
       const perm = await requestLocationPermission();
       if (perm === 'denied' || perm === 'unknown') {
         setLocationNote(t('locationDenied'));
-        setLocationSource('map');
         return;
       }
       const fix = await accurateFix();
       set({ point: { lat: fix.lat, lng: fix.lng } });
+      setLocationSource('device');
       // Say when the position is rough, so the reporter can drag the map to the exact spot.
       if (perm === 'approximate') setLocationNote(t('locationApproximatePermission'));
       else if (fix.accuracyM !== null && fix.accuracyM > APPROXIMATE_FIX_M) setLocationNote(t('locationApproximate', { m: Math.round(fix.accuracyM) }));
     } catch {
       setLocationNote(t('locationFailed'));
-      setLocationSource('map');
     }
   };
 
@@ -289,60 +298,55 @@ export function ReportScreen() {
   const noteLen = draft.note.trim().length;
   const type = draft.type;
   const hasDetail = type === 'flood' || type === 'congestion' || type === 'debris' || type === 'accident';
-  let step = 1;
-  const stepOf = () => step++;
 
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
       {/* Android draws the modal edge to edge: the header clears the status bar and side insets. */}
       <View
-        style={[styles.header, { paddingTop: insets.top + spacing.sm, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]}
+        style={[styles.header, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}
         onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
       >
-        <View style={styles.headerRow}>
-          <AppText variant="title" accessibilityRole="header" style={styles.flexShrink}>
-            {t('reportTitle')}
-          </AppText>
+        <View style={styles.headerBar}>
           <ModeBadge onShell={false} compact />
-          <View style={styles.flex} />
-          <PressScale haptic={null} onPress={() => router.dismiss()} accessibilityRole="button" accessibilityLabel={t('reportClose')} style={styles.close} hitSlop={spacing.xs}>
-            <X size={20} color={tc.ink} />
-          </PressScale>
+          <RoundButton icon={X} label={t('reportClose')} onPress={() => router.dismiss()} testID="report-close" />
         </View>
-        <AppText variant="meta" tone="muted">
-          {t(liveMode ? 'reportLiveNote' : 'reportSimulatedNote')}
+        <AppText variant="headline" accessibilityRole="header">
+          {t('reportTitle')}
         </AppText>
+        <AppText tone="muted">{t(liveMode ? 'reportLiveNote' : 'reportSimulatedNote')}</AppText>
       </View>
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: layout.minTouch + spacing.xl + insets.bottom, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md },
+          { paddingBottom: layout.minTouch + spacing.xl + insets.bottom, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER },
         ]}
       >
-        <Section step={stepOf()} label={t('reportTypeLabel')} error={errors.type} index={0}>
+        <Step title={t('reportTypeLabel')} error={errors.type} index={0} bare>
           <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel={t('reportTypeLabel')}>
             {TYPES.map((it) => (
-              <TypeTile
+              <TypeCard
                 key={it.type}
                 type={it.type}
                 label={t(it.label)}
                 selected={type === it.type}
-                wide={wideTiles}
                 onPress={() => set({ type: it.type, depth: null, congestion: null, severity: null, impassable: false })}
               />
             ))}
           </View>
-        </Section>
+        </Step>
         {type === 'flood' ? (
-          <Section key="depth" step={stepOf()} label={t('depthLabel')} index={1}>
-            <DepthSelector value={draft.depth} onChange={(depth) => set({ depth })} />
-          </Section>
+          <Step key="depth" title={t('depthLabel')} index={1}>
+            <View style={styles.pad}>
+              <DepthSelector value={draft.depth} onChange={(depth) => set({ depth })} />
+            </View>
+          </Step>
         ) : null}
         {type === 'congestion' ? (
-          <Section key="congestion" step={stepOf()} label={t('congestionLabel')} error={errors.congestion} index={1}>
+          <Step key="congestion" title={t('congestionLabel')} error={errors.congestion} index={1} bare>
             <Segmented
               accessibilityLabel={t('congestionLabel')}
               value={draft.congestion}
@@ -353,46 +357,52 @@ export function ReportScreen() {
                 label: t(c === 'moderate' ? 'congestionModerate' : c === 'heavy' ? 'congestionHeavy' : 'congestionStandstill'),
               }))}
             />
-          </Section>
+          </Step>
         ) : null}
         {type === 'debris' || type === 'accident' ? (
-          <Section key="severity" step={stepOf()} label={t('severityLabel')} index={1}>
-            <Segmented
-              accessibilityLabel={t('severityLabel')}
-              value={draft.severity}
-              onChange={(severity) => set({ severity })}
-              options={(['low', 'medium', 'high'] as const).map((s) => ({
-                value: s,
-                label: t(s === 'low' ? 'severityLow' : s === 'medium' ? 'severityMedium' : 'severityHigh'),
-              }))}
-            />
-            <View style={styles.switchCard}>
-              <AppText style={styles.flex}>{t('impassableLabel')}</AppText>
-              <Switch
-                value={draft.impassable}
-                onValueChange={(v) => set({ impassable: v })}
-                accessibilityLabel={t('impassableLabel')}
-                trackColor={{ true: tc.accent, false: tc.controlBorder }}
-                thumbColor={tc.white}
+          <Step key="severity" title={t('severityLabel')} index={1}>
+            <View style={styles.pad}>
+              <Segmented
+                accessibilityLabel={t('severityLabel')}
+                value={draft.severity}
+                onChange={(severity) => set({ severity })}
+                options={(['low', 'medium', 'high'] as const).map((s) => ({
+                  value: s,
+                  label: t(s === 'low' ? 'severityLow' : s === 'medium' ? 'severityMedium' : 'severityHigh'),
+                }))}
               />
             </View>
-          </Section>
+            <Row
+              icon={TriangleAlert}
+              iconTone="danger"
+              title={t('impassableLabel')}
+              trailing={
+                <Switch
+                  value={draft.impassable}
+                  onValueChange={(v) => set({ impassable: v })}
+                  accessibilityLabel={t('impassableLabel')}
+                  trackColor={{ true: tc.accent, false: tc.controlBorder }}
+                  thumbColor={tc.white}
+                />
+              }
+            />
+          </Step>
         ) : null}
-        <Section step={stepOf()} label={t('locationLabel')} error={errors.point} index={hasDetail ? 2 : 1}>
-          <View style={styles.card}>
+        <Step title={t('locationLabel')} error={errors.point} index={hasDetail ? 2 : 1}>
+          <View style={styles.pad}>
             {draft.point ? (
               <View
                 style={styles.locRow}
                 accessible
-                accessibilityLabel={t(locationSource === 'device' ? 'locationFromDevice' : 'locationFromMap', {
+                accessibilityLabel={t(locationSource === 'device' ? 'locationFromDevice' : locationSource === 'map' ? 'locationFromMap' : 'locationFromAuto', {
                   lat: draft.point.lat.toFixed(5),
                   lng: draft.point.lng.toFixed(5),
                 })}
               >
                 <LocationPreview point={draft.point} />
                 <View style={[styles.flex, styles.locText]}>
-                  <AppText variant="label" tone="muted">
-                    {t(locationSource === 'device' ? 'locationDeviceLabel' : 'locationMapLabel')}
+                  <AppText variant="label" tone="accent">
+                    {t(locationSource === 'device' ? 'locationDeviceLabel' : locationSource === 'map' ? 'locationMapLabel' : 'locationAutoLabel')}
                   </AppText>
                   <AppText variant="mono" testID="location-coords">
                     {draft.point.lat.toFixed(5)}
@@ -406,31 +416,28 @@ export function ReportScreen() {
             ) : null}
             <Segmented
               accessibilityLabel={t('locationLabel')}
-              value={locationSource}
+              value={locationSource === 'auto' ? null : locationSource}
               onChange={(v) => {
                 if (v === 'device') void takeMyLocation();
-                else {
-                  setLocationSource('map');
-                  if (fallbackPoint) set({ point: fallbackPoint });
-                }
+                else setPickerOpen(true);
               }}
               options={[
                 { value: 'device', label: t('useMyLocation'), icon: LocateFixed },
-                { value: 'map', label: t('useMapCentre'), icon: Crosshair },
+                { value: 'map', label: t('chooseOnMap'), icon: MapPin, testID: 'choose-on-map' },
               ]}
             />
+            {locationNote ? (
+              <AppText variant="meta" tone="warn">
+                {locationNote}
+              </AppText>
+            ) : null}
           </View>
-          {locationNote ? (
-            <AppText variant="meta" tone="warn">
-              {locationNote}
-            </AppText>
-          ) : null}
-        </Section>
-        <Section step={stepOf()} label={t('photoLabel')} index={hasDetail ? 3 : 2}>
+        </Step>
+        <Step title={t('photoLabel')} index={hasDetail ? 3 : 2} bare>
           <PhotoField photo={photo} onChange={setPhoto} />
-        </Section>
-        <Section step={stepOf()} label={t('noteLabel')} error={errors.note} index={hasDetail ? 4 : 3}>
-          <View style={[styles.inputWrap, noteFocused && styles.inputFocused, errors.note ? styles.inputError : null]}>
+        </Step>
+        <Step title={t('noteLabel')} error={errors.note} index={hasDetail ? 4 : 3}>
+          <View style={[styles.pad, styles.inputWrap, noteFocused && styles.inputFocused, errors.note ? styles.inputError : null]}>
             <TextInput
               ref={noteRef}
               testID="report-note"
@@ -449,23 +456,26 @@ export function ReportScreen() {
               {t('noteCounter', { n: noteLen })}
             </AppText>
           </View>
-        </Section>
-        <View style={[styles.switchCard, styles.switchRule]}>
-          <View style={styles.switchIcon}>
-            <Eye size={18} color={tc.ink} />
-          </View>
-          <AppText style={styles.flex}>{t('observedLabel')}</AppText>
-          <Switch
-            value={draft.observedPersonally}
-            onValueChange={(v) => set({ observedPersonally: v })}
-            accessibilityLabel={t('observedLabel')}
-            trackColor={{ true: tc.accent, false: tc.controlBorder }}
-            thumbColor={tc.white}
+        </Step>
+        <Card>
+          <Row
+            first
+            icon={Eye}
+            title={t('observedLabel')}
+            trailing={
+              <Switch
+                value={draft.observedPersonally}
+                onValueChange={(v) => set({ observedPersonally: v })}
+                accessibilityLabel={t('observedLabel')}
+                trackColor={{ true: tc.accent, false: tc.controlBorder }}
+                thumbColor={tc.white}
+              />
+            }
           />
-        </View>
+        </Card>
       </KeyboardAwareScrollView>
       <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]}>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
           {/* Pinned above the button so a failed send is never hidden below the fold. */}
           {errors.form ? (
             <View style={styles.formError} accessibilityRole="alert">
@@ -493,6 +503,17 @@ export function ReportScreen() {
           )}
         </View>
       </KeyboardStickyView>
+      <MapPicker
+        visible={pickerOpen}
+        initial={draft.point}
+        onCancel={() => setPickerOpen(false)}
+        onConfirm={(point) => {
+          set({ point });
+          setLocationSource('map');
+          setLocationNote(null);
+          setPickerOpen(false);
+        }}
+      />
       {/* Toasts open under the header, never over the title or the status bar. */}
       <ToastHost top={headerH + spacing.xs} />
     </View>
@@ -502,89 +523,65 @@ export function ReportScreen() {
 const useStyles = createStyles((tc) => ({
   root: { flex: 1, backgroundColor: tc.shell },
   flex: { flex: 1 },
-  strong: { fontFamily: fontFamily.semibold },
-  header: {
-    gap: spacing.xxs,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: hairline,
-    borderBottomColor: tc.panelHairline,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  flexShrink: { flexShrink: 1 },
-  close: {
-    width: spacing.xl + spacing.xs,
-    height: spacing.xl + spacing.xs,
-    borderRadius: radius.chip,
-    backgroundColor: tc.panelSunken,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: { padding: spacing.md, gap: spacing.lg },
-  section: { gap: spacing.sm },
-  sectionHead: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  step: { minWidth: spacing.lg },
-  errorRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs + 2 },
+  strong: { fontFamily: fontFamily.bold },
+  header: { gap: spacing.xxs, paddingBottom: spacing.md, backgroundColor: tc.shell },
+  headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: layout.minTouch - spacing.xxs, marginBottom: spacing.sm },
+  content: { paddingTop: spacing.xs, gap: spacing.lg },
+  step: { gap: spacing.sm },
+  stepHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xxs },
+  stepNum: { width: spacing.lg, height: spacing.lg, borderRadius: radius.chip, backgroundColor: tc.accent, alignItems: 'center', justifyContent: 'center' },
+  stepNumText: { fontFamily: fontFamily.bold, lineHeight: spacing.md + spacing.xxs },
+  errorRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs + 2, paddingHorizontal: spacing.xxs },
+  pad: { padding: spacing.md, gap: spacing.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  tileWrap: { flexBasis: '31%', flexGrow: 1 },
-  // Two columns at large text sizes, so labels never break mid-word.
-  tileWrapWide: { flexBasis: '47%' },
-  tile: {
-    minHeight: spacing.xl * 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    // Narrow side padding so one-word labels ("Congestion") fit three across without breaking.
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xxs,
-    borderRadius: radius.card,
-    backgroundColor: tc.panel,
-    // Control boundary at 3:1 (DESIGN_VISION 5.1); flat, no shadow.
-    borderWidth: 1,
-    borderColor: tc.controlBorder,
-  },
-  tileSelected: { backgroundColor: tc.ink, borderColor: tc.ink },
-  tileDisc: {
-    width: spacing.xl + spacing.sm,
-    height: spacing.xl + spacing.sm,
-    borderRadius: radius.chip,
-    backgroundColor: tc.panelSunken,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // A translucent disc of the page colour on the ink tile (works on both themes).
-  tileDiscSelected: { backgroundColor: withAlpha(tc.panel, 0.16) },
-  tileLabel: { textAlign: 'center' },
-  // Location: the preview and the source control, grouped by spacing rather than a card.
-  card: { gap: spacing.sm },
-  locRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  locText: { gap: 2 },
-  preview: { width: TILE_PREVIEW, height: TILE_PREVIEW, borderRadius: radius.button, overflow: 'hidden', backgroundColor: tc.shell },
-  previewCross: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  switchCard: {
+  typeWrap: { flexBasis: '47%', flexGrow: 1 },
+  type: {
+    minHeight: layout.minTouch + spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: layout.minTouch + spacing.xs,
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.sheet,
+    // Always 2 px so picking a card never nudges its neighbours.
+    borderWidth: 2,
   },
-  switchRule: { borderTopWidth: hairline, borderBottomWidth: hairline, borderColor: tc.panelHairline },
-  switchIcon: { width: spacing.xl, height: spacing.xl, alignItems: 'center', justifyContent: 'center' },
-  inputWrap: {
-    borderWidth: 1,
-    borderColor: tc.controlBorder,
-    borderRadius: radius.card,
-    backgroundColor: tc.panel,
-    padding: spacing.sm,
-    paddingBottom: spacing.xs,
+  typeDisc: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.chip, alignItems: 'center', justifyContent: 'center' },
+  typeLabel: { flex: 1, fontFamily: fontFamily.semibold },
+  tick: {
+    position: 'absolute',
+    top: spacing.xs - 2,
+    right: spacing.xs - 2,
+    width: spacing.md + 2,
+    height: spacing.md + 2,
+    borderRadius: radius.chip,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  // Focus and error are drawn on the wrapper (2 px), so the browser's own outline is removed on web.
-  inputFocused: { borderColor: tc.focus, borderWidth: 2 },
+  locRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  locText: { gap: 2 },
+  preview: { width: TILE_PREVIEW, height: TILE_PREVIEW, borderRadius: radius.card, overflow: 'hidden', backgroundColor: tc.shell },
+  previewCross: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
+  // Focus and error are drawn as a 2 px ring around the field, so the browser's own outline is removed on web.
+  inputWrap: { borderWidth: 2, borderColor: 'transparent', borderRadius: radius.sheet },
+  inputFocused: { borderColor: tc.focus },
   input: { ...text.body, color: tc.ink, minHeight: spacing.xl * 2 + spacing.sm, padding: 0, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null) },
-  inputError: { borderColor: tc.danger, borderWidth: 2 },
+  inputError: { borderColor: tc.danger },
   counter: { alignSelf: 'flex-end' },
   formError: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, marginBottom: spacing.sm, borderRadius: radius.card, backgroundColor: tc.dangerSurface },
-  footer: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, backgroundColor: tc.shell, borderTopWidth: hairline, borderTopColor: tc.panelHairline },
+  // The action bar sits on the page with a soft blue lift above it, so the form scrolls under it.
+  footer: {
+    paddingTop: spacing.sm,
+    backgroundColor: tc.panel,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    borderWidth: hairline,
+    borderBottomWidth: 0,
+    borderColor: tc.panelLine,
+    ...(Platform.OS === 'web'
+      ? ({ boxShadow: `0 -10px 28px -12px ${withAlpha(tc.ink, 0.22)}` } as object)
+      : { shadowColor: tc.ink, shadowOpacity: 0.12, shadowRadius: 18, shadowOffset: { width: 0, height: -6 }, elevation: 10 }),
+  },
   sentButton: {
     minHeight: layout.minTouch + spacing.xxs,
     borderRadius: radius.button,

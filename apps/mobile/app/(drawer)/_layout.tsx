@@ -14,7 +14,7 @@ import { connectionMode, useConnection } from '@/stores/connection';
 import { useIncidents } from '@/stores/incidents';
 import { useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
-import { createStyles, fontFamily, hairline, layout, letterSpacing, radius, shadow, spacing, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, letterSpacing, radius, shadow, spacing, useBrand, useColors } from '@/theme';
 
 const ITEMS: { name: string; label: StringKey; icon: LucideIcon }[] = [
   { name: 'index', label: 'drawerNavigate', icon: Navigation },
@@ -26,6 +26,7 @@ const ITEMS: { name: string; label: StringKey; icon: LucideIcon }[] = [
 
 function DrawerContent(props: DrawerContentComponentProps) {
   const tc = useColors();
+  const brand = useBrand();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const debugUnlocked = useSettings((s) => s.debugUnlocked);
@@ -43,22 +44,20 @@ function DrawerContent(props: DrawerContentComponentProps) {
   return (
     <View style={styles.drawer}>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.scroll}>
-        {/* Brand hero: the one place the accent fills a surface, so the app has a recognisable face. */}
-        <View style={[styles.hero, shadow('md')]}>
+        {/* Brand hero: a deep solid surface, the one place the app shows its face. */}
+        <View style={[styles.hero, { backgroundColor: brand.hero, borderColor: brand.heroEdge }, shadow('lg')]}>
           <View style={styles.markTile}>
-            <Mark size={30} />
+            <Mark size={32} />
           </View>
           <View style={styles.brandText}>
-            <AppText tone="onAccent" style={styles.wordmark}>
-              {t('appName')}
-            </AppText>
-            <AppText variant="meta" tone="onAccent" style={styles.tagline} numberOfLines={2}>
+            <AppText style={[styles.wordmark, { color: brand.onHero }]}>{t('appName')}</AppText>
+            <AppText variant="meta" style={{ color: brand.onHeroMuted }} numberOfLines={2}>
               {t('drawerTagline')}
             </AppText>
           </View>
         </View>
         <ModeBadge onShell={false} style={styles.badge} />
-        <View style={styles.items}>
+        <View style={[styles.items, shadow('sm')]}>
           {items.map((it) => {
             const focused = current === it.name;
             const Icon = it.icon;
@@ -74,7 +73,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
                 style={[styles.item, focused && styles.itemFocused]}
               >
                 <View style={[styles.iconTile, focused && styles.iconTileFocused]}>
-                  <Icon size={18} color={focused ? tc.onAccent : tc.ink} strokeWidth={2.25} />
+                  <Icon size={19} color={focused ? tc.onAccent : tc.accentInk} strokeWidth={2.25} />
                 </View>
                 <AppText style={[styles.label, focused && styles.labelFocused]}>{t(it.label)}</AppText>
                 <ChevronRight size={16} color={focused ? tc.accentInk : tc.inkSubtle} />
@@ -132,21 +131,20 @@ const useStyles = createStyles((tc) => ({
   drawer: { flex: 1, backgroundColor: tc.shell },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.md },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.sheet, backgroundColor: tc.accent },
-  markTile: { width: TILE + spacing.xs, height: TILE + spacing.xs, borderRadius: radius.card, backgroundColor: tc.panel, alignItems: 'center', justifyContent: 'center' },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md + spacing.xxs, borderRadius: radius.sheet, borderWidth: hairline },
+  markTile: { width: TILE + spacing.sm, height: TILE + spacing.sm, borderRadius: radius.card, backgroundColor: tc.panel, alignItems: 'center', justifyContent: 'center' },
   brandText: { flex: 1, gap: 2 },
-  wordmark: { fontFamily: fontFamily.bold, letterSpacing: letterSpacing.wordmark },
-  tagline: { opacity: 0.9 },
+  wordmark: { fontFamily: fontFamily.bold, fontSize: 17, letterSpacing: letterSpacing.wordmark },
   badge: { alignSelf: 'flex-start', marginLeft: spacing.xxs },
-  items: { gap: spacing.xxs, padding: spacing.xs, borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelHairline },
+  items: { gap: spacing.xxs, padding: spacing.xs, borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: layout.minTouch + spacing.xs, paddingHorizontal: spacing.xs, borderRadius: radius.card },
   itemFocused: { backgroundColor: tc.tealSoft },
-  iconTile: { width: TILE, height: TILE, borderRadius: radius.button - 2, backgroundColor: tc.panelSunken, alignItems: 'center', justifyContent: 'center' },
-  iconTileFocused: { backgroundColor: tc.accent },
+  iconTile: { width: TILE, height: TILE, borderRadius: radius.button - 2, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
+  iconTileFocused: { backgroundColor: tc.accent, ...glow(tc.accent, 0.5) },
   label: { flex: 1, fontFamily: fontFamily.medium, color: tc.ink },
   labelFocused: { fontFamily: fontFamily.bold, color: tc.accentInk },
   footer: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.xs },
-  statusCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelHairline },
+  statusCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm + spacing.xxs, borderRadius: radius.card, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine },
   dot: { width: spacing.xs + 2, height: spacing.xs + 2, borderRadius: radius.chip, backgroundColor: tc.positive },
   dotIdle: { backgroundColor: tc.warn },
   version: { paddingHorizontal: spacing.xxs },

@@ -5,7 +5,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
-import { CircleCheck, Info, LogOut, TriangleAlert, UserRound, WifiOff } from '@/components/icons';
+import { CircleCheck, Info, LogOut, TriangleAlert, WifiOff } from '@/components/icons';
 import { GUTTER, Row, ScreenHeader, Section } from '@/components/ui';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { t } from '@/i18n/en';
@@ -14,7 +14,7 @@ import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useConnection } from '@/stores/connection';
 import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
-import { createStyles, layout, radius, spacing, text, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
 import { minutesFor, requestNotice, statsLines, verifyNotice, type Notice } from './signIn';
 
 /** Counts down from a number of seconds; `left` is 0 when nothing is pending. */
@@ -47,6 +47,7 @@ type Stats = { state: 'loading' } | { state: 'error' } | { state: 'offline' } | 
  */
 export function AccountScreen() {
   const tc = useColors();
+  const brand = useBrand();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const apiUrl = useSettings((s) => s.apiUrl);
@@ -196,15 +197,25 @@ export function AccountScreen() {
 
         {signedIn && user ? (
           <>
-            <Section index={0}>
-              <Row
-                first
-                icon={UserRound}
-                title={user.displayName ?? user.email}
-                subtitle={user.displayName ? user.email : t('accountSignedInAs')}
+            <Section index={0} bare>
+              <View
+                style={[styles.who, { backgroundColor: brand.hero, borderColor: brand.heroEdge }, shadow('md')]}
+                accessible
                 accessibilityLabel={`${t('accountSignedInAs')}: ${user.displayName ? `${user.displayName}, ${user.email}` : user.email}`}
                 testID="account-user"
-              />
+              >
+                <View style={[styles.avatar, glow(tc.accent, 0.5)]} importantForAccessibility="no-hide-descendants">
+                  <AppText style={styles.avatarLetter}>{(user.displayName ?? user.email).slice(0, 1).toUpperCase()}</AppText>
+                </View>
+                <View style={styles.flex}>
+                  <AppText variant="title" style={{ color: brand.onHero }} numberOfLines={1}>
+                    {user.displayName ?? user.email}
+                  </AppText>
+                  <AppText variant="meta" style={{ color: brand.onHeroMuted }} numberOfLines={1}>
+                    {user.displayName ? user.email : t('accountSignedInAs')}
+                  </AppText>
+                </View>
+              </View>
             </Section>
             <Section title={t('accountStatsTitle')} index={1} hint={t('accountPrivacyNote')}>
               <View accessibilityLiveRegion="polite" testID="account-stats">
@@ -371,7 +382,10 @@ const useStyles = createStyles((tc) => ({
   // The header pads itself with the gutter: undo the content padding for it.
   headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
   flex: { flex: 1 },
-  cardBody: { padding: GUTTER, gap: spacing.sm },
+  cardBody: { padding: GUTTER + spacing.xxs, gap: spacing.md },
+  who: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.sheet, borderWidth: hairline },
+  avatar: { width: layout.minTouch + spacing.xs, height: layout.minTouch + spacing.xs, borderRadius: radius.chip, backgroundColor: tc.accent, alignItems: 'center', justifyContent: 'center' },
+  avatarLetter: { fontFamily: fontFamily.bold, fontSize: 22, lineHeight: 28, color: tc.onAccent },
   field: { gap: spacing.xxs },
   buttons: { flexDirection: 'row', gap: spacing.xs },
   input: {
@@ -380,13 +394,13 @@ const useStyles = createStyles((tc) => ({
     minHeight: layout.minTouch,
     borderWidth: 1,
     borderColor: tc.panelLine,
-    borderRadius: radius.card,
-    paddingHorizontal: spacing.sm,
+    borderRadius: radius.button,
+    paddingHorizontal: spacing.md,
     backgroundColor: tc.panelSunken,
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },
   inputFocused: { borderColor: tc.focus, borderWidth: 2 },
-  codeInput: { ...text.mono, fontSize: text.body.fontSize, letterSpacing: spacing.xs },
+  codeInput: { ...text.mono, fontSize: 26, letterSpacing: spacing.sm, textAlign: 'center', minHeight: layout.minTouch + spacing.sm },
   notice: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.card },
   noticeWarn: { backgroundColor: tc.warnSurface },
   noticeBad: { backgroundColor: tc.dangerSurface },

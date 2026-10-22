@@ -39,7 +39,7 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, hairline, layout, radius, spacing, text, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, shadowUp, spacing, text, useColors, withAlpha } from '@/theme';
 
 interface Props {
   /** Called after a place was set (or to close the sheet); the parent closes it. */
@@ -346,7 +346,7 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
         testID={`place-${entry.id}`}
       >
         <View style={[styles.icon, hasMap ? styles.iconMap : null, selected && styles.iconSelected]}>
-          <Icon size={18} color={selected ? tc.panel : hasMap ? tc.accentInk : tc.inkMuted} strokeWidth={2.1} />
+          <Icon size={18} color={selected ? tc.onAccent : hasMap ? tc.accentInk : tc.inkMuted} strokeWidth={2.1} />
         </View>
         <View style={styles.flex}>
           <AppText variant="body" style={styles.name} numberOfLines={1}>
@@ -357,7 +357,7 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
           </AppText>
         </View>
         {selected ? (
-          <Check size={20} color={tc.ink} strokeWidth={2.5} />
+          <Check size={20} color={tc.accentInk} strokeWidth={2.5} />
         ) : hasMap ? null : (
           <View style={styles.noMap} testID={`no-map-${entry.id}`}>
             <AppText variant="label" tone="muted" style={styles.noMapText}>
@@ -513,14 +513,16 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
 });
 
 function Separator() {
-  return <View style={{ height: spacing.xs }} />;
+  const tc = useColors();
+  // A fine rule inset past the icon tile, so a long list reads as one grouped surface.
+  return <View style={{ height: hairline, marginLeft: spacing.sm + spacing.xl + spacing.xxs + spacing.sm, marginVertical: spacing.xxs, backgroundColor: tc.panelLine }} />;
 }
 
 const RAIL = spacing.xl;
 
 const useStyles = createStyles((tc) => ({
-  bg: { backgroundColor: tc.panel, borderRadius: radius.sheet },
-  handle: { backgroundColor: tc.panelLine },
+  bg: { backgroundColor: tc.panel, borderTopLeftRadius: radius.sheet + spacing.xxs, borderTopRightRadius: radius.sheet + spacing.xxs, borderTopWidth: hairline, borderColor: tc.panelLine, ...shadowUp('lg') },
+  handle: { backgroundColor: withAlpha(tc.inkSubtle, 0.35), width: spacing.xl + spacing.md, height: spacing.xxs + 1 },
   content: { paddingHorizontal: spacing.md },
   header: { gap: spacing.sm, paddingBottom: spacing.xs },
   flex: { flex: 1, minWidth: 0 },
@@ -528,17 +530,17 @@ const useStyles = createStyles((tc) => ({
   close: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.chip, backgroundColor: tc.panelSunken, alignItems: 'center', justifyContent: 'center' },
   name: { fontFamily: fontFamily.semibold },
   fieldsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  card: { flexDirection: 'row', alignItems: 'stretch', borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline, overflow: 'hidden', paddingLeft: spacing.sm },
+  card: { flexDirection: 'row', alignItems: 'stretch', borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine, overflow: 'hidden', paddingLeft: spacing.sm, ...shadow('sm') },
   // The start dot and the destination pin, joined by a dotted line, run down the left of both inputs.
   rail: { width: RAIL - spacing.xs, alignItems: 'center', justifyContent: 'center', gap: spacing.xxs },
   dots: { gap: spacing.xxs, alignItems: 'center', paddingVertical: spacing.xxs },
   dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: tc.inkSubtle },
-  cardDivider: { height: hairline, backgroundColor: tc.panelHairline },
+  cardDivider: { height: hairline, backgroundColor: tc.panelLine },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: layout.minTouch + spacing.md, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-  inputRowActive: { backgroundColor: tc.panel },
+  inputRowActive: { backgroundColor: tc.tealSoft },
   locked: { opacity: 0.55 },
   input: { ...text.body, color: tc.ink, paddingVertical: spacing.xxs, paddingHorizontal: 0, fontFamily: fontFamily.semibold },
-  swap: { width: layout.minTouch, height: layout.minTouch, borderRadius: radius.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
+  swap: { width: layout.minTouch, height: layout.minTouch, borderRadius: radius.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine, ...shadow('md') },
   pill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -548,6 +550,8 @@ const useStyles = createStyles((tc) => ({
     paddingHorizontal: spacing.md,
     borderRadius: radius.chip,
     backgroundColor: tc.tealSoft,
+    borderWidth: hairline,
+    borderColor: withAlpha(tc.accentInk, 0.22),
   },
   pillText: { color: tc.accentInk, fontFamily: fontFamily.semibold },
   notice: { paddingHorizontal: spacing.xxs },
@@ -561,14 +565,13 @@ const useStyles = createStyles((tc) => ({
     minHeight: layout.minTouch + spacing.xs,
     padding: spacing.sm,
     borderRadius: radius.card,
-    backgroundColor: tc.panelRaised,
-    borderWidth: hairline,
-    borderColor: tc.panelHairline,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
-  rowSelected: { borderColor: tc.ink, borderWidth: 1.5 },
-  icon: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button - 2, backgroundColor: tc.panelSunken, alignItems: 'center', justifyContent: 'center' },
-  iconMap: { backgroundColor: tc.tealSoft },
-  iconSelected: { backgroundColor: tc.ink },
+  rowSelected: { borderColor: tc.accent, backgroundColor: tc.tealSoft },
+  icon: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button - 2, backgroundColor: tc.panelSunken, borderWidth: hairline, borderColor: tc.panelLine, alignItems: 'center', justifyContent: 'center' },
+  iconMap: { backgroundColor: tc.tealSoft, borderColor: withAlpha(tc.accentInk, 0.16) },
+  iconSelected: { backgroundColor: tc.accent, borderColor: tc.accent, ...glow(tc.accent, 0.45) },
   noMap: { paddingHorizontal: spacing.xs, paddingVertical: 2, borderRadius: radius.chip, backgroundColor: tc.panelSunken, maxWidth: '38%' },
   noMapText: { textAlign: 'center' },
 }));

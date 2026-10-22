@@ -399,3 +399,18 @@ from the kit in `apps/mobile/src/components/ui.tsx`, so gutters, radii and rows 
 Screens on the kit: drawer, Settings, Activity, How it decides, Routes and incidents, Drive mode,
 Debug. Navigate keeps its map layout (top bar, small sheet) and uses the same cards in the sheet.
 
+
+## 16. v7: Premium depth layer (phone)
+
+The phone keeps Manrope and the Royal blue palette (sections 14 and 15). This layer makes it feel finished through depth, shape and type, never through gradients: **solid colour only, no gradients anywhere** (product owner's rule).
+
+- **Shape.** `phoneRadius`: sheet 26, card 18, button 16. The bottom sheets round their top corners at sheet + 4 and cast their shadow upward (`shadowUp`).
+- **Depth.** `phoneElevation` (sm, md, lg) casts every shadow in a deep blue (`phoneBrand.shadowTint`), not grey, so a card lifts off the page instead of dirtying it. `glow(color, strength)` is the light a solid accent surface casts under itself (the primary button, the selected segment, the selected place icon, the search badge). Both are shadows, not fills.
+- **Edges.** Cards, bars and buttons use the soft `panelLine` edge instead of the 3:1 `controlBorder` outline where a label already carries the meaning. Essential control boundaries (inputs, switches, radios) keep their 3:1 outline.
+- **Primary action.** Solid `accent` with `onAccent` label and a glow. The selected segment of a segmented control is the same solid accent pill.
+- **Hero surface.** `phoneBrand.hero` with `onHero` / `onHeroMuted` / `heroEdge`: a deep solid navy for hero cards (the drawer face). Pairs are checked by test/contrast.test.ts.
+- **Glass.** `phoneBrand.glass` / `glassEdge` for bars that float over the map.
+- **Type.** Tighter tracking on large type (display -1.6, eta -1, headline -0.9, title -0.25); the screen title is 32 and the peek ETA uses the 48 display size with the distance in a small tinted pill beside it.
+- **Icon tiles.** A solid tint with a hairline edge in the tile's own hue.
+
+Where it lives: tokens `phoneBrand`, `phoneRadius`, `phoneElevation` (packages/tokens/src/themes.ts); `useBrand`, `shadow`, `shadowUp`, `glow` in apps/mobile/src/theme. The console keeps `radius`, `elevation` and its own themes.

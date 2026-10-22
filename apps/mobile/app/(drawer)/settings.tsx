@@ -7,8 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
-import { Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
+import { Bike, Car, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
+import { PressScale } from '@/components/motion';
 import { GUTTER, Radio as RadioMark, Row, ScreenHeader, Section } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
 import { Segmented } from '@/components/Segmented';
@@ -23,7 +24,7 @@ import { useIncidents } from '@/stores/incidents';
 import { useScenario } from '@/stores/scenario';
 import { useSettings, type Appearance, type DataMode } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
-import { createStyles, layout, radius, spacing, text, useColors } from '@/theme';
+import { createStyles, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
 
 const PROFILE_LABEL = { car: 'profileCar', two_wheeler: 'profileTwoWheeler', foot: 'profileFoot' } as const;
 const PROFILE_ICON = { car: Car, two_wheeler: Bike, foot: Footprints } as const;
@@ -52,6 +53,39 @@ function SwitchRow({ icon, label, hint, value, onChange, testID, first }: { icon
         />
       }
     />
+  );
+}
+
+/** The account entry: a deep solid card with who is signed in, so the first thing in Settings is you. */
+function AccountCard({ subtitle, onPress }: { subtitle: string | null; onPress: () => void }) {
+  const tc = useColors();
+  const brand = useBrand();
+  const styles = useStyles();
+  return (
+    <PressScale
+      onPress={onPress}
+      haptic="selection"
+      scaleTo={0.985}
+      accessibilityRole="button"
+      accessibilityLabel={t('drawerAccount')}
+      style={[styles.accountCard, { backgroundColor: brand.hero, borderColor: brand.heroEdge }, shadow('md')]}
+      testID="settings-account"
+    >
+      <View style={[styles.accountTile, glow(tc.accent, 0.5)]}>
+        <UserRound size={22} color={tc.onAccent} strokeWidth={2.25} />
+      </View>
+      <View style={styles.flex}>
+        <AppText variant="title" style={{ color: brand.onHero }}>
+          {t('drawerAccount')}
+        </AppText>
+        {subtitle ? (
+          <AppText variant="meta" style={{ color: brand.onHeroMuted }} numberOfLines={1}>
+            {subtitle}
+          </AppText>
+        ) : null}
+      </View>
+      <ChevronRight size={20} color={brand.onHeroMuted} />
+    </PressScale>
   );
 }
 
@@ -169,16 +203,8 @@ export default function SettingsScreen() {
         <View style={styles.headerBleed}>
           <ScreenHeader title={t('drawerSettings')} />
         </View>
-        <Section title={t('settingsAccount')} index={0}>
-          <Row
-            first
-            icon={UserRound}
-            title={t('drawerAccount')}
-            subtitle={signedIn ? accountEmail : t('accountRowSignedOut')}
-            onPress={() => router.push('/account')}
-            accessibilityLabel={t('drawerAccount')}
-            testID="settings-account"
-          />
+        <Section title={t('settingsAccount')} index={0} bare>
+          <AccountCard subtitle={signedIn ? accountEmail : t('accountRowSignedOut')} onPress={() => router.push('/account')} />
         </Section>
         <Section title={t('settingsProfile')} index={0} bare>
           <Segmented
@@ -210,8 +236,8 @@ export default function SettingsScreen() {
               const selected = dataMode === m;
               const live = m === 'live';
               return (
+                <View key={m} style={selected ? styles.selectedRow : undefined}>
                 <Row
-                  key={m}
                   first={i === 0}
                   icon={live ? Radio : FlaskConical}
                   iconTone={selected ? 'accent' : 'neutral'}
@@ -226,6 +252,7 @@ export default function SettingsScreen() {
                 >
                   <View style={styles.badgeRow}>{live ? <LiveBadge onShell={false} compact /> : <SimulatedBadge onShell={false} compact />}</View>
                 </Row>
+                </View>
               );
             })}
           </View>
@@ -237,8 +264,8 @@ export default function SettingsScreen() {
               const native = t(LANG_NATIVE[l]);
               const english = t(LANG_ENGLISH[l]);
               return (
+                <View key={l} style={selected ? styles.selectedRow : undefined}>
                 <Row
-                  key={l}
                   first={i === 0}
                   icon={Languages}
                   iconTone={selected ? 'accent' : 'neutral'}
@@ -251,6 +278,7 @@ export default function SettingsScreen() {
                   testID={`language-${l}`}
                   trailing={<RadioMark on={selected} />}
                 />
+                </View>
               );
             })}
           </View>
@@ -318,6 +346,9 @@ const useStyles = createStyles((tc) => ({
   headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
   flex: { flex: 1 },
   badgeRow: { flexDirection: 'row', marginTop: spacing.xxs },
+  selectedRow: { backgroundColor: tc.tealSoft },
+  accountCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.sheet, borderWidth: hairline },
+  accountTile: { width: layout.minTouch, height: layout.minTouch, borderRadius: radius.card, backgroundColor: tc.accent, alignItems: 'center', justifyContent: 'center' },
   cardBody: { padding: GUTTER, gap: spacing.sm },
   buttons: { flexDirection: 'row', gap: spacing.xs },
   input: {
@@ -327,8 +358,8 @@ const useStyles = createStyles((tc) => ({
     minHeight: layout.minTouch,
     borderWidth: 1,
     borderColor: tc.panelLine,
-    borderRadius: radius.card,
-    paddingHorizontal: spacing.sm,
+    borderRadius: radius.button,
+    paddingHorizontal: spacing.md,
     backgroundColor: tc.panelSunken,
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },

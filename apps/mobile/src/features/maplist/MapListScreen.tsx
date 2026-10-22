@@ -105,7 +105,7 @@ const useStyles = createStyles((tc) => ({
   headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
   body: { gap: spacing.lg },
   cards: { gap: spacing.sm },
-  incident: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: GUTTER },
+  incident: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', paddingVertical: spacing.md, paddingHorizontal: GUTTER },
   divider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   glyph: { width: spacing.xl + spacing.sm, height: spacing.xl + spacing.sm, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },

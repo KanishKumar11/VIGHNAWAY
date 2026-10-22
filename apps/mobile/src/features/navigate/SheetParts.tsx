@@ -20,7 +20,7 @@ import type { DeltaBar } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import type { ActivityEntry } from '@/stores/activity';
 import type { Banner } from '@/stores/trip';
-import { createStyles, fontFamily, hairline, layout, motion, radius, spacing, useColors, type ThemeColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, motion, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
 
 const roleKey: Record<RouteRole, StringKey> = { recommended: 'recommended', usual_fastest: 'usualFastest', alternative: 'alternative', blocked: 'notViable' };
 const roleLabel = (r: RouteRole) => t(roleKey[r]);
@@ -287,12 +287,16 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, chosen, o
       })}
     >
       <View style={styles.miniText}>
-        <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="eta" unitVariant="label" testID="peek-eta" style={styles.flexShrink} />
-        <View style={styles.nameRow}>
+        <View style={styles.etaLine}>
+          <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="display" unitVariant="title" testID="peek-eta" style={styles.flexShrink} />
           {/* The road distance of the recommended route: exact for the mapped roads, never a guess. */}
-          <AppText variant="num" tone="muted" numberOfLines={1} style={styles.noShrink} testID="peek-distance">
-            {fmtDistance(route.distanceM)}
-          </AppText>
+          <View style={styles.distancePill}>
+            <AppText variant="label" tone="accent" numberOfLines={1} style={styles.noShrink} testID="peek-distance">
+              {fmtDistance(route.distanceM)}
+            </AppText>
+          </View>
+        </View>
+        <View style={styles.nameRow}>
           {chosen ? (
             <AppText variant="label" tone="accent" numberOfLines={1} style={styles.noShrink} testID="peek-chosen">
               {t('yourChoice')}
@@ -771,12 +775,15 @@ const useStyles = createStyles((tc) => ({
   detailsButton: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: spacing.xl, paddingLeft: spacing.xs },
   peek: { gap: spacing.sm },
   mini: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  miniText: { flex: 1, minWidth: 0, gap: 0 },
+  miniText: { flex: 1, minWidth: 0, gap: spacing.xxs },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minWidth: 0 },
   noShrink: { flexShrink: 0 },
+  etaLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  // The road distance sits in a small solid-tint pill so it reads as a fact, apart from the route name.
+  distancePill: { flexShrink: 0, paddingHorizontal: spacing.xs + 2, paddingVertical: 2, borderRadius: radius.chip, backgroundColor: tc.tealSoft },
   roadsOnly: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panelSunken },
   roadsOnlyText: { flex: 1, gap: spacing.xxs },
-  miniButton: { flexShrink: 0, paddingHorizontal: spacing.md },
+  miniButton: { flexShrink: 0, paddingHorizontal: spacing.md, minHeight: layout.minTouch + spacing.sm },
   miniChange: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, paddingLeft: spacing.sm, paddingRight: spacing.xs, minHeight: layout.minTouch - spacing.xs },
   miniChangeMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: layout.minTouch - spacing.xs },
   more: { gap: spacing.sm, paddingTop: spacing.xs },
@@ -788,7 +795,7 @@ const useStyles = createStyles((tc) => ({
   nextRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
   nextIcon: { marginTop: 2 },
   next: { gap: 2 },
-  detail: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
+  detail: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelLine },
   scanRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   skeletonStrip: { marginVertical: spacing.xs },
   evidence: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
@@ -805,9 +812,9 @@ const useStyles = createStyles((tc) => ({
   reach: { gap: spacing.sm },
   reachHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // Each route is a card: same padding, one head line (role and name left, ETA right), the delta bar, the reason.
-  row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
+  row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine, ...shadow('sm') },
   rowDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
-  rowRecommended: { borderColor: tc.routeRecommended, borderWidth: 1.5 },
+  rowRecommended: { borderColor: tc.routeRecommended, borderWidth: 1.5, backgroundColor: tc.recommendedSurface, ...glow(tc.routeRecommended, 0.3) },
   whereTo: { gap: spacing.sm },
   whereToHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },

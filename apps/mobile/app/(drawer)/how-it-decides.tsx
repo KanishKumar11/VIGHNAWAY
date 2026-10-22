@@ -7,19 +7,20 @@ import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Mark } from '@/components/Mark';
 import { enterUp } from '@/components/motion';
-import { Card, GUTTER, ScreenHeader, Section } from '@/components/ui';
+import { GUTTER, ScreenHeader, Section } from '@/components/ui';
 import { strings, t } from '@/i18n/en';
 import { ruleText } from '@/i18n/engineText';
 import { getLanguage } from '@/i18n/lang';
 import { useReduceMotion } from '@/lib/motion';
 import { useScenario } from '@/stores/scenario';
-import { createStyles, hairline, radius, spacing } from '@/theme';
+import { createStyles, hairline, radius, shadow, spacing, useBrand } from '@/theme';
 
 const rules = scoringRulesTable();
 
 /** Renders SCORING_RULES from the engine, the known limitations and the attribution. */
 export default function HowItDecides() {
   const styles = useStyles();
+  const brand = useBrand();
   const insets = useSafeAreaInsets();
   const reduce = useReduceMotion();
   const graphFile = useScenario((s) => s.graphFile);
@@ -31,19 +32,19 @@ export default function HowItDecides() {
           <ScreenHeader title={t('drawerHowItDecides')} subtitle={t('howSubtitle')} />
         </View>
         <Animated.View entering={enterUp(0, reduce)}>
-          <Card tone="tint" style={styles.hero}>
+          <View style={[styles.hero, { backgroundColor: brand.hero, borderColor: brand.heroEdge }, shadow('md')]}>
             <View style={styles.heroHead}>
               <View style={styles.markTile}>
                 <Mark size={26} />
               </View>
-              <AppText variant="label" tone="accent">
+              <AppText variant="label" style={{ color: brand.onHeroMuted }}>
                 {t('howFormula')}
               </AppText>
             </View>
-            <AppText variant="mono" style={styles.formula}>
+            <AppText variant="mono" style={[styles.formula, { color: brand.onHero }]}>
               {ruleText('formula', SCORING_RULES.formula)}
             </AppText>
-          </Card>
+          </View>
         </Animated.View>
         <Section index={1}>
           <View style={styles.intro}>
@@ -103,14 +104,14 @@ const useStyles = createStyles((tc) => ({
   content: { gap: spacing.lg },
   headerBleed: { marginHorizontal: -GUTTER, marginBottom: -spacing.sm },
   flex: { flex: 1 },
-  hero: { gap: spacing.sm, padding: GUTTER },
+  hero: { gap: spacing.md, padding: GUTTER + spacing.xxs, borderRadius: radius.sheet, borderWidth: hairline },
   heroHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   markTile: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.button, backgroundColor: tc.panel, alignItems: 'center', justifyContent: 'center' },
-  formula: { lineHeight: spacing.lg - spacing.xxs },
+  formula: { lineHeight: spacing.lg + spacing.xxs, fontSize: 15 },
   intro: { gap: spacing.xs, padding: GUTTER },
   rule: { paddingVertical: spacing.md, paddingHorizontal: GUTTER, gap: spacing.xs },
   divider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
-  value: { alignSelf: 'flex-start', paddingHorizontal: spacing.xs, paddingVertical: spacing.xxs, borderRadius: radius.button - 4, backgroundColor: tc.panelSunken },
+  value: { alignSelf: 'flex-start', paddingHorizontal: spacing.sm, paddingVertical: spacing.xxs, borderRadius: radius.chip, backgroundColor: tc.tealSoft },
   limit: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: GUTTER },
   limitNo: { width: spacing.lg, height: spacing.lg, borderRadius: radius.chip, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
   attribution: { gap: spacing.xxs, paddingHorizontal: spacing.xxs },

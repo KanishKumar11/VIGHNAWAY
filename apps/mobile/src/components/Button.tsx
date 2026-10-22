@@ -1,19 +1,17 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, View, type StyleProp, type ViewStyle } from 'react-native';
-import { createStyles, hairline, layout, radius, spacing, useColors, type ThemeColors } from '@/theme';
+import { createStyles, glow, hairline, layout, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
 import { AppText, type TextTone } from './AppText';
 import type { LucideIcon } from './icons';
 import { PressScale } from './motion';
 
 export type ButtonKind = 'primary' | 'secondary' | 'danger' | 'ghost' | 'onShell';
 
-/** Primary = the accent with its onAccent label (an AA pair); the rest stay quiet. Flat, no shadows. */
+/** Primary = the solid accent with its onAccent label (an AA pair), lit from below; the rest stay quiet. */
 const palette = (tc: ThemeColors, kind: ButtonKind): { bg: string; fg: string; tone: TextTone } => {
   switch (kind) {
-    case 'primary':
-      return { bg: tc.accent, fg: tc.onAccent, tone: 'ink' };
     case 'secondary':
-      return { bg: tc.panelRaised, fg: tc.ink, tone: 'ink' };
+      return { bg: tc.panel, fg: tc.ink, tone: 'ink' };
     case 'danger':
       return { bg: tc.dangerSurface, fg: tc.dangerInk, tone: 'danger' };
     case 'onShell':
@@ -39,11 +37,15 @@ interface Props {
   trailing?: ReactNode;
 }
 
-/** Press: scale 0.97 on the snappy spring with a light haptic for primary actions (DESIGN.md 6, 11.2). */
+/**
+ * Press: scale 0.97 on the snappy spring with a light haptic for primary actions (DESIGN.md 6, 11.2).
+ * The primary button is the solid accent with a glow in its own colour; no gradients anywhere.
+ */
 export function Button({ label, onPress, kind = 'primary', icon: Icon, iconOnly, trailingIcon: Trailing, disabled, loading, accessibilityHint, style, testID, trailing }: Props) {
   const tc = useColors();
   const styles = useStyles();
-  const p = palette(tc, kind);
+  const primary = kind === 'primary';
+  const p = primary ? { bg: tc.accent, fg: tc.onAccent, tone: 'ink' as TextTone } : palette(tc, kind);
   return (
     <PressScale
       testID={testID}
@@ -52,19 +54,20 @@ export function Button({ label, onPress, kind = 'primary', icon: Icon, iconOnly,
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!disabled, busy: !!loading }}
       disabled={disabled || loading}
-      haptic={kind === 'primary' ? 'light' : null}
+      haptic={primary ? 'light' : null}
       onPress={onPress}
       style={[
         styles.base,
         iconOnly && styles.iconOnly,
         { backgroundColor: p.bg, opacity: disabled ? 0.5 : 1 },
-        kind === 'secondary' && styles.outline,
+        primary && !disabled && glow(tc.accent, 0.9),
+        kind === 'secondary' && [styles.secondary, shadow('sm')],
         kind === 'onShell' && styles.outlineShell,
         style,
       ]}
     >
       <View style={styles.row}>
-        {loading ? <ActivityIndicator color={p.fg} /> : Icon ? <Icon size={20} color={p.fg} strokeWidth={2} /> : null}
+        {loading ? <ActivityIndicator color={p.fg} /> : Icon ? <Icon size={20} color={p.fg} strokeWidth={2.25} /> : null}
         {iconOnly ? null : (
           <AppText variant="title" tone={p.tone} style={[styles.label, { color: p.fg }]} numberOfLines={2}>
             {label}
@@ -79,15 +82,16 @@ export function Button({ label, onPress, kind = 'primary', icon: Icon, iconOnly,
 
 const useStyles = createStyles((tc) => ({
   base: {
-    minHeight: layout.minTouch + spacing.xxs,
+    minHeight: layout.minTouch + spacing.xs,
     borderRadius: radius.button,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md + spacing.xxs,
     paddingVertical: spacing.xs,
     justifyContent: 'center',
+    overflow: 'visible',
   },
-  iconOnly: { width: layout.minTouch + spacing.xxs, paddingHorizontal: 0, alignItems: 'center' },
-  // Control boundary at 3:1 against the panel (DESIGN_VISION 5.1); no shadow.
-  outline: { borderWidth: 1, borderColor: tc.controlBorder },
+  iconOnly: { width: layout.minTouch + spacing.xs, paddingHorizontal: 0, alignItems: 'center' },
+  // A soft edge in the page's blue, not the heavy 3:1 outline: the label carries the meaning.
+  secondary: { borderWidth: hairline, borderColor: tc.panelLine },
   outlineShell: { borderWidth: hairline, borderColor: tc.shellHairlineStrong },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   label: { textAlign: 'center', flexShrink: 1 },

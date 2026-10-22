@@ -243,6 +243,78 @@ const phoneDark: ThemeColors = {
 export const phoneThemes = { dark: phoneDark, light: phoneLight } as const;
 
 /**
+ * Phone premium layer (DESIGN.md section 16): solid colour only, no gradients. A deep hero surface,
+ * glass for floating bars, the light a brand surface casts, and the tint every shadow is cast in.
+ * The phone's themes above stay the source of every text and surface colour.
+ */
+export interface PhoneBrand {
+  /** Deep surface for hero cards (the drawer face, the arrival card). */
+  hero: string;
+  onHero: string;
+  onHeroMuted: string;
+  /** Hairline on the hero surface. */
+  heroEdge: string;
+  /** Colour a brand button casts as light underneath it. */
+  glow: string;
+  /** Floating bars over the map: translucent card colour and its light edge. */
+  glass: string;
+  glassEdge: string;
+  /** The hue every shadow is cast in (a deep blue, never grey). */
+  shadowTint: string;
+}
+
+const phoneBrandLight: PhoneBrand = {
+  hero: '#12266F',
+  onHero: '#FFFFFF',
+  onHeroMuted: 'rgba(255, 255, 255, 0.82)',
+  heroEdge: 'rgba(255, 255, 255, 0.14)',
+  glow: 'rgba(37, 99, 235, 0.42)',
+  glass: 'rgba(255, 255, 255, 0.92)',
+  glassEdge: 'rgba(255, 255, 255, 0.85)',
+  shadowTint: '#1B2A6B',
+};
+
+const phoneBrandDark: PhoneBrand = {
+  hero: '#1B2A66',
+  onHero: '#FFFFFF',
+  onHeroMuted: 'rgba(255, 255, 255, 0.82)',
+  heroEdge: 'rgba(255, 255, 255, 0.12)',
+  glow: 'rgba(91, 155, 255, 0.45)',
+  glass: 'rgba(23, 33, 70, 0.9)',
+  glassEdge: 'rgba(148, 163, 255, 0.22)',
+  shadowTint: '#02040F',
+};
+
+/** The phone's brand layer per theme. */
+export const phoneBrand = { dark: phoneBrandDark, light: phoneBrandLight } as const;
+
+/** Brand pairs on the phone, checked by test/contrast.test.ts for both themes. */
+export const phoneBrandContrastPairs: { fg: keyof PhoneBrand; bg: keyof PhoneBrand; min: number; what: string }[] = [
+  { fg: 'onHero', bg: 'hero', min: 4.5, what: 'text on the hero surface' },
+  { fg: 'onHeroMuted', bg: 'hero', min: 4.5, what: 'muted text on the hero surface' },
+];
+
+/**
+ * Phone shape and depth (DESIGN.md section 16): rounder surfaces than the console, and shadows cast
+ * in a deep blue so a card lifts off the page instead of greying it. Web box-shadows and native
+ * shadow props for the same levels. The console keeps `radius` and `elevation`.
+ */
+export const phoneRadius = { sheet: 26, card: 18, chip: 999, button: 16, marker: 18 } as const;
+
+export const phoneElevation = {
+  web: {
+    sm: '0 1px 2px rgba(27, 42, 107, 0.06), 0 4px 12px -2px rgba(27, 42, 107, 0.10)',
+    md: '0 2px 4px rgba(27, 42, 107, 0.06), 0 14px 30px -10px rgba(27, 42, 107, 0.26)',
+    lg: '0 4px 10px rgba(27, 42, 107, 0.08), 0 28px 56px -14px rgba(27, 42, 107, 0.38)',
+  },
+  native: {
+    sm: { shadowColor: '#1B2A6B', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+    md: { shadowColor: '#1B2A6B', shadowOpacity: 0.2, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6 },
+    lg: { shadowColor: '#1B2A6B', shadowOpacity: 0.3, shadowRadius: 34, shadowOffset: { width: 0, height: 18 }, elevation: 12 },
+  },
+} as const;
+
+/**
  * Console light theme ("Porcelain", DESIGN.md section 13): the control room's own light palette.
  * A cool porcelain canvas with white floating panels replaces the phone's warm paper environment;
  * the status hues (recommended, warning, critical, resolved) and every contrast pair are unchanged,

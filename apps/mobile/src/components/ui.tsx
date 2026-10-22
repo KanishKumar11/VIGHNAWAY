@@ -6,7 +6,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { router, useNavigation } from 'expo-router';
 import { t } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
-import { createStyles, fontFamily, hairline, layout, radius, shadow, spacing, useColors } from '@/theme';
+import { createStyles, fontFamily, hairline, layout, radius, shadow, spacing, useColors, withAlpha } from '@/theme';
 import { AppText } from './AppText';
 import { ArrowLeft, ChevronRight, Menu, X, type LucideIcon } from './icons';
 import { enterUp, PressScale } from './motion';
@@ -28,7 +28,7 @@ export function RoundButton({ icon: Icon, label, onPress, testID }: { icon: Luci
   const tc = useColors();
   const styles = useStyles();
   return (
-    <PressScale onPress={onPress} haptic="selection" accessibilityRole="button" accessibilityLabel={label} style={[styles.round, shadow('sm')]} testID={testID}>
+    <PressScale onPress={onPress} haptic="selection" accessibilityRole="button" accessibilityLabel={label} style={[styles.round, shadow('md')]} testID={testID}>
       <Icon size={20} color={tc.ink} strokeWidth={2.25} />
     </PressScale>
   );
@@ -89,7 +89,7 @@ export function ScreenHeader({
 export function Card({ children, tone = 'default', style, testID }: { children: ReactNode; tone?: 'default' | 'accent' | 'tint'; style?: StyleProp<ViewStyle>; testID?: string }) {
   const styles = useStyles();
   return (
-    <View style={[styles.card, tone === 'accent' ? styles.cardAccent : tone === 'tint' ? styles.cardTint : shadow('sm'), style]} testID={testID}>
+    <View style={[styles.card, tone === 'accent' ? [styles.cardAccent, shadow('md')] : tone === 'tint' ? styles.cardTint : shadow('sm'), style]} testID={testID}>
       {children}
     </View>
   );
@@ -187,7 +187,7 @@ export function Row({
   const body = (
     <>
       {Icon ? (
-        <View style={[styles.tile, { backgroundColor: tile[0] }]}>
+        <View style={[styles.tile, { backgroundColor: tile[0], borderColor: withAlpha(tile[1]!, 0.16) }]}>
           <Icon size={18} color={tile[1]} strokeWidth={2.25} />
         </View>
       ) : null}
@@ -239,12 +239,12 @@ export function Radio({ on }: { on: boolean }) {
 }
 
 const useStyles = createStyles((tc) => ({
-  header: { gap: spacing.xxs, paddingBottom: spacing.md, backgroundColor: tc.shell },
+  header: { gap: spacing.xxs, paddingBottom: spacing.md },
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: ROUND, marginBottom: spacing.sm },
   headerTrailing: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   title: { marginTop: spacing.xxs },
-  round: { width: ROUND, height: ROUND, borderRadius: ROUND / 2, backgroundColor: tc.panel, alignItems: 'center', justifyContent: 'center' },
-  card: { borderRadius: radius.sheet, backgroundColor: tc.panel, overflow: 'hidden', borderWidth: hairline, borderColor: tc.panelHairline },
+  round: { width: ROUND, height: ROUND, borderRadius: ROUND / 2, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine, alignItems: 'center', justifyContent: 'center' },
+  card: { borderRadius: radius.sheet, backgroundColor: tc.panel, overflow: 'hidden', borderWidth: hairline, borderColor: tc.panelLine },
   cardAccent: { backgroundColor: tc.accent, borderColor: tc.accent },
   cardTint: { backgroundColor: tc.tealSoft, borderColor: tc.panelHairline },
   section: { gap: spacing.xs },
@@ -255,7 +255,7 @@ const useStyles = createStyles((tc) => ({
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTitle: { fontFamily: fontFamily.medium },
   titleStrong: { fontFamily: fontFamily.semibold },
-  tile: { width: TILE, height: TILE, borderRadius: radius.button - 2, alignItems: 'center', justifyContent: 'center' },
+  tile: { width: TILE, height: TILE, borderRadius: radius.button - 2, borderWidth: hairline, alignItems: 'center', justifyContent: 'center' },
   divider: { height: hairline, backgroundColor: tc.panelHairline, marginRight: 0 },
   radio: { width: spacing.md + 4, height: spacing.md + 4, borderRadius: radius.chip, borderWidth: 2, borderColor: tc.controlBorder, alignItems: 'center', justifyContent: 'center' },
   radioOn: { borderColor: tc.accent },
