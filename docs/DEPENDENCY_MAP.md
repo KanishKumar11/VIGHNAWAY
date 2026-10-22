@@ -20,6 +20,7 @@ flowchart TD
   P05[P0-5a-c runbook, drill, recording]
   P04p[P0-4p graph validation script] -.-> P04[P0-4 real graph: blocked, network]
   P04 -.-> P23
+  P04 -.-> P16[P1-6 scenario scoreboard]
   P11[P1-1 counterfactuals] --> P12
   P13[P1-3 judge-in-the-loop]
   FCOV[F-COV coverage input] --> P15[P1-5 coverage map]

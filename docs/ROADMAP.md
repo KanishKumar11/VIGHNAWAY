@@ -38,7 +38,7 @@ If we only have a fixed amount of time, build these, in this order:
 | --- | --- |
 | **4 hours** | P0-1 → P0-2 → P1-1 (Why not that route?) |
 | **8 hours** | the 4-hour plan → P1-2 (decision receipt) → P1-3 (judge-in-the-loop) |
-| **16 hours** | the 8-hour plan → P1-4 (ask the crowd) → P1-5 (evidence coverage map) → P2-1 (after-action report) |
+| **16 hours** | the 8-hour plan → P1-4 (ask the crowd) → P1-5 (evidence coverage map) → P1-6 (scenario scoreboard) → P2-1 (after-action report) |
 | **24+ hours** | the 16-hour plan → P2-2 (offline QR relay) → P2-3 (step-free profile) → P2-4 (hospital load spreading) |
 
 P2-8 and P2-9 (walking concerns and the well-lit preference) come after the 24+ hour plan and are cut before P2-5.
@@ -88,7 +88,13 @@ not coding time for an agent.
 
 ### P0-5 Rehearsals and backup video (T22)
 - **What:** three timed runs under 3 minutes, logged in docs/demo-script.md, plus a screen recording as a fallback.
-- **Effort:** 1.5 h · **Demo value:** ★★★ · **Owners:** Pitch, QA
+- **Also:** the pitch material that answers questions judges are likely to ask:
+  - a judge Q&A sheet with short answers to "why not Google Maps?", "how do you know a report is true?", "what if there
+    are no reports?", "what about privacy?" and "what is simulated?";
+  - a "path to a pilot" slide: the control room as the operator, the data partners (SACHET or IMD alerts, TomTom,
+    municipal flood-prone-spot lists) and the stated limits, taken from docs/limitations.md;
+  - the P1-1 screenshots that are still missing.
+- **Effort:** 1.5 h for the rehearsals, plus 1.5 h for the material · **Demo value:** ★★★ · **Owners:** Pitch, QA
 - **Needs:** the team, and the judging criteria so the script can be weighted to them.
 
 ### P0-6 API Docker image and live TomTom key (T03)
@@ -173,6 +179,34 @@ not coding time for an agent.
 - **Why it wins:** it shows operators where they are blind, not just where the hazards are. It pairs with P1-4.
 - **Effort:** 2 h · **Demo value:** ★★ · **Owners:** Console
 - **Tokens:** reuse the warn and danger scales and add no new hues; the CVD test must still pass.
+
+### P1-6 Scenario scoreboard (batch replay)
+- **What:** `pnpm scoreboard` replays a published set of seeded, simulated monsoon scenarios on the real Andheri graph and
+  writes docs/scoreboard.md plus a JSON file. For each scenario it compares the usual fastest route with what the engine
+  recommends as evidence arrives.
+- **What it reports:**
+  - how often the usual route crosses a Verified or Corroborated hard block;
+  - the extra modelled minutes the recommendation costs, as a median and a worst case;
+  - how many times the recommendation changed;
+  - scenarios with no viable route, and scenarios where the detour costs more than it is worth.
+- **Why it wins:** it turns "it reroutes around floods" into a number a judge can question. It also shows the limits.
+- **What it must not do:**
+  - claim the engine "avoids hazards 20 out of 20 times". Hard blocks make that true by construction, so it proves
+    nothing. The honest figures are the usual route's exposure, the cost of avoiding it, and the cases with no way
+    round;
+  - claim lives saved, safety percentages or real-world results. Every figure is labelled "Simulated scenarios on real
+    roads; modelled minutes";
+  - hide unfavourable scenarios. The scenario set and seeds are published and include ones where the detour is worse.
+- **How:** seeded randomness lives only in the scenario generator under `scripts/`, never in the engine, so the same
+  seeds give a byte-identical report.
+- **Effort:** 3–4 h · **Demo value:** ★★ · **Owners:** Data and sim (generator and script), Engine (reviews the metrics),
+  Pitch (one slide)
+- **Needs:** P0-4.d (the re-tuned scenario on the real graph); it runs on the fixture before that, with the output
+  marked as fixture.
+- **Done when:**
+  - two runs with the same seeds give identical output;
+  - the report includes at least one scenario where the recommendation is slower with no hazard avoided;
+  - the forbidden-words check passes on the output.
 
 ---
 

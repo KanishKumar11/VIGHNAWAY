@@ -28,6 +28,7 @@ export const KEYS = {
   activity: 'activity.v1',
   pendingReports: 'pendingReports.v1',
   deviceId: 'deviceId.v1',
+  asked: 'asked.v1',
 } as const;
 
 export const storage = {

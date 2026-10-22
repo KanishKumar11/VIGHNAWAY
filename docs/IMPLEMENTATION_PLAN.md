@@ -114,6 +114,7 @@ F-COV coverage input (D2)                ← foundation shared by P1-5 and P1-4
 P1-5 evidence coverage map
 P1-4 ask the crowd
 P1-2 decision receipt
+P1-6 scenario scoreboard                    ← after P0-4.d; script-only, no engine change
 ── P1 gate ──
 P2-6 operator-drawn closures
 P2-1 after-action report

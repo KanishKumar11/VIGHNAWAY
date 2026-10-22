@@ -11,7 +11,7 @@ import {
   SCORING_RULES,
   TEXT_LANGS,
 } from '../src';
-import { andheriGraph, edgesNamed, incident } from './helpers';
+import { andheriGraph, edgesNamed, gridGraph, incident } from './helpers';
 
 const foot = loadGraph(andheriGraph, 'foot');
 const floodProne = andheriGraph.edges.filter((e) => e.floodProne);
@@ -57,11 +57,35 @@ describe('evidence coverage', () => {
     expect(road(1600).lastObservedAtS).toBe(1000);
     expect(renderText(road(1000 + H).text, 'en')).toBe('Andheri Subway: last report 1 h ago');
     expect(renderText(road(1000 + 4 * H).text, 'en')).toMatch(/older than 3 h/);
-    // Roads nobody reported on come first.
-    const list = at(1600);
-    expect(list[list.length - 1]!.name).toBe('Andheri Subway');
-    expect(list.find((r) => r.name === 'Andheri Subway')!.class).toBe('fresh');
-    expect(list[0]!.class).toBe('none');
+    expect(at(1600).find((r) => r.name === 'Andheri Subway')!.class).toBe('fresh');
+  });
+
+  it('sorts the blind spots first: none, then stale, ageing, fresh, then by name', () => {
+    const file = gridGraph(5, 1, 200, {
+      'g0_0|g1_0': { floodProne: true, name: 'Alpha Road' },
+      'g1_0|g2_0': { floodProne: true, name: 'Bravo Road' },
+      'g2_0|g3_0': { floodProne: true, name: 'Charlie Road' },
+      'g3_0|g4_0': { floodProne: true, name: 'Delta Road' },
+    });
+    const g = loadGraph(file, 'car');
+    const edge = (name: string) => file.edges.find((e) => e.name === name)!.id;
+    const now = 20 * H;
+    const roads = evidenceCoverage(
+      g,
+      [
+        { edgeId: edge('Alpha Road'), lastObservedAtS: now - 100 },
+        { edgeId: edge('Bravo Road'), lastObservedAtS: now - 5 * H },
+        { edgeId: edge('Charlie Road'), lastObservedAtS: now - H },
+      ],
+      now,
+    );
+    expect(roads.map((r) => [r.name, r.class])).toEqual([
+      ['Delta Road', 'none'],
+      ['Bravo Road', 'stale'],
+      ['Charlie Road', 'ageing'],
+      ['Alpha Road', 'fresh'],
+    ]);
+    expect(roadsWithoutRecentReport(roads, now).map((r) => r.name)).toEqual(['Delta Road', 'Bravo Road']);
   });
 
   it('mixed edges on one road: the newest edge wins and the oldest is reported', () => {
@@ -112,7 +136,7 @@ describe('evidence coverage', () => {
     for (const lang of TEXT_LANGS) {
       for (const text of [none, one, many, coverageBriefText([], 0), ...roads.map((r) => r.text)]) {
         const s = renderText(text, lang);
-        expect(s).not.toMatch(/{w+(|w+)?}/);
+        expect(s).not.toMatch(/\{\w+(\|\w+)?\}/);
         expect(findForbiddenWords(s)).toEqual([]);
       }
     }

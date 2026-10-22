@@ -33,6 +33,8 @@ export { buildReceipt, verifyReceipt, encodeReceipt, decodeReceipt, inputsHash, 
 export type { Receipt, ReceiptContext, ReceiptCheck, ReceiptVerification } from './receipt';
 export { evidenceCoverage, observationsFromIncidents, coverageClass, roadsWithoutRecentReport, coverageBriefText } from './coverage';
 export type { CoverageClass, Observation, RoadCoverage } from './coverage';
+export { dataGapQuestions, nextQuestion, ASK_COOLDOWN_MS } from './ask';
+export type { DataGapQuestion, AskState } from './ask';
 export { counterfactuals } from './counterfactual';
 export type { CounterfactualInput, CounterfactualResult } from './counterfactual';
 export { planTrip, replanFrom, findReachableDestination, planHash, edgeMultiplier, nodeLatLng } from './plan';

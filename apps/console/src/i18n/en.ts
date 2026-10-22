@@ -401,6 +401,21 @@ export const en = {
     notProves: 'What it does not prove',
     notProvesBody: 'That the reports were true, or who sent them. Each report is shown with the status and source it was recorded with.',
   },
+  coverage: {
+    title: 'Evidence coverage',
+    note: 'No reports is not the same as clear: it means nobody has said.',
+    classes: { fresh: 'Fresh', ageing: 'Ageing', stale: 'Stale', none: 'No reports' },
+  },
+  audience: {
+    title: 'Join the demo: scan and report a hazard',
+    qrLabel: 'QR code that opens the report page',
+    steps: [
+      'Scan the code and report a hazard on a road.',
+      'It appears here as Unverified.',
+      'A second phone at the same place makes it Corroborated.',
+      'Only the operator can make it Verified. Watch the route change.',
+    ],
+  },
   debug: {
     title: 'Engine parity',
     eyebrow: 'Debug',

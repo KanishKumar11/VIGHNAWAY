@@ -25,6 +25,7 @@ import { useReduceMotion } from '@/lib/motion';
 import { requestNotificationPermission } from '@/lib/notifications';
 import { buildShareText, shareText } from '@/lib/share';
 import { phoneReceipt } from '@/lib/receipt';
+import { AskCard } from '@/features/ask/AskCard';
 import { CONSOLE_URL } from '@/config/env';
 import { useActivity } from '@/stores/activity';
 import { connectionMode, useConnection } from '@/stores/connection';
@@ -238,6 +239,7 @@ function SheetBody({
         </View>
       ) : null}
       {rec && !showEvaluating ? <WhyCard route={rec} /> : null}
+      {plan && rec && !showEvaluating && mode !== 'arrived' ? <AskCard plan={plan} graph={graph} /> : null}
       <View style={styles.section}>
         <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
         {routeIncidents.length ? (

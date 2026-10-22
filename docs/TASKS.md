@@ -246,6 +246,19 @@ Priority P0 · Status todo · Effort 1 h · Depends P0-5.a
 Priority P0 · Status **blocked**: needs the team · Effort 1.5 h
 - **Acceptance:** Three runs under 3 minutes, logged with times.
 
+### P0-5.e Judge Q&A, pilot-path slide, missing screenshots
+Priority P0 · Status todo · Effort 1.5 h · Depends P0-5.a
+- **Files:** docs/demo-script.md (Pitch owner), docs/design/ for screenshots.
+- **Behaviour:**
+  - A judge Q&A sheet with a two- or three-sentence answer to each of: why not Google Maps, how a report is judged true,
+    what happens with no reports, privacy, and what is simulated. Each answer points to the doc that backs it.
+  - One "path to a pilot" slide: the control room as operator, the data partners (SACHET or IMD, TomTom, municipal
+    flood-prone-spot lists), and the stated limits copied from docs/limitations.md.
+  - The P1-1 counterfactual screenshots (console and phone, both themes).
+- **Automated tests:** `findForbiddenWords` over the Q&A text and slide.
+- **Acceptance:** No answer promises safety, claims a result that was not measured, or hides that the scenario is
+  simulated.
+
 ## P0-6 API container and live data
 
 ### P0-6.a API Docker image builds and starts
@@ -299,7 +312,7 @@ Priority P1 · Status in progress (route comparison row shows it; jest and scree
 ## P1-3 Judge-in-the-loop demo (decision D4)
 
 ### P1-3.a API: audience origin tag and operator bulk clear
-Priority P1 · Status todo · Effort 2 h · Depends —
+Priority P1 · Status NOT built: no Postgres or Docker was available to run the API tests, and this change needs a column and a migration, so it was left for the API owner rather than pushed untested · Effort 2 h · Depends —
 - **Files:**
   - packages/contracts (`ReportInput.origin?: 'app' | 'web' | 'audience'`; `API_PATHS.clearAudience`);
   - apps/api reports and incidents;
@@ -322,7 +335,7 @@ Priority P1 · Status todo · Effort 1 h · Depends P1-3.a
 - **Automated tests:** vitest. **Acceptance:** The origin is stored, and visible in the console queue as a chip.
 
 ### P1-3.c Console presenter panel: QR, live status ladder
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-3.b
+Priority P1 · Status partly done: presenter mode now shows a large QR card with the four evidence steps (apps/console AudienceCard, vitest 3 tests). The live status ladder and the "Clear audience reports" action are NOT built: they need P1-3.a (audience origin and bulk clear) from the API owner, who has Postgres to verify it · Effort 2–3 h · Depends P1-3.b
 - **Behaviour:**
   - Presenter mode shows a large QR code.
   - It shows a live ladder for the newest audience incident: Unverified, then Corroborated (2 devices), then Verified
@@ -371,7 +384,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.a
 ## P1-5 Evidence coverage map
 
 ### P1-5.a Engine: `evidenceCoverage(graph, observations, nowS)`
-Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.b
+Priority P1 · Status done on the data we have (engine test/coverage.test.ts, 8 tests; observations are derived from incidents, so a Road clear report that made no incident is not yet visible: that needs F-COV.a) · Effort 1.5 h · Depends F-COV.b
 - **Behaviour:** For each flood-prone road (edges grouped by name), the class is:
 
   | Class | Latest observation |
@@ -387,7 +400,7 @@ Priority P1 · Status todo · Effort 1.5 h · Depends F-COV.b
   newest edge wins, and the oldest edge is reported as well).
 
 ### P1-5.b Console layer, legend, situation-brief line
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-5.a
+Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer and the view-menu toggle are NOT built yet (they touch both map renderers) · Effort 2–3 h · Depends P1-5.a
 - **Behaviour:**
   - A "Coverage" toggle in the view menu.
   - Roads are shaded with existing tokens; each class differs by pattern as well as colour (solid, long dash, short dash,
@@ -399,15 +412,50 @@ Priority P1 · Status todo · Effort 2–3 h · Depends P1-5.a
 - **Accessibility:** CVD test on the four classes; keyboard toggle.
 - **Acceptance:** A road with no reports is never drawn in the positive (clear) colour.
 
+## P1-6 Scenario scoreboard (batch replay)
+
+### P1-6.a Seeded scenario generator
+Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
+- **Files:** `scripts/` (Data and sim). Seeded randomness lives here only and never in packages/engine.
+- **Behaviour:** From a seed, produces a scenario: a trip chosen from a published list of origin and destination pairs, and
+  a timed list of incidents (type, status, edges, report times) in the same format `tune` replays. The default set is 20
+  seeds, committed with the output.
+- **Automated tests:** the same seed gives an identical scenario; every incident references edges that exist in the graph.
+
+### P1-6.b `pnpm scoreboard` runner and report
+Priority P1 · Status todo · Effort 2 h · Depends P1-6.a
+- **Behaviour:** For each scenario it replays the incidents through the engine at each step and records:
+  - whether the usual fastest route crosses a Verified or Corroborated hard block;
+  - the extra modelled minutes of the recommendation (median and worst);
+  - the number of recommendation changes;
+  - scenarios with no viable route;
+  - scenarios where the recommendation is slower and no hard block was avoided.
+
+  It writes docs/scoreboard.md and a JSON file. Every figure is labelled "Simulated scenarios on real roads; modelled
+  minutes", or "fixture" while P0-4.d is open.
+- **Automated tests:**
+  - two runs with the same seeds are byte-identical;
+  - the report includes the unfavourable scenarios;
+  - `findForbiddenWords` passes on the output, with no "saved lives", "safest" or percentage of safety.
+- **Docs:** scoring.md (a note on how the figures are measured), limitations.md (a hard block makes "the route avoids it"
+  true by construction, so it is not reported as a result).
+- **Acceptance:** The report states the usual route's exposure and the cost of avoiding it, and never claims a
+  real-world outcome.
+
+### P1-6.c Pitch slide
+Priority P1 · Status todo · Effort 0.5 h · Depends P1-6.b
+- **Behaviour:** One slide with the headline figures and the sentence "Simulated scenarios on real roads; seeds
+  published".
+
 ## P1-4 Ask the crowd at data gaps
 
 ### P1-4.a Engine: `gapQuestions(plan, observations, nowS)`
-Priority P1 · Status todo · Effort 1 h · Depends F-COV.b
+Priority P1 · Status done as `dataGapQuestions(plan, graph)` and `nextQuestion` (engine test/ask.test.ts, 4 tests). It covers the recommended route only, and the question sentence is a phone string, not an engine Text · Effort 1 h · Depends F-COV.b
 - **Behaviour:** Returns the data-gap roads on the recommended route and the usual fastest route, ordered by position.
   Each comes with a structured question text, "Is {road} flooded right now?".
 
 ### P1-4.b API: answer semantics, limits
-Priority P1 · Status todo · Effort 2 h · Depends F-COV.a
+Priority P1 · Status NOT built (needs Postgres to verify). The phone uses the existing report path: Yes is a flood report with depth not given, No is an ordinary Road clear report. Today the API lets two Road clear devices resolve an incident, which this spec says an answer must not do, and has no 409 on a repeat answer, so both are open items for the API owner · Effort 2 h · Depends F-COV.a
 - **Behaviour:**
 
   | Answer | Effect |
@@ -422,7 +470,7 @@ Priority P1 · Status todo · Effort 2 h · Depends F-COV.a
   unchanged and sets `conflicting` per the existing rules; Yes creates an Unverified incident.
 
 ### P1-4.c Phone prompt, stationary only
-Priority P1 · Status todo · Effort 2–3 h · Depends P1-4.a, P1-4.b
+Priority P1 · Status done on the phone (jest test/ask.test.tsx, 8 tests: gating, 30-minute limit, answers filed as ordinary reports, Hindi); an inline card in the Navigate sheet after Why this route. The "not moving" rule is: not while following a trip on the car or two-wheeler profile (always faster than walking), allowed on foot; no speed sensor is used. Offline answers go through the existing pending-report queue · Effort 2–3 h · Depends P1-4.a, P1-4.b
 - **Behaviour:**
   - The prompt shows only when the phone is not on a trip, or when it is stopped (vehicle speed below walking pace for
     30 s). It never shows in Drive mode.
