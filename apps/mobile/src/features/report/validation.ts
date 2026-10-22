@@ -4,6 +4,7 @@ import {
   type CongestionLevel,
   type Depth,
   type LatLng,
+  type WalkingConcern,
   type ReportInput,
   type ReportType,
   type Severity,
@@ -16,6 +17,8 @@ export interface ReportDraft {
   depth: Depth | 'not_sure' | null;
   congestion: CongestionLevel | null;
   severity: Severity | null;
+  /** Walking concern reports: what is wrong with the road (P2-8). */
+  concern: WalkingConcern | null;
   impassable: boolean;
   point: LatLng | null;
   note: string;
@@ -27,13 +30,14 @@ export const emptyDraft: ReportDraft = {
   depth: null,
   congestion: null,
   severity: null,
+  concern: null,
   impassable: false,
   point: null,
   note: '',
   observedPersonally: true,
 };
 
-export type ReportField = 'type' | 'congestion' | 'note' | 'point' | 'form';
+export type ReportField = 'type' | 'congestion' | 'concern' | 'note' | 'point' | 'form';
 export type ReportErrors = Partial<Record<ReportField, string>>;
 
 export type ValidationResult = { ok: true; input: ReportInput } | { ok: false; errors: ReportErrors };
@@ -43,6 +47,7 @@ export function validateReport(draft: ReportDraft, deviceId: string): Validation
   const errors: ReportErrors = {};
   if (!draft.type) errors.type = t('errChooseType');
   if (draft.type === 'congestion' && !draft.congestion) errors.congestion = t('errChooseCongestion');
+  if (draft.type === 'walking_concern' && !draft.concern) errors.concern = t('errChooseConcern');
   const note = draft.note.trim();
   if (note.length > REPORT_DESCRIPTION_MAX) errors.note = t('errNoteTooLong');
   if (!draft.point) errors.point = t('errChooseLocation');
@@ -58,7 +63,9 @@ export function validateReport(draft: ReportDraft, deviceId: string): Validation
     ...(type === 'congestion' && draft.congestion ? { congestion: draft.congestion } : null),
     ...((type === 'debris' || type === 'accident') && draft.severity ? { severity: draft.severity } : null),
     ...((type === 'debris' || type === 'accident') && draft.impassable ? { impassable: true } : null),
-    ...(note ? { description: note } : null),
+    ...(type === 'walking_concern' && draft.concern ? { concern: draft.concern } : null),
+    // A walking concern has no free text (it could name a person or a place).
+    ...(note && type !== 'walking_concern' ? { description: note } : null),
   };
   const parsed = ReportInputSchema.safeParse(input);
   if (!parsed.success) {
@@ -66,6 +73,7 @@ export function validateReport(draft: ReportDraft, deviceId: string): Validation
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
       if (field === 'congestion') out.congestion = t('errChooseCongestion');
+      else if (field === 'concern') out.concern = t('errChooseConcern');
       else if (field === 'description') out.note = t('errNoteTooLong');
       else if (field === 'type') out.type = t('errChooseType');
       else out.form = issue.message;

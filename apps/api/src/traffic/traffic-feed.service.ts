@@ -261,6 +261,7 @@ export class TrafficFeedService implements OnApplicationBootstrap, OnApplication
       depth: null,
       congestion: hazard.congestion,
       severity: hazard.severity,
+      concern: null,
       impassable: hazard.impassable,
       conflicting: false,
       edgeIds: h.edgeIds,

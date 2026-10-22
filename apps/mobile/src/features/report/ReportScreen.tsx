@@ -47,12 +47,13 @@ const TYPES: { type: ReportType; label: StringKey }[] = [
   { type: 'congestion', label: 'typeCongestion' },
   { type: 'debris', label: 'typeDebris' },
   { type: 'accident', label: 'typeAccident' },
+  { type: 'walking_concern', label: 'typeWalkingConcern' },
   { type: 'road_clear', label: 'typeRoadClear' },
 ];
 
 /** One hue per report type, so each choice is recognisable before it is read. */
 const typeColor = (tc: ThemeColors, type: ReportType): string =>
-  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, road_clear: tc.positive })[type];
+  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, walking_concern: tc.accent, road_clear: tc.positive })[type];
 
 /** A labelled group of controls, with the field's error underneath. */
 function Step({ title, error, index, bare, children }: { title: string; error?: string; index: number; bare?: boolean; children: React.ReactNode }) {
@@ -301,7 +302,9 @@ export function ReportScreen() {
 
   const noteLen = draft.note.trim().length;
   const type = draft.type;
-  const hasDetail = type === 'flood' || type === 'congestion' || type === 'debris' || type === 'accident';
+  const hasDetail = type === 'flood' || type === 'congestion' || type === 'debris' || type === 'accident' || type === 'walking_concern';
+  // A walking concern describes a road and a condition only: no photo and no note, so it cannot name a person or a place.
+  const noExtras = type === 'walking_concern';
 
   return (
     <View style={styles.root}>
@@ -337,7 +340,7 @@ export function ReportScreen() {
                 type={it.type}
                 label={t(it.label)}
                 selected={type === it.type}
-                onPress={() => set({ type: it.type, depth: null, congestion: null, severity: null, impassable: false })}
+                onPress={() => set({ type: it.type, depth: null, congestion: null, severity: null, concern: null, impassable: false })}
               />
             ))}
           </View>
@@ -361,6 +364,25 @@ export function ReportScreen() {
                 label: t(c === 'moderate' ? 'congestionModerate' : c === 'heavy' ? 'congestionHeavy' : 'congestionStandstill'),
               }))}
             />
+          </Step>
+        ) : null}
+        {type === 'walking_concern' ? (
+          <Step key="concern" title={t('concernLabel')} error={errors.concern} index={1}>
+            <View style={styles.pad}>
+              <Segmented
+                accessibilityLabel={t('concernLabel')}
+                value={draft.concern}
+                onChange={(concern) => set({ concern })}
+                options={(['poorly_lit', 'isolated'] as const).map((c) => ({
+                  value: c,
+                  testID: `concern-${c}`,
+                  label: t(c === 'poorly_lit' ? 'concernPoorlyLit' : 'concernIsolated'),
+                }))}
+              />
+              <AppText variant="meta" tone="muted">
+                {t('concernHint')}
+              </AppText>
+            </View>
           </Step>
         ) : null}
         {type === 'debris' || type === 'accident' ? (
@@ -437,9 +459,12 @@ export function ReportScreen() {
             ) : null}
           </View>
         </Step>
+        {noExtras ? null : (
         <Step title={t('photoLabel')} index={hasDetail ? 3 : 2} bare>
           <PhotoField photo={photo} onChange={setPhoto} />
         </Step>
+        )}
+        {noExtras ? null : (
         <Step title={t('noteLabel')} error={errors.note} index={hasDetail ? 4 : 3}>
           <View style={[styles.pad, styles.inputWrap, noteFocused && styles.inputFocused, errors.note ? styles.inputError : null]}>
             <TextInput
@@ -461,6 +486,7 @@ export function ReportScreen() {
             </AppText>
           </View>
         </Step>
+        )}
         <Card>
           <Row
             first

@@ -221,6 +221,7 @@ export class IncidentsService {
         depth: null,
         congestion: null,
         severity: null,
+        concern: null,
         impassable: true,
         conflicting: false,
         edgeIds,
