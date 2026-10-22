@@ -599,7 +599,7 @@ shown): **W1** one incident type `walking_concern` with a `concern` field (`poor
 street light is understated after 3 h.
 
 ### P2-8.a Contracts and API: new type, no note, stricter limit
-Priority P2 · Status todo · Effort 2–3 h · Depends — (one contracts change at a time)
+Priority P2 · Status **done and run** (8 of 8 checks against the developer's database; the API vitest file apps/api/test/walking-concern.test.ts is written but needs a database on 127.0.0.1 to run). One `walking_concern` type with `concern` (migration 0009, `incidents.concern` and `incident_reports.concern`); the report schema refuses a note, severity, depth, congestion, impassable and a missing concern; three per device per simulated hour, then 429 (the spec said 409; 429 matches the other limits and the phone's "too many reports" message); Road clear never touches them; one device twice does not corroborate, two devices do. Contracts test 4 · Effort 2–3 h · Depends — (one contracts change at a time)
 - **Behaviour:**
   - `INCIDENT_TYPES` gains `walking_concern`; `Incident` gains `concern: 'poorly_lit' | 'isolated' | null`;
     labels "Poorly lit" and "Isolated stretch".
@@ -615,7 +615,7 @@ Priority P2 · Status todo · Effort 2–3 h · Depends — (one contracts chang
 - **Docs:** CONTRACTS.md, DATA_MODEL.md.
 
 ### P2-8.b Engine keeps the new type out of routing
-Priority P2 · Status todo · Effort 1 h · Depends P2-8.a
+Priority P2 · Status **done** (engine test/walking-concern.test.ts 3 pass: a plan with walking concerns at every status is byte-identical to the plan without, they are not in the incident index, a real incident beside them is unaffected; parity hash unchanged) · Effort 1 h · Depends P2-8.a
 - **Behaviour:** Exhaustive switches handle `walking_concern` as "no routing effect"; explanations never list it as a
   hazard on a route.
 - **Automated tests:** a plan with a Verified walking concern on the best route is identical to the plan without it;
@@ -623,7 +623,7 @@ Priority P2 · Status todo · Effort 1 h · Depends P2-8.a
 - **Acceptance:** `pnpm --filter @vighnaway/engine test` passes with the hashes in ROADMAP_STATUS.md unchanged.
 
 ### P2-8.c Console layer and queue
-Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+Priority P2 · Status **done except screenshots** (a "Walking concerns on the map" toggle in the view menu, on by default; the queue lists them with the engine's labels in en/hi/mr; the report page has the concern choice and no note; vitest walkingConcern; the glyph is a street lamp in the shared icon set). Screenshots in light and dark not taken · Effort 1.5–2 h · Depends P2-8.a
 - **Behaviour:** A "Walking concerns" toggle in the view menu; markers differ by shape as well as colour; the queue lists
   them with source, status and age; the operator uses the existing Verify, Resolve and Dismiss actions.
 - **Automated tests:** vitest for the filter, labels and the forbidden-words check (en, hi, mr).
@@ -632,7 +632,7 @@ Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
 - **Acceptance:** no label, legend or tooltip uses a safety word or shades an area.
 
 ### P2-8.d Phone report sheet and map labels
-Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-8.a
+Priority P2 · Status **done, device-blocked** (a "Walking concern" tile with a Poorly lit / Isolated stretch choice, no photo and no note; offline queue as any report; labels from the engine in the active language). Device tests blocked (P0-3) · Effort 1.5–2 h · Depends P2-8.a
 - **Behaviour:** A "Walking" group in the report sheet with the two options and no note field; a map label reads
   "Reported poorly lit · 2 reports · Unverified". Offline reports are saved as pending like any other.
 - **Automated tests:** jest for the sheet, the labels, the forbidden-words check and the offline queue.
@@ -646,7 +646,7 @@ factor; **W4** a `lit=no` way costs +25% of its travel time in the ranking; both
 and recorded in scoring.md.
 
 ### P2-9.a Data: keep the `lit` tag and report its coverage
-Priority P2 · Status todo · Effort 1–1.5 h · Depends — (Data and sim owns `scripts/` and the graph)
+Priority P2 · Status **partly done, stated plainly**: `scripts/lit_coverage.mjs` reports the coverage from the cached extract (2.0% of 8,461 walkable ways have `lit`; 165 yes, 5 no) and the numbers are in docs/limitations.md. `RoadEdge.lit` is an optional contract field read by the engine, but the real graph file was **not** regenerated with it: that changes the graph version and every pinned hash for five `lit=no` ways. Cut on purpose, as the spec allows · Effort 1–1.5 h · Depends — (Data and sim owns `scripts/` and the graph)
 - **Behaviour:** The extract keeps `lit` as `true | false | null` (unknown) on each edge; a script prints the share of
   walkable edges with each value for the Andheri graph.
 - **Automated tests:** schema; a fixture with all three values.
@@ -655,7 +655,7 @@ Priority P2 · Status todo · Effort 1–1.5 h · Depends — (Data and sim owns
 - **Docs:** DATA_MODEL.md. The graph version changes, so the hash baselines are recomputed.
 
 ### P2-9.b Engine: `preferLit` plan input and the two rules
-Priority P2 · Status todo · Effort 2–3 h · Depends P2-9.a, P2-8.a; not parallel with P2-3.b (both extend the plan input)
+Priority P2 · Status **done** (engine test/lighting.test.ts 9 pass: `lit=no` costs 25% of travel time in the ranking and leaves the displayed time alone; unknown lighting is counted with Medium confidence; a walking concern costs 300 s x verification weight x age factor, once per report, nothing when resolved or dismissed; the recommendation can move to a longer unreported road with no time shown changed; a property test that no viable route becomes not viable; with the preference off, or on for a non-walking profile, plan hashes are identical; new rule `preferLit`, scoring.md regenerated, hi/mr text) · Effort 2–3 h · Depends P2-9.a, P2-8.a; not parallel with P2-3.b (both extend the plan input)
 - **Behaviour:**
   - `preferLit?: boolean`, honoured for the foot profile only, default off.
   - Ranking only: `lit === false` edges add 25% of travel time; open `walking_concern` incidents on the route add the
@@ -671,12 +671,12 @@ Priority P2 · Status todo · Effort 2–3 h · Depends P2-9.a, P2-8.a; not para
 - **Docs:** scoring.md (regenerated with `pnpm docs:scoring`, flagged in the final report), CONTRACTS.md.
 
 ### P2-9.c Receipt records the preference
-Priority P2 · Status todo · Effort 0.5 h · Depends P2-9.b, P1-2.a
+Priority P2 · Status **done** (inputsHash covers `preferLit` and the walking concerns only when on; test in lighting.test.ts) · Effort 0.5 h · Depends P2-9.b, P1-2.a
 - **Behaviour:** `inputsHash` covers `preferLit`; `/verify` shows it among the inputs.
 - **Automated tests:** a receipt with the toggle on does not verify against inputs with it off.
 
 ### P2-9.d Phone toggle and route card, console decision-panel line
-Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-9.b
+Priority P2 · Status **phone done, console line not built** (a "Prefer well-lit roads" switch in Settings for the walking profile, off by default; the Why card says "Preference: well-lit roads"; the engine's confidence line counts segments with no lighting data; en/hi/mr; jest preferLit). The console's demo trip is a car trip, so it has no walking decision panel to add the line to. Device tests blocked (P0-3) · Effort 1.5–2 h · Depends P2-9.b
 - **Behaviour:** A toggle on the walking profile, "Prefer well-lit roads"; the route card says "Preference: well-lit
   roads" and counts segments with missing lighting data; the console decision panel shows the same line.
 - **Automated tests:** jest and vitest; the forbidden-words check on every new string and on shared route text.

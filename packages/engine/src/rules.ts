@@ -135,6 +135,10 @@ export const SCORING_RULES = {
     { busyS: 300, divertingS: 1800, perAssignedS: 120 },
     'When several trips head for the nearest hospital, each hospital costs its arrival time plus a state penalty (accepting 0, busy 300 s, diverting 1,800 s) plus 120 s for each trip already assigned to it in the same batch. The lowest cost wins and ties go to the lower hospital id. Ranking only: the arrival time shown is unchanged. A hospital that is not reachable is never assigned.',
   ),
+  preferLit: r(
+    { unlitExtraShare: 0.25, concernPenaltyS: 300 },
+    'Only when the traveller turns on "Prefer well-lit roads" and walks: a way mapped lit=no costs 25% extra of its travel time in the ranking, and each open walking-concern report (poorly lit or isolated) on the route costs 300 s times the verification weight times the age factor, once per report. Ranking only: the displayed time, every hard block and viability are unchanged, so the preference can never make a viable route not viable. Where lighting is not mapped nothing changes; the route says on how many segments it is missing and confidence is Medium. It is a stated preference, not a rating of any road or area.',
+  ),
   stepFree: r(
     { avoidedHighways: ['steps'], unknownHighways: ['footway', 'path', 'pedestrian', 'corridor', 'track'] },
     'The step-free profile walks like the foot profile but never uses a way mapped as steps. A way is known to have steps only where the map says so: footpaths, paths, pedestrian streets and corridors may still have steps or kerbs the map does not record, so the route says on how many segments step-free access is unknown, and confidence is Medium when there are any. Ordinary roads are treated as passable.',

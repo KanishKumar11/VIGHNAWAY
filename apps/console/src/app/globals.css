@@ -216,7 +216,7 @@
   border: 1px solid var(--vw-shell-hairline);
   box-shadow: var(--shadow-sm);
 }
-/* Brand moments only (logo, empty states, the report header): indigo to mint, never status, routes or text. */
+/* Brand moments only (logo, empty states, the report header): plum to olive, never status, routes or text. */
 
 /* Faint top highlight line on floating navy surfaces. */
 @utility hairline-top {
@@ -260,18 +260,18 @@
     border-color: var(--vw-shell-hairline-strong);
   }
 }
-/* Primary action: solid brand indigo, same box as `ctl` (1px edge), with a soft indigo shadow. */
+/* Primary action: solid signal lime with a dark label, same box as `ctl` (1px edge), lit in lime. */
 @utility ctl-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--vw-space-xs);
   border-radius: var(--vw-radius-button);
-  border: 1px solid var(--vw-brand-from);
-  background: var(--vw-brand-from);
-  color: var(--vw-on-brand);
+  border: 1px solid var(--vw-accent);
+  background: var(--vw-accent);
+  color: var(--vw-on-accent);
   font-weight: 600;
-  box-shadow: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-brand-glow);
+  box-shadow: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-teal-glow);
   transition: filter 150ms var(--vw-ease-out);
   &:hover:not(:disabled) {
     filter: brightness(1.1);
@@ -305,7 +305,7 @@
   background: linear-gradient(180deg, var(--vw-brand-from), var(--vw-brand-to));
 }
 
-/* Content pages: a faint indigo and teal wash behind the title, fading into the canvas. */
+/* Content pages: a faint plum and lime wash behind the title, fading into the canvas. */
 .vw-page-glow {
   background:
     radial-gradient(45% 70% at 0% 0%, color-mix(in srgb, var(--vw-brand-from) 12%, transparent), transparent 70%),
@@ -346,7 +346,7 @@
   background: linear-gradient(90deg, var(--vw-brand-from), var(--vw-accent));
 }
 
-/* Dark hero: charcoal with a faint teal glow, so the only colour is the route accent. */
+/* Dark hero: aubergine-black with a faint lime glow, so the only colour is the route accent. */
 :root[data-theme='dark'] .vw-hero {
   background:
     radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--vw-chrome-accent) 10%, transparent), transparent 70%),
@@ -416,7 +416,7 @@
   --vw-ink-on-shell: var(--vw-page-ink-on-shell);
   --vw-ink-on-shell-muted: var(--vw-page-ink-on-shell-muted);
 }
-/* Brand surfaces and text: solid brand indigo. Brand moments only (logo, wordmark, progress). */
+/* Brand surfaces and text: solid brand plum. Brand moments only (logo, wordmark, progress). */
 .vw-brand-fill {
   background: var(--vw-brand-from);
   color: var(--vw-on-brand);
@@ -432,7 +432,7 @@
   border-radius: var(--vw-radius-chip);
   background: var(--vw-brand-from);
 }
-/* Hero card on the decision panel: deep indigo with a violet sweep and a teal glow in the corner. */
+/* Hero card on the decision panel: deep plum with an orchid sweep and a lime glow in the corner. */
 .vw-hero {
   position: relative;
   overflow: hidden;
@@ -489,7 +489,7 @@
 }
 .vw-flash-glow { animation: vw-flash-glow calc(var(--vw-motion-status-upgrade) * 4) var(--vw-ease-in-out) 1 forwards; opacity: 0; }
 
-/* Origin: soft teal ripple. */
+/* Origin: soft lime ripple. */
 @keyframes vw-origin {
   0% { transform: scale(1); opacity: 0.6; }
   100% { transform: scale(2.6); opacity: 0; }

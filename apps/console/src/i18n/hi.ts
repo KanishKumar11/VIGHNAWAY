@@ -56,6 +56,8 @@ export const hi: Strings = {
           return i.impassable ? 'मलबा (रास्ता बंद बताया गया)' : 'मलबा';
         case 'accident':
           return i.impassable ? 'दुर्घटना (रास्ता बंद बताया गया)' : 'दुर्घटना';
+        case 'walking_concern':
+          return i.concern === 'isolated' ? 'सुनसान हिस्सा' : 'कम रोशनी वाली सड़क';
       }
     },
     devices: (n: number) => `${n} डिवाइस`,
@@ -340,7 +342,10 @@ export const hi: Strings = {
     noPin: 'अभी कोई पिन नहीं',
     intro: 'सड़क पर जो दिख रहा है, बताइए। पुष्टि होने तक आपकी रिपोर्ट असत्यापित दिखाई जाती है।',
     typeLabel: 'आपने क्या देखा?',
-    types: { flood: 'जलभराव', closure: 'सड़क बंद', congestion: 'जाम', debris: 'मलबा', accident: 'दुर्घटना', road_clear: 'सड़क खुली' },
+    types: { flood: 'जलभराव', closure: 'सड़क बंद', congestion: 'जाम', debris: 'मलबा', accident: 'दुर्घटना', walking_concern: 'पैदल चलने की चिंता', road_clear: 'सड़क खुली' },
+    concernLabel: 'सड़क में क्या समस्या है?',
+    concern: { poorly_lit: 'कम रोशनी', isolated: 'सुनसान हिस्सा' },
+    concernHint: 'सिर्फ़ सड़क के बारे में: कोई नाम या टिप्पणी नहीं। जब तक दूसरे पुष्टि न करें या नियंत्रण कक्ष सत्यापित न करे, यह असत्यापित दिखता है।',
     depthLabel: 'पानी कितना गहरा है?',
     depths: { ankle: 'टखने तक', knee: 'घुटने तक', waist: 'कमर तक', unknown: 'पता नहीं' },
     congestionLabel: 'ट्रैफ़िक कितना खराब है?',
@@ -369,6 +374,7 @@ export const hi: Strings = {
     errors: {
       type: 'चुनें कि आपने क्या देखा',
       congestion: 'जाम का स्तर चुनें',
+      concern: 'चुनें कि सड़क में क्या समस्या है',
       note: 'टिप्पणी बहुत लंबी है',
       location: 'नक्शे पर पिन लगाएँ या अपनी जगह इस्तेमाल करें',
       notOnRoad: 'यह जगह किसी ज्ञात सड़क पर नहीं है। पिन को सड़क पर ले जाएँ।',
@@ -647,6 +653,8 @@ export const hi: Strings = {
     speechUnavailable: 'इस ब्राउज़र में आवाज़ उपलब्ध नहीं',
     coverage: 'नक्शे पर साक्ष्य कवरेज',
     coverageHint: 'बाढ़-संभावित सड़कों को इस आधार पर रंगता है कि उनकी ताज़ा रिपोर्ट कितनी नई है',
+    walking: 'नक्शे पर पैदल चलने की चिंताएँ',
+    walkingHint: 'लोगों द्वारा बताए गए कम रोशनी वाले और सुनसान हिस्से। यात्री के कहे बिना ये कोई रास्ता नहीं बदलते।',
     list: 'नक्शे को सूची के रूप में दिखाएँ',
     listHint: 'रास्ते और घटनाएँ टेक्स्ट में',
     presenter: 'प्रेज़ेंटर मोड',

@@ -53,6 +53,7 @@ Operator `verify` on an open incident (including an already Verified one) succee
   depth?: 'ankle'|'knee'|'waist'|null,        // flood only; null/absent = not given
   congestion?: 'moderate'|'heavy'|'standstill', // required for congestion
   severity?: 'low'|'medium'|'high'|null,        // debris / accident only
+  concern?: 'poorly_lit'|'isolated',           // walking_concern only (P2-8); required there, refused elsewhere. A walking_concern report takes no description, severity, depth, congestion or impassable
   impassable?: boolean,
   point: { lat, lng },
   observedPersonally: boolean,
@@ -237,3 +238,7 @@ A photo of the place is its own request, sent **after** the report, so an API (o
 | `GET /scenarios/:id/reports/:reportId/photo` | operator | | the JPEG, `Cache-Control: private, no-store`, `Content-Disposition: inline` |
 
 Limits and rules: at most `PHOTO_MAX_BYTES` (350 kB) of JPEG; this route alone takes a body of `PHOTO_BODY_LIMIT_BYTES` (the rest of the API keeps 16 kB); one photo per report (second upload is 409); the bytes must start with `FF D8 FF` and end with `FF D9` (400 otherwise); a photo from another device is 403; an unknown report is 404. **Photos are never public**: no unauthenticated endpoint returns one, because they can show faces or number plates. Nothing reads a photo for routing, corroboration or status. The phone re-encodes the picture as a JPEG (longest side 1,280 px), which also drops its EXIF data.
+
+## Plan inputs added by P2-9
+
+`TripConditions` (engine, used by `planTrip` and `replanFrom`) gains `preferLit?: boolean` (walking profile only, default off) and `walkingConcerns?: Incident[]` (the walking-concern incidents, which routing otherwise never sees). `RouteEvaluation.lighting?: { unlitCount, unknownCount, concernIds }` is present only when the preference applied. The decision receipt's `inputsHash` covers `preferLit` and the walking concerns only when the preference is on, so every existing receipt hashes as before.

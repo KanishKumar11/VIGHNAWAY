@@ -85,6 +85,8 @@ export const en = {
   'conf.gap.unnamed': 'No recent reports on a flood-prone road',
   'conf.noAlert': 'No rain alert information',
   'conf.stepFreeUnknown': 'Step-free access is not recorded on {n} segments of this route',
+  'conf.lightingUnknown': 'Lighting data is missing on {n} segments of this route',
+  'conf.lightingConcerns': 'Walking concern reports on this route: {n}',
   'conf.close': 'Another route scores close to this one',
 
   // Re-check lines

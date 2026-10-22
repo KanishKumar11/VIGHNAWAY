@@ -1,6 +1,6 @@
 import type { PlanResult } from '@vighnaway/contracts';
 import { hashValue } from './hash';
-import { buildIncidentIndex } from './incidents';
+import { buildIncidentIndex, lightingContext } from './incidents';
 import { planHash, planTrip } from './plan';
 import type { PlanTripInput } from './plan';
 import { SCORING_RULES } from './rules';
@@ -59,6 +59,8 @@ export function inputsHash(input: PlanTripInput, meta: Pick<Receipt, 'originNode
     alerts: input.alerts,
     hasAlertInformation: input.hasAlertInformation,
     incidents: buildIncidentIndex(input.incidents).fingerprint,
+    // The well-lit preference is an input (P2-9); absent when off, so every existing receipt hashes as before.
+    ...(lightingContext(input.graph, input) ? { preferLit: true, walkingConcerns: hashValue(lightingContext(input.graph, input)) } : {}),
   });
 }
 

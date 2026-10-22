@@ -8,7 +8,7 @@ import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ChoiceGrid } from '@/components/ChoiceGrid';
-import { Accessibility, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
+import { Accessibility, Bike, Car, ChevronDown, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Lightbulb, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
 import { Card, GUTTER, Row, ScreenHeader, Section } from '@/components/ui';
@@ -102,6 +102,7 @@ export default function SettingsScreen() {
   const language = useSettings((s) => s.language);
   const largerText = useSettings((s) => s.largerText);
   const speakChanges = useSettings((s) => s.speakChanges);
+  const preferLit = useSettings((s) => s.preferLit);
   const signedIn = useAuth(selectSignedIn);
   const accountEmail = useAuth((s) => s.user?.email ?? null);
   // Offer Live only when this server lists a live scenario (the API may not have it yet).
@@ -226,6 +227,12 @@ export default function SettingsScreen() {
                 options={PROFILES.map((p) => ({ value: p, label: t(PROFILE_LABEL[p]), icon: PROFILE_ICON[p], testID: `settings-profile-${p}` }))}
               />
             </View>
+            {profile === 'foot' ? (
+              <>
+                <View style={styles.rule} />
+                <SwitchRow first icon={Lightbulb} label={t('preferLitLabel')} hint={t('preferLitHint')} value={preferLit} onChange={(v) => useSettings.getState().setPreferLit(v)} testID="prefer-lit" />
+              </>
+            ) : null}
             <View style={styles.rule} />
             <View style={styles.field}>
               <AppText variant="label" tone="muted">

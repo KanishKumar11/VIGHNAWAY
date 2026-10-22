@@ -26,6 +26,8 @@ interface Persisted {
   largerText: boolean;
   /** Speak route changes during a trip (default on). */
   speakChanges: boolean;
+  /** "Prefer well-lit roads" (P2-9): a walking preference, ranking only, off by default. */
+  preferLit: boolean;
 }
 
 interface SettingsState extends Persisted {
@@ -43,6 +45,7 @@ interface SettingsState extends Persisted {
   setLanguage: (l: Language) => void;
   setLargerText: (on: boolean) => void;
   setSpeakChanges: (on: boolean) => void;
+  setPreferLit: (on: boolean) => void;
 }
 
 const defaults: Persisted = {
@@ -57,6 +60,7 @@ const defaults: Persisted = {
   language: 'en',
   largerText: false,
   speakChanges: true,
+  preferLit: false,
 };
 
 function deviceLanguage(): Language {
@@ -74,8 +78,8 @@ setLanguage(initialLanguage);
 
 export const useSettings = create<SettingsState>()((set, get) => {
   const persist = () => {
-    const { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges } = get();
-    storage.setJSON(KEYS.settings, { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges });
+    const { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit } = get();
+    storage.setJSON(KEYS.settings, { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit });
   };
   const update = (patch: Partial<SettingsState>) => {
     set(patch);
@@ -101,6 +105,7 @@ export const useSettings = create<SettingsState>()((set, get) => {
     },
     setLargerText: (largerText) => update({ largerText }),
     setSpeakChanges: (speakChanges) => update({ speakChanges }),
+    setPreferLit: (preferLit) => update({ preferLit }),
   };
 });
 

@@ -136,6 +136,17 @@ export const RouteEvaluationSchema = z.object({
    * pedestrian streets, corridors). Mapped steps are never used. Absent for the other profiles.
    */
   stepFreeUnknownCount: z.number().int().min(0).optional(),
+  /**
+   * Set only when the traveller turned on "Prefer well-lit roads" (P2-9, foot profile): segments mapped lit=no,
+   * segments where lighting is not mapped, and the walking-concern incidents on this route. Ranking only.
+   */
+  lighting: z
+    .object({
+      unlitCount: z.number().int().min(0),
+      unknownCount: z.number().int().min(0),
+      concernIds: z.array(IdSchema),
+    })
+    .optional(),
   role: RouteRoleSchema,
   explanation: ExplanationSchema,
   counterfactual: CounterfactualSchema.optional(),

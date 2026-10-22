@@ -16,13 +16,14 @@ export {
 export type { Path, WeightFn, SearchOptions, YenOptions } from './paths';
 export {
   alertContext,
+  lightingContext,
   buildIncidentIndex,
   incidentEffect,
   ageFactor,
   isStale,
   isHard,
 } from './incidents';
-export type { EvalContext, IncidentIndex, IncidentEffect, EffectKind } from './incidents';
+export type { EvalContext, IncidentIndex, IncidentEffect, EffectKind, LightingContext } from './incidents';
 export { evaluate, crossingKind } from './evaluate';
 export type { Evaluated } from './evaluate';
 export { rank, compareEvaluations, exceedsSwitchThreshold, switchThresholdS } from './rank';

@@ -18,6 +18,8 @@ interface Prefs {
   tripHidden: boolean;
   /** Map shows flood-prone roads coloured by how recent their latest report is (P1-5). Per session. */
   coverage: boolean;
+  /** Map shows walking-concern markers (poorly lit, isolated). The queue lists them either way. Per session. */
+  walking: boolean;
 }
 
 interface PrefsStore extends Prefs {
@@ -34,6 +36,7 @@ const DEFAULTS: Prefs = {
   queueHidden: false,
   tripHidden: false,
   coverage: false,
+  walking: true,
 };
 /** Remembered on this device; presenter mode, the list view, folded columns and coverage are per session. */
 const PERSISTED: (keyof Prefs)[] = ['largeText', 'speech'];

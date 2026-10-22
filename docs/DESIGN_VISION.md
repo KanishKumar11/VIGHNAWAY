@@ -571,6 +571,14 @@ control room keeps its own Porcelain and Midnight themes.
   the dark Critical hues are unchanged. **One deliberate hue change:** light-mode `danger` is
   raspberry (`#9D174D`) instead of red, because a red blocked line and an olive route merge under
   deuteranopia (the CVD test caught it); `dangerInk` text is unchanged.
+- **Control room (web console):** same identity through `consoleThemes`, `consoleChrome`,
+  `consoleBrand` and the console map styles; no console component carries a colour literal, so it
+  is a token change plus: primary buttons (`ctl-primary`) are signal lime with a dark label, the
+  logo and tab icon are lime on aubergine ink, the hero card and command bar are plum-black with a
+  lime accent, brand surfaces (`brand-from/via/to`, chips, timeline playhead) are plum to orchid to
+  olive. Console light = "monsoon paper", dark = "monsoon night". **Flagged:** `text-brand-from`
+  (plum) on dark panels is about 2.4:1, no worse than the indigo it replaced, but not AA; brand
+  tints used as text on dark should move to a themed token in a follow-up.
 - **Map styles:** plum night land with a deep aqua sea (dark); cream land, lime-green parks and
   aqua sea (light). Flood-prone underlay is aqua in both.
 - **Idea:** a night map in the monsoon. Rain-dark aubergine sky, a signal-lime route (the colour of

@@ -16,7 +16,7 @@ import { describeChange, explain } from './explain';
 import type { GEdge, Graph } from './graph';
 import { nodePoint, snapToEdge, snapToNode } from './graph';
 import type { EvalContext, IncidentIndex } from './incidents';
-import { alertContext, buildIncidentIndex, incidentEffect } from './incidents';
+import { alertContext, buildIncidentIndex, incidentEffect, lightingContext } from './incidents';
 import type { Path, WeightFn } from './paths';
 import { baseTime, dijkstraIdx, overlapFraction, pathKey, penaltyAlternativesIdx, yenKShortestIdx } from './paths';
 import { rank } from './rank';
@@ -33,6 +33,10 @@ export interface TripConditions {
   nowS: number;
   alerts: readonly Alert[];
   hasAlertInformation: boolean;
+  /** "Prefer well-lit roads" (P2-9): walking only, ranking only, off by default. */
+  preferLit?: boolean;
+  /** Walking-concern incidents, which routing otherwise never sees. Used only when preferLit is on. */
+  walkingConcerns?: readonly Incident[];
 }
 
 export interface PlanTripInput extends TripConditions {
@@ -383,7 +387,8 @@ function memoKey(parts: unknown[]): string {
 export function planTrip(input: PlanTripInput): PlanResult {
   const { graph } = input;
   const index = buildIncidentIndex(input.incidents);
-  const ctx = alertContext(input.alerts, input.hasAlertInformation, input.nowS);
+  const lighting = lightingContext(graph, input);
+  const ctx = { ...alertContext(input.alerts, input.hasAlertInformation, input.nowS), ...(lighting ? { lighting } : {}) };
   const from = resolveNode(graph, input.origin);
   const to = resolveNode(graph, input.destination);
   const key = memoKey([
@@ -432,7 +437,8 @@ export function planTrip(input: PlanTripInput): PlanResult {
 export function replanFrom(input: ReplanInput): PlanResult {
   const { graph } = input;
   const index = buildIncidentIndex(input.incidents);
-  const ctx = alertContext(input.alerts, input.hasAlertInformation, input.nowS);
+  const lighting = lightingContext(graph, input);
+  const ctx = { ...alertContext(input.alerts, input.hasAlertInformation, input.nowS), ...(lighting ? { lighting } : {}) };
   const to = resolveNode(graph, input.destination);
 
   let edgeId: string | null;

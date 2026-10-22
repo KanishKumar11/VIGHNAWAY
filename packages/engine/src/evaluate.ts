@@ -8,7 +8,7 @@ import type {
 } from '@vighnaway/contracts';
 import type { GEdge, Graph } from './graph';
 import type { EvalContext, IncidentEffect, IncidentIndex } from './incidents';
-import { incidentEffect, isHard } from './incidents';
+import { ageFactor, incidentEffect, isHard } from './incidents';
 import { SCORING_RULES } from './rules';
 import { crossingNameText, routeNameText, tx } from './text/build';
 import { renderText } from './text/render';
@@ -61,6 +61,20 @@ export function evaluate(
   let positionM = 0;
   let floodProneEdgeCount = 0;
   let stepFreeUnknownCount = 0;
+  // "Prefer well-lit roads" (P2-9): ranking only, walking only, and only when the traveller turned it on.
+  const lighting = ctx.lighting;
+  let unlitCount = 0;
+  let lightingUnknownCount = 0;
+  let unlitExtraS = 0;
+  const concernPenalty = new Map<string, number>();
+  const concernsByEdge = new Map<string, NonNullable<typeof lighting>['concerns']>();
+  for (const c of lighting?.concerns ?? []) {
+    for (const edgeId of c.edgeIds) {
+      const list = concernsByEdge.get(edgeId);
+      if (list) list.push(c);
+      else concernsByEdge.set(edgeId, [c]);
+    }
+  }
   const stepFreeUnknown: readonly string[] | null = graph.profile === 'step_free' ? SCORING_RULES.stepFree.value.unknownHighways : null;
   const dataGaps: DataGap[] = [];
   let gapRun: { covered: boolean; gap: DataGap | null } | null = null;
@@ -71,6 +85,20 @@ export function evaluate(
   for (const ei of edgeIdx) {
     const e = graph.edges[ei]!;
     if (stepFreeUnknown?.includes(e.highway)) stepFreeUnknownCount++;
+    if (lighting) {
+      const rule = SCORING_RULES.preferLit.value;
+      if (e.lit === false) {
+        unlitCount++;
+        unlitExtraS += rule.unlitExtraShare * e.timeS;
+      } else if (e.lit === null) {
+        lightingUnknownCount++;
+      }
+      for (const c of concernsByEdge.get(e.baseId) ?? []) {
+        if (concernPenalty.has(c.id)) continue;
+        const weight = SCORING_RULES.verificationWeight.value[c.status as 'unverified' | 'corroborated' | 'verified'] ?? 0;
+        concernPenalty.set(c.id, rule.concernPenaltyS * weight * ageFactor(Math.max(0, ctx.nowS - c.lastReportAtS)));
+      }
+    }
     let multiplier = 1;
     for (const inc of incidentsOnEdge(e, index)) {
       let eff = effects.get(inc.id);
@@ -174,7 +202,8 @@ export function evaluate(
 
   const etaS = Math.round(timeS);
   const gapS = dataGaps.reduce((s, g) => s + g.penaltyS, 0);
-  const costS = etaS + penaltySum + gapS;
+  const lightingS = lighting ? Math.round(unlitExtraS + [...concernPenalty.values()].reduce((a, b) => a + b, 0)) : 0;
+  const costS = etaS + penaltySum + gapS + lightingS;
 
   const roadNames = [...roadOrder].sort(
     (a, b) => (roadLength.get(b)! - roadLength.get(a)!) || (a < b ? -1 : a > b ? 1 : 0),
@@ -208,6 +237,7 @@ export function evaluate(
     roadNames: roadNames.slice(0, 4),
     usesStaleBlock,
     ...(stepFreeUnknown ? { stepFreeUnknownCount } : {}),
+    ...(lighting ? { lighting: { unlitCount, unknownCount: lightingUnknownCount, concernIds: [...concernPenalty.keys()].sort() } } : {}),
   };
 }
 

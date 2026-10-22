@@ -42,7 +42,7 @@ function nodeFor(graph: Graph, place: Place): string {
 
 export function computePlan(): PlanOutcome | null {
   const { scenario, graphFile, region } = useScenario.getState();
-  const { profile } = useSettings.getState();
+  const { profile, preferLit } = useSettings.getState();
   const trip = useTrip.getState();
   // The corridor map has roads only: no incidents, alerts or scenario places apply to it.
   const roadsOnly = region !== 'andheri';
@@ -61,6 +61,9 @@ export function computePlan(): PlanOutcome | null {
     hasAlertInformation: roadsOnly ? false : scenario.hasAlertInformation,
     places: roadsOnly ? [] : scenario.places,
     destinationPlaceId: dest.id,
+    // "Prefer well-lit roads" (P2-9): walking only, ranking only. The walking concerns are passed separately because
+    // the engine keeps them out of routing unless this preference is on.
+    ...(preferLit && profile === 'foot' ? { preferLit: true, walkingConcerns: incidents.filter((i) => i.type === 'walking_concern') } : {}),
   };
   const context = planContextKey();
 

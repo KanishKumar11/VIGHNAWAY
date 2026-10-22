@@ -109,7 +109,7 @@ heuristic, not proof of independent witnesses." Back closes it.
 
 Fields in order: type (flood, closure, congestion, debris, accident, road clear) as large chips;
 depth pictograms for flood (ankle, knee, waist, "Not sure"); level for congestion (moderate,
-heavy, standstill); severity for debris/accident (low, medium, high) and a "Road is impassable"
+heavy, standstill); what is wrong with the road for a walking concern (poorly lit, isolated stretch: no note and no photo); severity for debris/accident (low, medium, high) and a "Road is impassable"
 switch; location ("Use my location" or "Choose on map" with a small map and the road it lands on; "Choose on map" opens a full-screen map with one pin that moves where the traveller taps or when dragged, and OK uses that spot once it is on a mapped road; the form opens on a suggested spot: the map centre when that is on a mapped road, else the vehicle, else the trip start); photo (optional: "Take photo" opens the camera, asking for permission only then; the picture is shown as a preview with Retake and Remove, and goes up after the report; a refused or blocked permission is said plainly and the report can still be sent), note (optional,
 200 characters, counter "{n}/200"); "I saw this myself" switch; sticky "Send report" button in a
 KeyboardStickyView.

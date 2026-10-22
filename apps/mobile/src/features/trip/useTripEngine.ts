@@ -25,7 +25,7 @@ export function useTripEngine(): void {
       if (s.byId !== prev.byId) schedulePlan();
     });
     const unsubSettings = useSettings.subscribe((s, prev) => {
-      if (s.profile !== prev.profile) {
+      if (s.profile !== prev.profile || s.preferLit !== prev.preferLit) {
         // A different profile is a different graph: a running trip restarts from planning.
         if (useTrip.getState().mode !== 'planning') useTrip.getState().endTrip();
         schedulePlan({ showEvaluating: true, delayMs: 0 });

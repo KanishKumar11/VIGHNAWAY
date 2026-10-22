@@ -31,6 +31,8 @@ export const RoadEdgeSchema = z.object({
   motorVehicle: z.string().nullable(),
   lengthM: z.number().nonnegative(),
   floodProne: z.boolean(),
+  /** OpenStreetMap lit=yes/no (P2-9). Absent or null where the map does not say; the Andheri extract carries it on about 2% of ways. */
+  lit: z.boolean().nullable().optional(),
   geometry: z.array(LngLatTupleSchema).min(2),
 });
 export type RoadEdge = z.infer<typeof RoadEdgeSchema>;

@@ -43,7 +43,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
       : t('drawerFooterNoData');
   return (
     <View style={styles.drawer}>
-      <DrawerContentScrollView {...props} contentContainerStyle={styles.scroll}>
+      <DrawerContentScrollView {...props} contentContainerStyle={[styles.scroll, { paddingLeft: insets.left + spacing.md }]}>
         {/* Brand hero: a deep solid surface, the one place the app shows its face. */}
         <View style={[styles.hero, { backgroundColor: brand.hero, borderColor: brand.heroEdge }, shadow('lg')]}>
           <View style={styles.markTile}>
@@ -82,7 +82,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
           })}
         </View>
       </DrawerContentScrollView>
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, paddingLeft: insets.left + spacing.md }]}>
         <View style={styles.statusCard}>
           <View style={[styles.dot, !live && styles.dotIdle]} />
           <AppText variant="meta" style={styles.flex}>

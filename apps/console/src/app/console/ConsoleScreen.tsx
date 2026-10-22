@@ -134,6 +134,9 @@ export function ConsoleScreen() {
     [sync, optimistic, confirmed],
   );
   const incidents = replay?.incidents ?? liveIncidents;
+  // Walking concerns (P2-8) can be hidden from the map; the queue and the decision always see the full list.
+  const walkingOn = usePrefs((s) => s.walking);
+  const mapIncidents = useMemo(() => (walkingOn ? incidents : incidents.filter((i) => i.type !== 'walking_concern')), [walkingOn, incidents]);
   // Coverage layer (View menu): latest report per flood-prone road. A replayed moment has no server observations.
   const coverageOn = usePrefs((s) => s.coverage);
   const serverObservations = useLiveStore((s) => s.observations);
@@ -205,7 +208,7 @@ export function ConsoleScreen() {
             >
               <MapPanel
                 scene={scene}
-                incidents={incidents}
+                incidents={mapIncidents}
                 nowS={nowS}
                 pulses={pulses}
                 selectedId={selectedId}

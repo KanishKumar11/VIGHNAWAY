@@ -47,6 +47,11 @@ export function WhyCard({ route }: { route: RouteEvaluation }) {
         <Line icon={Hourglass} label={t('whyTradeOff')} value={tradeOffOf(route) || '—'} />
         <Line icon={RefreshCw} label={t('whyRecheck')} value={recheckOf(route)} last />
       </View>
+      {route.lighting ? (
+        <AppText variant="meta" tone="muted" testID="why-preference">
+          {t('preferenceLit')}
+        </AppText>
+      ) : null}
       {reasons.length ? (
         <View style={styles.reasons}>
           <AppText variant="label" tone="muted">

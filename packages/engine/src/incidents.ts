@@ -2,6 +2,11 @@ import type { Alert, Incident } from '@vighnaway/contracts';
 import { isOpenStatus } from '@vighnaway/contracts';
 import { SCORING_RULES } from './rules';
 
+/** The walking-concern reports a "Prefer well-lit roads" plan ranks against (plain data, so the plan memo can hash it). */
+export interface LightingContext {
+  concerns: Array<{ id: string; edgeIds: string[]; status: Incident['status']; lastReportAtS: number }>;
+}
+
 export interface EvalContext {
   /** Simulation time, seconds. The engine never reads a clock. */
   nowS: number;
@@ -9,6 +14,8 @@ export interface EvalContext {
   rainAlertActive: boolean;
   /** False when the scenario has no alert information at all. */
   hasAlertInformation: boolean;
+  /** Present only when the traveller turned on "Prefer well-lit roads" for a walking plan (P2-9). */
+  lighting?: LightingContext;
 }
 
 export function alertContext(
@@ -144,4 +151,17 @@ export function incidentEffect(inc: Incident, ctx: EvalContext): IncidentEffect 
       return { ...none, kind: 'penalty', penaltyS: p, reason: inc.type };
     }
   }
+}
+
+/** The lighting context for a plan: only when the preference is on and the profile is walking. */
+export function lightingContext(
+  graph: { profile: string },
+  opts: { preferLit?: boolean; walkingConcerns?: readonly Incident[] },
+): LightingContext | undefined {
+  if (!opts.preferLit || graph.profile !== 'foot') return undefined;
+  const concerns = (opts.walkingConcerns ?? [])
+    .filter((i) => i.type === 'walking_concern' && isOpenStatus(i.status))
+    .map((i) => ({ id: i.id, edgeIds: [...i.edgeIds].sort(), status: i.status, lastReportAtS: i.lastReportAtS }))
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return { concerns };
 }

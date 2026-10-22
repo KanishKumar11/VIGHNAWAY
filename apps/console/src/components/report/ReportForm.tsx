@@ -1,6 +1,6 @@
 'use client';
 
-import type { CongestionLevel, Depth, LatLng, ReportInput, ReportType, Severity } from '@vighnaway/contracts';
+import type { CongestionLevel, Depth, LatLng, ReportInput, ReportType, Severity, WalkingConcern } from '@vighnaway/contracts';
 import { REPORT_DESCRIPTION_MAX, REPORT_TYPES, ReportInputSchema } from '@vighnaway/contracts';
 import { snapToEdge } from '@vighnaway/engine';
 import { humanSilhouette, motion as motionTokens } from '@vighnaway/tokens';
@@ -24,7 +24,7 @@ import { toast } from '@/components/ui/toast';
 
 const NOT_ON_ROAD_M = 30;
 type DepthChoice = Depth | 'unknown';
-type FieldErrors = Partial<Record<'type' | 'congestion' | 'description' | 'point' | 'form', string>>;
+type FieldErrors = Partial<Record<'type' | 'congestion' | 'concern' | 'description' | 'point' | 'form', string>>;
 const snappy = { type: 'spring' as const, ...motionTokens.springSnappy };
 const soft = { type: 'spring' as const, ...motionTokens.springSoft };
 
@@ -129,6 +129,7 @@ export function buildReportInput(f: {
   depth: DepthChoice | null;
   congestion: CongestionLevel | null;
   severity: Severity | null;
+  concern?: WalkingConcern | null;
   impassable: boolean;
   point: LatLng;
   note: string;
@@ -142,8 +143,10 @@ export function buildReportInput(f: {
     input.severity = f.severity;
     input.impassable = f.impassable;
   }
+  if (f.type === 'walking_concern' && f.concern) input.concern = f.concern;
+  // A walking concern has no free text: it could name a person or a place.
   const note = f.note.trim();
-  if (note) input.description = note;
+  if (note && f.type !== 'walking_concern') input.description = note;
   return input;
 }
 
@@ -157,6 +160,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
   const [depth, setDepth] = useState<DepthChoice | null>(null);
   const [congestion, setCongestion] = useState<CongestionLevel | null>(null);
   const [severity, setSeverity] = useState<Severity | null>(null);
+  const [concern, setConcern] = useState<WalkingConcern | null>(null);
   const [impassable, setImpassable] = useState(false);
   const [point, setPoint] = useState<LatLng | null>(null);
   const [note, setNote] = useState('');
@@ -204,18 +208,19 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     const next: FieldErrors = {};
     if (!type) next.type = t.report.errors.type;
     if (type === 'congestion' && !congestion) next.congestion = t.report.errors.congestion;
+    if (type === 'walking_concern' && !concern) next.concern = t.report.errors.concern;
     if (noteTooLong) next.description = t.report.errors.note;
     if (!point) next.point = t.report.errors.location;
     setErrors(next);
     if (Object.keys(next).length || !type || !point) {
       // Take the person to the first thing to fix.
-      const first = next.type ? `${ids}-type` : next.congestion ? `${ids}-cong` : next.point ? `${ids}-loc` : `${ids}-notewrap`;
+      const first = next.type ? `${ids}-type` : next.congestion ? `${ids}-cong` : next.concern ? `${ids}-concern` : next.point ? `${ids}-loc` : `${ids}-notewrap`;
       const el = document.getElementById(first);
       el?.scrollIntoView?.({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
       (el?.querySelector('button, textarea') as HTMLElement | null)?.focus({ preventScroll: true });
       return;
     }
-    const input = buildReportInput({ type, depth, congestion, severity, impassable, point, note, observed, deviceId: deviceId || getDeviceId() });
+    const input = buildReportInput({ type, depth, congestion, severity, concern, impassable, point, note, observed, deviceId: deviceId || getDeviceId() });
     // Where the report came from labels and limits it; it is never evidence.
     input.origin = audience ? 'audience' : 'web';
     const parsed = ReportInputSchema.safeParse(input);
@@ -313,7 +318,8 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                   whileTap={{ scale: motionTokens.buttonPressScale }}
                   onClick={() => {
                     setType(kind);
-                    setErrors((e) => ({ ...e, type: undefined, congestion: undefined }));
+                    setErrors((e) => ({ ...e, type: undefined, congestion: undefined, concern: undefined }));
+                    setConcern(null);
                   }}
                   className={cn(
                     'relative flex aspect-square flex-col items-center justify-center gap-2 rounded-card border p-2 text-center text-meta font-semibold text-ink',
@@ -381,6 +387,24 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
           </motion.div>
         )}
 
+        {type === 'walking_concern' && (
+          <motion.div key="concern" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <Section eyebrow={t.report.detailEyebrow} label={t.report.concernLabel} error={errors.concern} id={`${ids}-concern`}>
+              <Segmented
+                id="concern"
+                options={['poorly_lit', 'isolated'] as const}
+                value={concern}
+                labels={t.report.concern}
+                onChange={(c) => {
+                  setConcern(c);
+                  setErrors((e) => ({ ...e, concern: undefined }));
+                }}
+              />
+              <p className="text-meta text-ink-muted">{t.report.concernHint}</p>
+            </Section>
+          </motion.div>
+        )}
+
         {(type === 'debris' || type === 'accident') && (
           <motion.div key="sev" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <Section eyebrow={t.report.detailEyebrow} label={t.report.severityLabel} id={`${ids}-sev`}>
@@ -439,6 +463,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
         {locationMsg && <p className="text-body text-warn-ink">{locationMsg}</p>}
       </Section>
 
+      {type !== 'walking_concern' && (
       <div id={`${ids}-notewrap`} className="flex flex-col gap-2">
         <label htmlFor={`${ids}-note`} className="flex flex-col gap-0.5">
           <span className="text-meta font-medium text-ink-muted">{t.report.step(3, 3)}</span>
@@ -473,6 +498,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
           </p>
         )}
       </div>
+      )}
 
       <div className="flex flex-col gap-1 rounded-card bg-panel-sunken px-4 py-2">
         <Switch checked={observed} onChange={setObserved} label={t.report.observed} />

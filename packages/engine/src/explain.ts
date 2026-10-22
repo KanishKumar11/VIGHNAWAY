@@ -93,6 +93,8 @@ export function confidenceFor(
   }
   if (!ctx.hasAlertInformation && ev.floodProneEdgeCount > 0) medium.push(tx('conf.noAlert'));
   if (ev.stepFreeUnknownCount) medium.push(tx('conf.stepFreeUnknown', { n: ev.stepFreeUnknownCount }));
+  if (ev.lighting?.unknownCount) medium.push(tx('conf.lightingUnknown', { n: ev.lighting.unknownCount }));
+  if (ev.lighting?.concernIds.length) medium.push(tx('conf.lightingConcerns', { n: ev.lighting.concernIds.length }));
   if (gap !== null && gap > lowGapS && gap <= mediumGapS) medium.push(tx('conf.close'));
   if (medium.length) return result('medium', medium);
 

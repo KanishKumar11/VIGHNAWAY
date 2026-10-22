@@ -19,6 +19,8 @@ export interface GEdge {
   layer: number;
   lengthM: number;
   floodProne: boolean;
+  /** OpenStreetMap lit=yes/no, or null where the map does not say (P2-9). */
+  lit: boolean | null;
   /** Free-flow travel time for this profile, seconds (unrounded). */
   timeS: number;
   geometry: readonly LngLatTuple[];
@@ -109,6 +111,7 @@ export function loadGraph(json: GraphFile, profile: Profile): Graph {
       layer: e.layer,
       lengthM: e.lengthM,
       floodProne: e.floodProne,
+      lit: e.lit ?? null,
       timeS,
     };
     drafts.push({ ...common, id: e.id, from, to, geometry: e.geometry, virtual: false, reverseId: e.reverseId });

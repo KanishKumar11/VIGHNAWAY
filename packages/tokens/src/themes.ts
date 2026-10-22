@@ -330,110 +330,61 @@ export const phoneElevation = {
 } as const;
 
 /**
- * Console light theme ("Porcelain", DESIGN.md section 13): the control room's own light palette.
- * A cool porcelain canvas with white floating panels replaces the phone's warm paper environment;
- * the status hues (recommended, warning, critical, resolved) and every contrast pair are unchanged,
- * so meaning reads the same. Keys are identical to the other themes. The phone keeps `themes.light`.
+ * Console light theme ("Monsoon paper", docs/DESIGN_VISION.md appendix B): the phone's warm cream
+ * palette for the control room, a step cooler-lit for projectors. The lime primary action, olive
+ * route and raspberry blocked colour are the phone light theme's, so a route reads the same on
+ * both surfaces. Keys are identical to the other themes.
  */
 const consoleLight: ThemeColors = {
-  ...light,
-  shell: '#EDF0F5',
-  shellDeep: '#E4E9F1',
-  shellRaised: '#FFFFFF',
-  shellOverlay: '#FFFFFF',
-  shellLine: '#E2E7EF',
-  shellHairline: 'rgba(15, 23, 42, 0.07)',
-  shellHairlineStrong: 'rgba(71, 85, 105, 0.45)',
-  panelLine: '#E2E7EF',
-  panelSunken: '#F3F5F9',
-  panelHairline: 'rgba(15, 23, 42, 0.07)',
-  ink: '#0B1324',
-  inkSubtle: '#566176',
-  inkOnShell: '#0B1324',
-  accentInk: '#0B5F58',
-  tealSoft: '#E7F5F3',
-  tealGlow: 'rgba(15, 118, 110, 0.18)',
-  recommendedSurface: '#EAF7F5',
-  recommendedInk: '#0B5F58',
-  warnSurface: '#FFF6E5',
-  dangerSurface: '#FDEEEE',
-  positiveSoft: '#EDF8F0',
-  liveInk: '#0B1324',
-  liveSurface: '#EEF1F6',
-  floodProne: 'rgba(2, 132, 199, 0.2)',
-  roadMajor: '#CBD3DF',
-  roadMinor: '#DAE0E9',
-  scrim: 'rgba(16, 24, 48, 0.4)',
+  ...phoneLight,
+  shell: '#F3EEE4',
+  shellDeep: '#EAE2D3',
+  panelSunken: '#F0E9DC',
+  liveSurface: '#F0E9DC',
+  roadMajor: '#D8CCB8',
+  roadMinor: '#E4DAC8',
+  scrim: 'rgba(26, 16, 48, 0.4)',
 };
 
 /**
- * Console dark theme ("Midnight indigo"): the control room's own dark palette. The shared dark is
- * a flat slate navy whose panels barely separate from the canvas and whose teal accent clashes with
- * the indigo brand. This one tints every neutral toward the brand indigo, steps the canvas, panel
- * and overlay surfaces apart so the three floating panels read as layers, and softens the status
- * surfaces from muddy brown/maroon to deep amber/rose. Status hues and routes are unchanged.
+ * Console dark theme ("Monsoon night"): the phone's aubergine night, with the canvas, panel and
+ * overlay surfaces stepped apart so the three floating panels read as layers. Lime primary and
+ * route; status hues unchanged.
  */
 const consoleDark: ThemeColors = {
-  ...dark,
-  shell: '#121316',
-  shellDeep: '#141518',
-  shellRaised: '#1B1C20',
-  shellOverlay: '#232529',
-  shellLine: '#2F3137',
-  shellHairline: 'rgba(255, 255, 255, 0.08)',
-  shellHairlineStrong: 'rgba(161, 161, 170, 0.45)',
-  shellHighlight: 'rgba(255, 255, 255, 0.04)',
-  panel: '#1B1C20',
-  panelRaised: '#232529',
-  panelDark: '#1B1C20',
-  panelLine: '#2F3137',
-  panelSunken: '#16171A',
-  panelHairline: 'rgba(255, 255, 255, 0.08)',
-  ink: '#F4F4F5',
-  inkMuted: '#C6C7CC',
-  inkSubtle: '#9B9CA4',
-  inkOnShell: '#F4F4F5',
-  inkOnShellMuted: '#C6C7CC',
-  controlBorder: '#75767E',
-  routeRecommendedCasing: '#121316',
-  routeMuted: '#9B9CA4',
-  tealSoft: '#12292A',
-  recommendedSurface: '#12292A',
-  warnSurface: '#32270F',
-  corroboratedSurface: '#32270F',
-  dangerSurface: '#38181A',
-  positiveSoft: '#12291C',
-  live: '#C6C7CC',
-  liveInk: '#F4F4F5',
-  liveSurface: '#232529',
-  resolved: '#9B9CA4',
-  roadMajor: '#2F3137',
-  roadMinor: '#232529',
-  railway: '#C6C7CC',
-  scrim: 'rgba(0, 0, 0, 0.6)',
+  ...phoneDark,
+  shell: '#0B0817',
+  shellDeep: '#0E0A1C',
+  shellRaised: '#171033',
+  shellOverlay: '#21184A',
+  panel: '#171033',
+  panelRaised: '#21184A',
+  panelDark: '#171033',
+  panelSunken: '#110B26',
+  liveSurface: '#21184A',
 };
 
-/** Themes for the web control room: Porcelain light, and Midnight indigo dark. */
+/** Themes for the web control room: Monsoon paper light, and Monsoon night dark. */
 export const consoleThemes = { dark: consoleDark, light: consoleLight } as const;
 
 /**
- * Control-room chrome: the deep-navy command bar and hero card, identical in light and dark so the
- * room's anchor reads the same in both. Luminous teal (chromeAccent) is for graphics and large
- * numerals on the navy; status colours never sit on it (chips bring their own surface).
+ * Control-room chrome: the aubergine-black command bar and hero card, identical in light and dark so the
+ * room's anchor reads the same in both. Signal lime (chromeAccent) is for graphics and large
+ * numerals on the ink; status colours never sit on it (chips bring their own surface).
  */
 export const consoleChrome = {
-  chromeBg: '#0B1426',
-  chromeRaised: '#111C33',
-  /** Deep indigo the hero card's gradient starts from. */
-  chromeIndigo: '#1E1B4B',
-  chromeLine: 'rgba(148, 163, 184, 0.22)',
-  chromeFill: 'rgba(248, 250, 252, 0.07)',
-  chromeFillStrong: 'rgba(248, 250, 252, 0.14)',
-  chromeInk: '#F8FAFC',
-  chromeInkMuted: '#CBD5E1',
-  chromeAccent: '#2DD4BF',
-  chromeOnAccent: '#0B1426',
-  chromeGlow: 'rgba(45, 212, 191, 0.28)',
+  chromeBg: '#0B0817',
+  chromeRaised: '#150E2E',
+  /** Deep plum the hero card's gradient starts from. */
+  chromeIndigo: '#26123F',
+  chromeLine: 'rgba(210, 201, 234, 0.22)',
+  chromeFill: 'rgba(255, 246, 232, 0.07)',
+  chromeFillStrong: 'rgba(255, 246, 232, 0.14)',
+  chromeInk: '#FFF6E8',
+  chromeInkMuted: '#D2C9EA',
+  chromeAccent: '#C8F560',
+  chromeOnAccent: '#14102A',
+  chromeGlow: 'rgba(200, 245, 96, 0.28)',
 } as const;
 
 /** Chrome text and graphic pairs, checked by test/contrast.test.ts. */
@@ -442,29 +393,29 @@ export const chromeContrastPairs: { fg: keyof typeof consoleChrome; bg: keyof ty
   { fg: 'chromeInkMuted', bg: 'chromeBg', min: 4.5, what: 'muted text on the command bar' },
   { fg: 'chromeInk', bg: 'chromeRaised', min: 4.5, what: 'text on the hero card' },
   { fg: 'chromeInkMuted', bg: 'chromeRaised', min: 4.5, what: 'muted text on the hero card' },
-  { fg: 'chromeAccent', bg: 'chromeBg', min: 4.5, what: 'luminous teal on the command bar' },
-  { fg: 'chromeAccent', bg: 'chromeRaised', min: 4.5, what: 'luminous teal on the hero card' },
+  { fg: 'chromeAccent', bg: 'chromeBg', min: 4.5, what: 'signal lime on the command bar' },
+  { fg: 'chromeAccent', bg: 'chromeRaised', min: 4.5, what: 'signal lime on the hero card' },
   { fg: 'chromeOnAccent', bg: 'chromeAccent', min: 4.5, what: 'primary button label on the command bar' },
   { fg: 'chromeInk', bg: 'chromeIndigo', min: 4.5, what: 'text on the indigo end of the hero card' },
   { fg: 'chromeInkMuted', bg: 'chromeIndigo', min: 4.5, what: 'muted text on the indigo end of the hero card' },
-  { fg: 'chromeAccent', bg: 'chromeIndigo', min: 4.5, what: 'luminous teal on the indigo end of the hero card' },
+  { fg: 'chromeAccent', bg: 'chromeIndigo', min: 4.5, what: 'signal lime on the indigo end of the hero card' },
 ];
 
 /**
- * Console brand: the signature indigo-to-teal gradient and the aurora tints behind the panels.
+ * Console brand: the signature plum-to-olive gradient and the aurora tints behind the panels.
  * Brand moments and primary actions only (logo, wordmark, primary buttons, the command bar's light
  * line, timeline progress); never status, routes or body text. Both gradient ends carry white text
  * at AA, so every point between them does too.
  */
 export const consoleBrand = {
-  brandFrom: '#4F46E5',
-  brandVia: '#6D28D9',
-  brandTo: '#0F766E',
+  brandFrom: '#6B35C9',
+  brandVia: '#8E2F9E',
+  brandTo: '#4D7C0F',
   onBrand: '#FFFFFF',
-  brandGlow: 'rgba(79, 70, 229, 0.28)',
-  auroraIndigo: 'rgba(99, 102, 241, 0.24)',
-  auroraTeal: 'rgba(20, 184, 166, 0.24)',
-  auroraViolet: 'rgba(168, 85, 247, 0.16)',
+  brandGlow: 'rgba(107, 53, 201, 0.28)',
+  auroraIndigo: 'rgba(124, 58, 190, 0.22)',
+  auroraTeal: 'rgba(200, 245, 96, 0.18)',
+  auroraViolet: 'rgba(255, 179, 32, 0.12)',
 } as const;
 
 /** Brand pairs, checked by test/contrast.test.ts. */

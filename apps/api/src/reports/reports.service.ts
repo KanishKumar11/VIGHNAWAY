@@ -36,9 +36,9 @@ export const REPORT_RULES = {
   clearDevicesToResolve: 2,
   /** One answer to the data-gap question per road per device per 30 simulated minutes. */
   promptWindowS: 1800,
-  /** Walking concerns (P2-8) are limited more tightly than other reports: this many per device per 30 simulated minutes. */
+  /** Walking concerns (P2-8) are limited more tightly than other reports: this many per device per simulated hour. */
   concernPerDevice: 3,
-  concernWindowS: 1800,
+  concernWindowS: 3600,
 } as const;
 
 const DEPTH_RANK: Record<Depth, number> = { ankle: 1, knee: 2, waist: 3 };
@@ -408,7 +408,7 @@ export class ReportsService {
     }
   }
 
-  /** A device may send only a few walking concerns per half hour (P2-8): 429 after that. */
+  /** A device may send only three walking concerns per hour (P2-8): 429 after that. */
   private async requireWithinConcernLimit(tx: Tx, scenarioId: string, deviceHash: string, nowS: number): Promise<void> {
     const rows = await tx.execute<{ n: number }>(sql`
       SELECT count(*)::int AS n FROM incident_reports

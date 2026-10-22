@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from 'react-native-maps';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { LatLng } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -26,10 +27,16 @@ function andheriCentre(): LatLng {
  * then OK uses that spot. OK waits for a mapped road, because the API only takes reports on one.
  */
 export function MapPicker({ visible, initial, onCancel, onConfirm }: { visible: boolean; initial: LatLng | null; onCancel: () => void; onConfirm: (p: LatLng) => void }) {
+  const styles = useStyles();
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onCancel} statusBarTranslucent>
-      {/* Mounted only while open, so every visit starts from the current point. */}
-      {visible ? <PickerBody initial={initial} onCancel={onCancel} onConfirm={onConfirm} /> : null}
+    <Modal visible={visible} animationType="slide" onRequestClose={onCancel} statusBarTranslucent navigationBarTranslucent>
+      {/* A Modal is its own native window (BUILD_PROMPT 8.3): it needs its own insets provider and gesture root. */}
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={styles.flex}>
+          {/* Mounted only while open, so every visit starts from the current point. */}
+          {visible ? <PickerBody initial={initial} onCancel={onCancel} onConfirm={onConfirm} /> : null}
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -69,7 +76,7 @@ function PickerBody({ initial, onCancel, onConfirm }: { initial: LatLng | null; 
           <MapField width={400} height={800} />
         </View>
       )}
-      <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
+      <View testID="map-picker-top" pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
         <Card style={styles.titleCard}>
           <View style={styles.titleRow}>
             <View style={styles.flex}>
@@ -84,7 +91,7 @@ function PickerBody({ initial, onCancel, onConfirm }: { initial: LatLng | null; 
           </View>
         </Card>
       </View>
-      <View pointerEvents="box-none" style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
+      <View testID="map-picker-bottom" pointerEvents="box-none" style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}>
         <Card style={styles.bottomCard}>
           <View style={styles.info}>
             <AppText variant="mono" testID="map-picker-coords">

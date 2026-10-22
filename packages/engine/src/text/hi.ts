@@ -77,6 +77,8 @@ export const hi: Record<TextKey, string> = {
   'conf.gap.unnamed': 'एक बाढ़-संभावित सड़क से हाल की कोई रिपोर्ट नहीं',
   'conf.noAlert': 'बारिश की चेतावनी की कोई जानकारी नहीं',
   'conf.stepFreeUnknown': 'इस रास्ते के {n} हिस्सों में सीढ़ी-रहित पहुँच दर्ज नहीं है',
+  'conf.lightingUnknown': 'इस रास्ते के {n} हिस्सों में रोशनी की जानकारी नहीं है',
+  'conf.lightingConcerns': 'इस रास्ते पर पैदल-चिंता रिपोर्टें: {n}',
   'conf.close': 'एक दूसरा रास्ता इसके करीब है',
 
   'recheck.unverified.road': 'फिर देखें अगर {road} की रिपोर्ट समर्थित या सत्यापित हो।',

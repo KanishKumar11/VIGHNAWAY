@@ -70,3 +70,11 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 ## Step-free profile
 
 Step-free access is known only where OpenStreetMap says so. The profile never uses a way mapped as steps, but footpaths, paths, pedestrian streets and corridors may still have steps, kerbs or no ramp that the map does not record, and ordinary roads are assumed passable. The route shows how many of its segments have no recorded step-free access and its confidence is Medium when there are any. It is a planning aid for people who cannot use steps, it does not promise that a route can be used.
+
+## Walking concerns (poorly lit, isolated)
+
+Walking-concern reports describe one road and one condition. They are display only: the route engine never reads them (they are left out of the incident index, so they cannot change a route, a confidence level, an incident count or a data gap), and nothing rates a neighbourhood, shades an area or says a place is or is not safe. A report takes no note, no photo and no identity; only a random device id, which is hashed. One device may send three an hour. They age like any other incident, so a lasting condition such as a dead street light is understated after about three hours unless people keep reporting it or an operator verifies it. Only an operator can verify one.
+
+## Prefer well-lit roads
+
+A walking preference, off by default, ranking only. It never changes the time shown, never blocks a road and never rates a road or an area. The lighting data behind it is thin: in the Andheri extract only 2.0% of walkable ways (170 of 8,461) say whether they are lit (165 `lit=yes`, 5 `lit=no`; `node scripts/lit_coverage.mjs` prints it by road class), so for almost every route the preference rests on traveller reports of poorly lit or isolated stretches, and the route says on how many segments lighting is not mapped. The real graph file does not carry the `lit` tag yet: the engine reads it when present, and adding it means regenerating the graph, which changes the graph version and every pinned hash, so it was left out until the extract is redone for another reason. A road with no report is not a lit road: no report means no information.

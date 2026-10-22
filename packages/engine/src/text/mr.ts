@@ -77,6 +77,8 @@ export const mr: Record<TextKey, string> = {
   'conf.gap.unnamed': 'एका पूरप्रवण रस्त्यावरून अलीकडची नोंद नाही',
   'conf.noAlert': 'पावसाच्या इशाऱ्याची माहिती नाही',
   'conf.stepFreeUnknown': 'या मार्गाच्या {n} भागांवर पायऱ्यांशिवाय प्रवेशाची नोंद नाही',
+  'conf.lightingUnknown': 'या मार्गाच्या {n} भागांवर प्रकाशाची माहिती नाही',
+  'conf.lightingConcerns': 'या मार्गावर चालण्याच्या-चिंता नोंदी: {n}',
   'conf.close': 'दुसरा एक मार्ग याच्या जवळपास आहे',
 
   'recheck.unverified.road': '{road} येथील नोंदीला दुजोरा मिळाला किंवा ती पडताळली गेली तर पुन्हा तपासा.',
