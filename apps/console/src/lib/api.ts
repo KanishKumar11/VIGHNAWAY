@@ -7,6 +7,7 @@ import {
   MeResponseSchema,
   MyStatsResponseSchema,
   OtpRequestResponseSchema,
+  PhotoListResponseSchema,
   ClearAudienceResponseSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
@@ -27,6 +28,7 @@ import {
   type MyStatsResponse,
   type OtpRequestResponse,
   type OtpVerifyBody,
+  type PhotoListResponse,
   type FeedStatus,
   type HistoryResponse,
   type HealthResponse,
@@ -92,9 +94,10 @@ export interface RequestOptions {
   fetchImpl?: typeof fetch;
 }
 
-export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+/** Sends the request and turns a network failure or a non-2xx answer into an ApiError. */
+async function send(path: string, accept: string, opts: RequestOptions): Promise<Response> {
   const base = opts.baseUrl ?? API_URL;
-  const headers: Record<string, string> = { accept: 'application/json' };
+  const headers: Record<string, string> = { accept };
   if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   let res: Response;
@@ -123,6 +126,21 @@ export async function request<T>(path: string, schema: Parser<T> | null, opts: R
     }
     throw new ApiError(STATUS_CODE[res.status] ?? 'INTERNAL', `HTTP ${res.status}`, res.status);
   }
+  return res;
+}
+
+/** GET raw bytes (an operator-only image). The caller turns the Blob into an object URL. */
+export async function requestBlob(path: string, opts: RequestOptions = {}): Promise<Blob> {
+  const res = await send(path, 'image/jpeg', opts);
+  try {
+    return await res.blob();
+  } catch {
+    throw new ApiError('BAD_RESPONSE', 'The server sent a response that is not an image', res.status);
+  }
+}
+
+export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+  const res = await send(path, 'application/json', opts);
   if (res.status === 204 || schema === null) return undefined as T;
   let json: unknown;
   try {
@@ -170,6 +188,12 @@ export const api = {
   /** Operator: dismisses every open incident that only demo-audience reports support. */
   clearAudience: (id: string, token: string, o?: RequestOptions): Promise<ClearAudienceResponse> =>
     request(API_PATHS.clearAudience(id), ClearAudienceResponseSchema, { ...o, method: 'POST', body: {}, token }),
+  /** Operator: the photos citizens attached to reports, newest first. The list never carries image bytes. */
+  photos: (id: string, token: string, o?: RequestOptions): Promise<PhotoListResponse> =>
+    request(API_PATHS.photos(id), PhotoListResponseSchema, { ...o, token }),
+  /** Operator: one report's photo (JPEG). An <img src> cannot send the header, so it is fetched as a Blob. */
+  photoBlob: (id: string, reportId: string, token: string, o?: RequestOptions): Promise<Blob> =>
+    requestBlob(API_PATHS.reportPhoto(id, reportId), { ...o, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),

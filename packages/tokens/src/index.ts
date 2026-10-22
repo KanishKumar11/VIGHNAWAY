@@ -353,5 +353,5 @@ export const consoleGoogleMapStyles = { dark: googleMapStyle, light: googleMapSt
 export const tokens = { colors, spacing, radius, fontFamily, type, letterSpacing, elevation, routeStyles, zIndex, marker, motion, layout } as const;
 export default tokens;
 
-export { incidentIcons, incidentIconStyle } from './incidentIcons';
+export { humanSilhouette, incidentIcons, incidentIconStyle } from './incidentIcons';
 export type { IncidentIconKey, IncidentIconLayer } from './incidentIcons';

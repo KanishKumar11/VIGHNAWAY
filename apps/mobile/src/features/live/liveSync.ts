@@ -18,6 +18,7 @@ import { vehiclePosition } from '@vighnaway/engine';
 import { andheriScenario } from '@vighnaway/scenario-data';
 import { t } from '@/i18n/en';
 import { evidenceText } from '@/i18n/engineText';
+import { sendPhoto } from '@/features/report/submit';
 import { api, ApiRequestError } from '@/lib/api';
 import { getGraph } from '@/lib/engine';
 import { haptic } from '@/lib/feedback';
@@ -217,8 +218,12 @@ export async function flushPendingReports(): Promise<void> {
   for (const p of pending) {
     try {
       // Each report goes to the scenario it was made in (queues from before tagging: the demo).
-      await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input, authToken());
+      const res = await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input, authToken());
       remove(p.localId);
+      // The photo of a queued report goes up once the report is in; if it cannot, say so (the report stands).
+      if (p.photo && (await sendPhoto(p.scenarioId ?? andheriScenario.id, res.receipt.reportId, p.input.deviceId, p.photo)) === 'failed') {
+        useToast.getState().show(t('toastPhotoFailed'), 'warn');
+      }
       const text = t('activityReportSent', { type: REPORT_TYPE_LABEL[p.input.type] });
       if (p.activityId) useActivity.getState().update(p.activityId, { kind: 'report_sent', text });
     } catch (e) {

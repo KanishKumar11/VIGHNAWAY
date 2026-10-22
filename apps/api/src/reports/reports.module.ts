@@ -5,6 +5,8 @@ import { saltedHash } from '../common/hash';
 import { IncidentsModule } from '../incidents/incidents.module';
 import { LiveModule } from '../live/live.module';
 import { ScenariosModule } from '../scenarios/scenarios.module';
+import { PhotosController } from './photos.controller';
+import { PhotosService } from './photos.service';
 import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
 
@@ -36,8 +38,8 @@ const deviceIdOf = (req: Record<string, unknown>): string | null => {
       }),
     }),
   ],
-  controllers: [ReportsController],
-  providers: [ReportsService],
+  controllers: [ReportsController, PhotosController],
+  providers: [ReportsService, PhotosService],
   exports: [ReportsService],
 })
 export class ReportsModule {}

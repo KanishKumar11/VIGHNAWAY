@@ -104,7 +104,7 @@ heuristic, not proof of independent witnesses." Back closes it.
 Fields in order: type (flood, closure, congestion, debris, accident, road clear) as large chips;
 depth pictograms for flood (ankle, knee, waist, "Not sure"); level for congestion (moderate,
 heavy, standstill); severity for debris/accident (low, medium, high) and a "Road is impassable"
-switch; location ("Use my location" or "Use map centre" with a small static map and the road it lands on; the form opens on the map centre when that is on a mapped road, else the vehicle, else the trip start); note (optional,
+switch; location ("Use my location" or "Use map centre" with a small static map and the road it lands on; the form opens on the map centre when that is on a mapped road, else the vehicle, else the trip start); photo (optional: "Take photo" opens the camera, asking for permission only then; the picture is shown as a preview with Retake and Remove, and goes up after the report; a refused or blocked permission is said plainly and the report can still be sent), note (optional,
 200 characters, counter "{n}/200"); "I saw this myself" switch; sticky "Send report" button in a
 KeyboardStickyView.
 
@@ -162,6 +162,8 @@ schematic fixture) and "Map data © Google".
 | API unreachable | Banner "Server unreachable at {url}. Showing the last data received." |
 | Empty queue | "No incidents yet. Press Play to start the simulated scenario." |
 | Action failed | Toast "Could not {verify} this incident: {message}. Change undone." |
+
+Report photos (operators only): when the controls are unlocked and an incident has photos from citizen reports, its queue card shows up to three small thumbnails under the evidence chips ("Photo from a report, 12 min ago"), then "+N" for the rest. A thumbnail opens a larger view in a dialog ("Photo from a citizen report", the report time and age, "Only operators can see photos. Do not share them."), with previous/next when there are several; Escape, the close button or a click outside closes it. The console fetches the list (`GET /scenarios/:id/photos`, every 20 s) and each image with the operator Authorization header, and shows it from a Blob URL that is revoked when replaced or on unmount. With the controls locked, or during decision replay, no photo is requested and nothing about photos is shown. Photos are untrusted user content: they are only ever the source of an image, never markup.
 
 ## 10. /report (public mobile web, opened by QR)
 

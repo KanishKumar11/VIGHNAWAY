@@ -64,3 +64,4 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 
 - Android first; iOS is Stretch and untested.
 - Nothing in this repository has run on a physical phone yet (see docs/TASKS.md).
+- Report photos have no retention or deletion job, no operator "delete photo" action, no face or number-plate blurring and no virus or content scan beyond a JPEG sanity check. They are operator-only, but they are stored in Postgres until the table is cleared. Decide a retention rule before real use.

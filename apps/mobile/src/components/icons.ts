@@ -61,3 +61,4 @@ export { default as TypeIcon } from 'lucide-react-native/icons/type';
 export { default as UserRound } from 'lucide-react-native/icons/user-round';
 export { default as Mail } from 'lucide-react-native/icons/mail';
 export { default as LogOut } from 'lucide-react-native/icons/log-out';
+export { default as Camera } from 'lucide-react-native/icons/camera';

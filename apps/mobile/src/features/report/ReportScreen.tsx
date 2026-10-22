@@ -10,6 +10,7 @@ import { vehiclePosition } from '@vighnaway/engine';
 import { AppText } from '@/components/AppText';
 import { APPROXIMATE_FIX_M } from '@/features/search/myLocation';
 import { accurateFix, requestLocationPermission } from '@/lib/location';
+import type { CapturedPhoto } from '@/lib/photo';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
@@ -34,6 +35,7 @@ import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { createStyles, fontFamily, LARGER_TEXT, useTheme, withAlpha, hairline, layout, motion, radius, spacing, text, useColors } from '@/theme';
 import { DepthSelector } from './DepthSelector';
+import { PhotoField } from './PhotoField';
 import { submitReport } from './submit';
 import { emptyDraft, validateReport, type ReportDraft, type ReportErrors } from './validation';
 
@@ -170,6 +172,7 @@ export function ReportScreen() {
   const [status, setStatus] = useState<'editing' | 'sending' | 'sent'>('editing');
   const [locationSource, setLocationSource] = useState<'map' | 'device'>('map');
   const [locationNote, setLocationNote] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<CapturedPhoto | null>(null);
   const [noteFocused, setNoteFocused] = useState(false);
   const [headerH, setHeaderH] = useState(insets.top + layout.minTouch + spacing.xl);
 
@@ -206,7 +209,7 @@ export function ReportScreen() {
   }, [fixture]);
 
   const [discarded, setDiscarded] = useState(false);
-  const dirty = !discarded && status === 'editing' && (draft.type !== null || draft.note.trim().length > 0);
+  const dirty = !discarded && status === 'editing' && (draft.type !== null || draft.note.trim().length > 0 || photo !== null);
   // Back, swipe and Close all ask before dropping a started report (Alert, not a custom dialog).
   usePreventRemove(dirty, ({ repeat }) => {
     Alert.alert(t('discardTitle'), undefined, [
@@ -265,7 +268,7 @@ export function ReportScreen() {
       return;
     }
     setStatus('sending');
-    const outcome = await submitReport({ ...result.input, point: snap.point });
+    const outcome = await submitReport({ ...result.input, point: snap.point }, photo ? { data: photo.data } : null);
     if (outcome.kind === 'error') {
       setStatus('editing');
       setErrors({ form: outcome.message });
@@ -275,7 +278,9 @@ export function ReportScreen() {
     // The button morphs into the success animation first; the toast follows it.
     setStatus('sent');
     if (outcome.kind === 'sent') haptic.success();
-    const toast = () => useToast.getState().show(outcome.kind === 'sent' ? t('toastSent') : t('toastPending'), outcome.kind === 'sent' ? 'positive' : 'neutral');
+    const photoFailed = outcome.kind === 'sent' && outcome.photo === 'failed';
+    const toastText = outcome.kind !== 'sent' ? t('toastPending') : photoFailed ? t('toastPhotoFailed') : outcome.photo === 'sent' ? t('toastSentPhoto') : t('toastSent');
+    const toast = () => useToast.getState().show(toastText, outcome.kind === 'sent' ? (photoFailed ? 'warn' : 'positive') : 'neutral');
     if (reduce) toast();
     else setTimeout(toast, motion.reportSent * 2);
     setTimeout(() => router.dismiss(), reduce ? 600 : 1800);
@@ -421,7 +426,10 @@ export function ReportScreen() {
             </AppText>
           ) : null}
         </Section>
-        <Section step={stepOf()} label={t('noteLabel')} error={errors.note} index={hasDetail ? 3 : 2}>
+        <Section step={stepOf()} label={t('photoLabel')} index={hasDetail ? 3 : 2}>
+          <PhotoField photo={photo} onChange={setPhoto} />
+        </Section>
+        <Section step={stepOf()} label={t('noteLabel')} error={errors.note} index={hasDetail ? 4 : 3}>
           <View style={[styles.inputWrap, noteFocused && styles.inputFocused, errors.note ? styles.inputError : null]}>
             <TextInput
               ref={noteRef}

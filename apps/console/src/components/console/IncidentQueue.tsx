@@ -23,7 +23,9 @@ import { useIncidentAction } from '@/hooks/useOperatorActions';
 import { usePulse } from '@/hooks/usePulse';
 import { EvidenceChips, RingIcon } from '@/components/shared/EvidenceChips';
 import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
+import { IncidentPhotos } from '@/components/console/IncidentPhotos';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIncidentPhotos, type IncidentPhoto } from '@/hooks/useIncidentPhotos';
 
 const GROUP_RING: Record<QueueGroup, Incident['status']> = { corroborated: 'corroborated', unverified: 'unverified', verified: 'verified', closed: 'resolved' };
 const spring = { type: 'spring' as const, ...motionTokens.springSoft };
@@ -37,7 +39,8 @@ const TILE_TONE = (filled: boolean): Record<QueueGroup, string> => {
     closed: quiet,
   };
 };
-const secondaryBtn = 'vw-press ctl h-9 px-3 text-meta disabled:opacity-50';
+const NO_PHOTOS: readonly IncidentPhoto[] = [];
+const secondaryBtn ='vw-press ctl h-9 px-3 text-meta disabled:opacity-50';
 
 function IncidentRow({
   incident,
@@ -45,6 +48,7 @@ function IncidentRow({
   pending,
   selected,
   readOnly,
+  photos,
   onSelect,
   onAction,
 }: {
@@ -53,6 +57,8 @@ function IncidentRow({
   pending: boolean;
   selected: boolean;
   readOnly: boolean;
+  /** Citizen photos for this incident; empty when the controls are locked. */
+  photos: readonly IncidentPhoto[];
   onSelect: (id: string) => void;
   onAction: (incident: Incident, action: OperatorAction) => void;
 }) {
@@ -97,6 +103,7 @@ function IncidentRow({
       </button>
       <div className="mt-3.5 pl-14">
         <EvidenceChips incident={incident} nowS={nowS} />
+        {photos.length > 0 && <IncidentPhotos photos={photos} nowS={nowS} />}
         {incident.feed ? (
           <div className="mt-2.5 text-meta text-ink-on-shell-muted">
             {incident.feed.description && (
@@ -293,6 +300,8 @@ export function IncidentQueue({
   const token = useOperatorAccess();
   const openDialog = useOperator((s) => s.openDialog);
   const action = useIncidentAction();
+  // Photo reports belong to the live run: a replayed moment (incidents given) shows none.
+  const photos = useIncidentPhotos(!given);
   const liveIncidents = useMemo(() => displayIncidents({ sync, optimistic, confirmed }), [sync, optimistic, confirmed]);
   const incidents = given ?? liveIncidents;
   const nowS = givenNow ?? liveNow;
@@ -369,6 +378,7 @@ export function IncidentQueue({
                         pending={!!optimistic[inc.id]}
                         selected={selectedId === inc.id}
                         readOnly={readOnly}
+                        photos={photos.get(inc.id) ?? NO_PHOTOS}
                         onSelect={onSelect}
                         onAction={onAction}
                       />

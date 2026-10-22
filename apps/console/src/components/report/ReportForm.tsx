@@ -3,7 +3,7 @@
 import type { CongestionLevel, Depth, LatLng, ReportInput, ReportType, Severity } from '@vighnaway/contracts';
 import { REPORT_DESCRIPTION_MAX, REPORT_TYPES, ReportInputSchema } from '@vighnaway/contracts';
 import { snapToEdge } from '@vighnaway/engine';
-import { motion as motionTokens } from '@vighnaway/tokens';
+import { humanSilhouette, motion as motionTokens } from '@vighnaway/tokens';
 import successAnimation from '@vighnaway/tokens/lottie/success.json';
 import { CircleAlert, LocateFixed, MapPin, Send } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
@@ -28,20 +28,27 @@ type FieldErrors = Partial<Record<'type' | 'congestion' | 'description' | 'point
 const snappy = { type: 'spring' as const, ...motionTokens.springSnappy };
 const soft = { type: 'spring' as const, ...motionTokens.springSoft };
 
-/** Water level on the figure, as a fraction of its height from the feet. */
-const WATER: Record<DepthChoice, number> = { ankle: 0.12, knee: 0.32, waist: 0.56, unknown: 0 };
+/** Water level on the figure, as a fraction of its height from the feet (ankle bone, knee, belt). */
+const WATER: Record<DepthChoice, number> = { ankle: 0.07, knee: 0.28, waist: 0.56, unknown: 0 };
 
-/** Visual depth selector: a standing figure with the water rising to the chosen level. */
+/** The silhouette stands on y = FEET and is FIGURE_H tall inside the 120 x 160 tile. */
+const FEET = 144;
+const FIGURE_H = 124;
+const SILHOUETTE_SCALE = FIGURE_H / humanSilhouette.size;
+
+/** Visual depth selector: the human silhouette with the water rising to the chosen level. */
 function DepthFigure({ depth }: { depth: DepthChoice | null }) {
   const level = depth ? WATER[depth] : 0;
-  const top = 150 - level * 132;
+  const top = level > 0 ? FEET - level * FIGURE_H : 160;
   return (
     <svg viewBox="0 0 120 160" className="h-44 w-32" aria-hidden fill="none" strokeLinecap="round" strokeLinejoin="round">
       <rect x={4} y={4} width={112} height={152} rx={16} className="fill-panel-sunken" />
-      <g className="stroke-ink" strokeWidth={4}>
-        <circle cx={60} cy={30} r={10} />
-        <path d="M60 42v46M60 54l-20 22M60 54l20 22M60 88l-15 54M60 88l15 54" />
-      </g>
+      <path d={`M14 ${FEET}H106`} className="stroke-ink-muted" strokeWidth={1.5} strokeDasharray="3 4" />
+      <path
+        d={humanSilhouette.d}
+        className="fill-ink"
+        transform={`translate(${60 - (humanSilhouette.size / 2) * SILHOUETTE_SCALE} ${FEET - FIGURE_H}) scale(${SILHOUETTE_SCALE})`}
+      />
       <motion.g initial={false} animate={{ y: top - 150 }} transition={soft}>
         <rect x={4} y={150} width={112} height={160} className="fill-flood-prone" />
         <path d="M4 150c9-5 18-5 28 0s19 5 28 0 19-5 28 0 19 5 28 0" className="stroke-flood-prone-solid" strokeWidth={3} />

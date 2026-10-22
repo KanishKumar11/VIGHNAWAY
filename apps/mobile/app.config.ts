@@ -82,6 +82,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         isIosBackgroundLocationEnabled: false,
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        // The camera is only opened when the traveller taps "Take photo" in a report; no gallery access, no microphone.
+        cameraPermission: 'VIGHNAWAY uses the camera only when you tap Take photo in a hazard report, to show operators what the place looks like.',
+        photosPermission: false,
+        microphonePermission: false,
+      },
+    ],
     'expo-font',
     [
       'expo-splash-screen',

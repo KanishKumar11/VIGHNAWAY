@@ -9,6 +9,8 @@ export interface PendingReport {
   input: ReportInput;
   createdAtWallMs: number;
   activityId: string | null;
+  /** A photo to send once the report is accepted (JPEG, base64). */
+  photo?: { data: string } | null;
 }
 
 interface ReportsState {

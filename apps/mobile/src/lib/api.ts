@@ -8,6 +8,7 @@ import {
   MeResponseSchema,
   MyStatsResponseSchema,
   OtpRequestResponseSchema,
+  ReportPhotoResponseSchema,
   ReportResponseSchema,
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
@@ -21,6 +22,8 @@ import {
   type OtpRequestResponse,
   type OtpVerifyBody,
   type ReportInput,
+  type ReportPhotoInput,
+  type ReportPhotoResponse,
   type ReportResponse,
   type ScenarioListResponse,
   type ScenarioResponse,
@@ -42,6 +45,8 @@ export class ApiRequestError extends Error {
 
 const TIMEOUT_MS = 8000;
 const REPORT_TIMEOUT_MS = 20000;
+/** A photo is up to a few hundred kB: allow a slow link time to finish it. */
+const PHOTO_TIMEOUT_MS = 45000;
 
 /** The part of a Zod schema we use (zod is a dependency of contracts, not of this app). */
 interface Parser<T> {
@@ -130,6 +135,9 @@ export const api = {
       throw e;
     }
   },
+  /** A photo of the place, sent after the report so a server without photos still takes the report. */
+  reportPhoto: (baseUrl: string, id: string, reportId: string, input: ReportPhotoInput): Promise<ReportPhotoResponse> =>
+    request(baseUrl, API_PATHS.reportPhoto(id, reportId), ReportPhotoResponseSchema, { method: 'POST', body: input, timeoutMs: PHOTO_TIMEOUT_MS }),
   authOtpRequest: (baseUrl: string, body: OtpRequestBody): Promise<OtpRequestResponse> =>
     request(baseUrl, API_PATHS.authOtpRequest, OtpRequestResponseSchema, { method: 'POST', body }),
   authOtpVerify: (baseUrl: string, body: OtpVerifyBody): Promise<AuthSessionResponse> =>

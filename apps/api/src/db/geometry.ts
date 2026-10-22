@@ -48,3 +48,8 @@ export const lineStringGeom = customType<{ data: LngLat[]; driverData: string }>
   toDriver: (v) => lineEwkt(v),
   fromDriver: (v) => readEwkb(v).coords,
 });
+
+/** bytea, mapped to a Buffer (postgres.js sends and returns Buffers for bytea). */
+export const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => 'bytea',
+});

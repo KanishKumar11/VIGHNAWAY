@@ -121,3 +121,17 @@ jsonb provenance, no `incident_reports` rows. Migration `0002_incident_feed.sql`
 true while every supporting report has origin `audience`: a new incident takes it from its first report, and an
 attached report from any other origin clears it. `POST /scenarios/:id/audience/clear` dismisses the open incidents with
 `audience_only` set. Neither column is read by the routing engine: origin labels and limits, it is never evidence.
+
+## report_photos
+
+| Column | Notes |
+| --- | --- |
+| `report_id` text PK | `incident_reports.id`; one photo per report |
+| `scenario_id` text | |
+| `incident_id` text null | copied from the report at upload, so the console can list photos by incident |
+| `content_type` text | `image/jpeg` |
+| `bytes` bytea | the JPEG, at most 350 kB |
+| `size_bytes` int | |
+| `created_at` timestamptz | server time |
+
+Index `(scenario_id, created_at)`. Migration `0005_report_photos`. Read only through the operator endpoints in CONTRACTS.md. There is no retention job yet (see docs/limitations.md): photos stay until the table is cleared.
