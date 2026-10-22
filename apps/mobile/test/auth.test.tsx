@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { findForbiddenWords, type AuthUser, type ReportInput } from '@vighnaway/contracts';
 import { AccountScreen } from '@/features/account/AccountScreen';
 import { statsLines } from '@/features/account/signIn';
@@ -429,15 +430,117 @@ describe('Account screen: signed in', () => {
     signIn();
     handler = (c) => (c.url === '/me/stats' ? reply(200, { reports: 3, inVerifiedIncidents: 1 }) : reply(500));
     await render(<AccountScreen />);
-    expect(screen.getByText('Asha')).toBeTruthy();
+    // The name is on the profile card and in the Name row (where it is edited).
+    expect(screen.getAllByText('Asha').length).toBeGreaterThan(0);
     expect(screen.getByText('asha@example.com')).toBeTruthy();
     expect(await screen.findByText('You have sent 3 reports. Thank you.')).toBeTruthy();
     expect(screen.getByText('1 report is in an incident an operator later verified.')).toBeTruthy();
-    expect(calls[0]!.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(calls.find((c) => c.url === '/me/stats')!.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(screen.getByText('Sign out')).toBeTruthy();
     const shown = JSON.stringify(screen.toJSON());
     expect(shown).not.toMatch(BANNED);
     expect(screen.queryByTestId('account-email')).toBeNull();
+  });
+
+  it('renames the account: PATCH /me with the trimmed name, kept on the phone; an empty box removes it', async () => {
+    signIn();
+    handler = (c) => (c.url === '/me' && c.method === 'PATCH' ? reply(200, { user: { ...user, displayName: (c.body as { displayName: string | null }).displayName } }) : c.url === '/me/reports' ? reply(200, { reports: [] }) : reply(200, { reports: 0, inVerifiedIncidents: 0 }));
+    await render(<AccountScreen />);
+    await fireEvent.press(screen.getByTestId('account-name-open'));
+    await fireEvent.changeText(screen.getByTestId('account-name-edit'), '  Asha K  ');
+    await fireEvent.press(screen.getByTestId('account-name-save'));
+    await act(async () => undefined);
+    expect(calls.find((c) => c.url === '/me' && c.method === 'PATCH')).toMatchObject({ body: { displayName: 'Asha K' } });
+    expect(useAuth.getState().user?.displayName).toBe('Asha K');
+    expect(storage.getJSON<{ user: AuthUser }>(KEYS.auth)?.user.displayName).toBe('Asha K');
+    expect(screen.queryByTestId('account-name-edit')).toBeNull();
+
+    await fireEvent.press(screen.getByTestId('account-name-open'));
+    await fireEvent.changeText(screen.getByTestId('account-name-edit'), '   ');
+    await fireEvent.press(screen.getByTestId('account-name-save'));
+    await act(async () => undefined);
+    expect(calls.filter((c) => c.method === 'PATCH').pop()).toMatchObject({ body: { displayName: null } });
+    expect(useAuth.getState().user?.displayName).toBeNull();
+  });
+
+  it('a failed rename keeps the editor open and says so', async () => {
+    signIn();
+    handler = (c) => (c.method === 'PATCH' ? err(500, 'INTERNAL', 'boom') : reply(200, { reports: 0, inVerifiedIncidents: 0 }));
+    await render(<AccountScreen />);
+    await fireEvent.press(screen.getByTestId('account-name-open'));
+    await fireEvent.changeText(screen.getByTestId('account-name-edit'), 'Zed');
+    await fireEvent.press(screen.getByTestId('account-name-save'));
+    await act(async () => undefined);
+    expect(screen.getByTestId('account-name-edit')).toBeTruthy();
+    expect(useToast.getState().toast?.message).toBe(en.accountNameError);
+    expect(useAuth.getState().user?.displayName).toBe('Asha');
+  });
+
+  it('lists the person\'s own reports with what became of each, and the empty, offline and error states', async () => {
+    signIn();
+    handler = (c) =>
+      c.url === '/me/reports'
+        ? reply(200, {
+            reports: [
+              { id: 'r2', type: 'flood', status: 'verified', roadName: 'Andheri Subway', receivedAtS: 600 },
+              { id: 'r1', type: 'road_clear', status: null, roadName: null, receivedAtS: 60 },
+            ],
+          })
+        : reply(200, { reports: 2, inVerifiedIncidents: 1 });
+    const view = await render(<AccountScreen />);
+    expect(await screen.findByTestId('my-report-r2')).toBeTruthy();
+    expect(screen.getByText('Flooding')).toBeTruthy();
+    expect(screen.getByText('Road clear')).toBeTruthy();
+    expect(JSON.stringify(screen.toJSON())).toContain(en.accountReportNoIncident);
+    expect(JSON.stringify(screen.toJSON())).toContain('Andheri Subway');
+    await view.unmount();
+
+    handler = (c) => (c.url === '/me/reports' ? reply(200, { reports: [] }) : reply(200, { reports: 0, inVerifiedIncidents: 0 }));
+    const empty = await render(<AccountScreen />);
+    expect(await screen.findByTestId('my-reports-empty')).toBeTruthy();
+    await empty.unmount();
+
+    handler = () => err(500, 'INTERNAL', 'boom');
+    const bad = await render(<AccountScreen />);
+    expect(await screen.findByTestId('my-reports-error')).toBeTruthy();
+    await bad.unmount();
+
+    useConnection.setState({ net: 'offline' });
+    await render(<AccountScreen />);
+    expect(screen.getByTestId('my-reports-offline')).toBeTruthy();
+  });
+
+  it('deleting the account asks first, calls DELETE /me, and signs this phone out', async () => {
+    signIn();
+    handler = (c) => (c.method === 'DELETE' ? reply(204) : reply(200, { reports: 0, inVerifiedIncidents: 0 }));
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    await render(<AccountScreen />);
+    await fireEvent.press(screen.getByTestId('account-delete'));
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false);
+    const buttons = alert.mock.calls[0]![2]!;
+    await act(async () => {
+      buttons.find((b) => b.style === 'destructive')!.onPress!();
+    });
+    await act(async () => undefined);
+    expect(calls.find((c) => c.method === 'DELETE')).toMatchObject({ url: '/me' });
+    expect(useAuth.getState().token).toBeNull();
+    alert.mockRestore();
+  });
+
+  it('a failed delete keeps the person signed in and says so', async () => {
+    signIn();
+    handler = (c) => (c.method === 'DELETE' ? err(500, 'INTERNAL', 'boom') : reply(200, { reports: 0, inVerifiedIncidents: 0 }));
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    await render(<AccountScreen />);
+    await fireEvent.press(screen.getByTestId('account-delete'));
+    await act(async () => {
+      alert.mock.calls[0]![2]!.find((b) => b.style === 'destructive')!.onPress!();
+    });
+    await act(async () => undefined);
+    expect(selectSignedIn(useAuth.getState())).toBe(true);
+    expect(useToast.getState().toast?.message).toBe(en.accountDeleteError);
+    alert.mockRestore();
   });
 
   it('shows a loading line, then the count', async () => {

@@ -43,6 +43,16 @@ const EnvSchema = z.object({
   ADMIN_EMAILS: z.string().default(''),
   /** SMTP connection URL for the one-time code email, e.g. smtps://user:pass@smtp.example.com. Empty = log the code (never in production). */
   SMTP_URL: z.string().default(''),
+  /**
+   * The same thing as separate settings, easier than one URL because nothing has to be URL-encoded (a password with a
+   * space or an @ goes in as it is). When SMTP_HOST is set these are used and SMTP_URL is ignored.
+   */
+  SMTP_HOST: z.string().default(''),
+  SMTP_PORT: z.string().default(''),
+  /** 'true' = TLS from the first byte (usual on port 465); 'false' = start plain, then upgrade (usual on 587 and 2525). Empty = true on 465, else false. */
+  SMTP_SECURE: z.string().default(''),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASS: z.string().default(''),
   MAIL_FROM: z.string().default('VIGHNAWAY <no-reply@localhost>'),
   OTP_TTL_S: z.coerce.number().int().min(60).max(3600).default(600),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
@@ -70,6 +80,8 @@ export interface AppConfig {
     secret: string;
     adminEmails: string[];
     smtpUrl: string;
+    /** From SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS; null when SMTP_HOST is empty. */
+    smtp: SmtpSettings | null;
     mailFrom: string;
     otpTtlS: number;
     otpMaxAttempts: number;
@@ -123,6 +135,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         .map((x) => x.trim().toLowerCase())
         .filter(Boolean),
       smtpUrl: e.SMTP_URL,
+      smtp: smtpSettings(e),
       mailFrom: e.MAIL_FROM,
       otpTtlS: e.OTP_TTL_S,
       otpMaxAttempts: e.OTP_MAX_ATTEMPTS,
@@ -151,4 +164,23 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 export function isOriginAllowed(config: AppConfig, origin: string | undefined | null): boolean {
   if (!origin) return true;
   return config.corsOrigins.includes(origin.replace(/\/+$/, ''));
+}
+
+export interface SmtpSettings {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+}
+
+/** The separate SMTP settings, or null when no host is set (then SMTP_URL, or the log mailer, applies). */
+export function smtpSettings(e: { SMTP_HOST: string; SMTP_PORT: string; SMTP_SECURE: string; SMTP_USER: string; SMTP_PASS: string }): SmtpSettings | null {
+  const host = e.SMTP_HOST.trim();
+  if (!host) return null;
+  const port = Number.parseInt(e.SMTP_PORT.trim() || '587', 10);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('SMTP_PORT must be a port number such as 587 or 465');
+  const secureText = e.SMTP_SECURE.trim().toLowerCase();
+  const secure = secureText === '' ? port === 465 : secureText === 'true' || secureText === '1';
+  return { host, port, secure, user: e.SMTP_USER, pass: e.SMTP_PASS };
 }

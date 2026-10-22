@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import {
   AdminCreateUserBodySchema,
   type AdminUserResponse,
@@ -6,7 +6,10 @@ import {
   AdminUpdateUserBodySchema,
   type AuthSessionResponse,
   type MeResponse,
+  type MyReportsResponse,
   type MyStatsResponse,
+  type UpdateMeResponse,
+  UpdateMeBodySchema,
   OtpRequestBodySchema,
   type OtpRequestResponse,
   OtpVerifyBodySchema,
@@ -58,6 +61,29 @@ export class AuthController {
 @Controller('me')
 export class MeController {
   constructor(@Inject(AuthService) private readonly auth: AuthService) {}
+
+  /** The person changes their own display name. */
+  @Patch()
+  @UseGuards(SessionGuard)
+  async update(@Body() body: unknown, @Req() req: AuthedRequest): Promise<UpdateMeResponse> {
+    const input = parseOr400(UpdateMeBodySchema, body);
+    return { user: await this.auth.updateDisplayName(authOf(req).user.id, input.displayName) };
+  }
+
+  /** The person removes their own account. Their reports stay, with no link back to them. */
+  @Delete()
+  @HttpCode(204)
+  @UseGuards(SessionGuard)
+  async remove(@Req() req: AuthedRequest): Promise<void> {
+    await this.auth.deleteOwnAccount(authOf(req).user);
+  }
+
+  /** The signed-in reporter's own recent reports and what became of each. */
+  @Get('reports')
+  @UseGuards(SessionGuard)
+  async reports(@Req() req: AuthedRequest): Promise<MyReportsResponse> {
+    return { reports: await this.auth.myReports(authOf(req).user.id) };
+  }
 
   /** Counts for the signed-in reporter. A thank-you only: nothing reads it when planning a route. */
   @Get('stats')

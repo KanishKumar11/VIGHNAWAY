@@ -5,7 +5,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
-import { CircleCheck, Info, LogOut, TriangleAlert, WifiOff } from '@/components/icons';
+import { CircleCheck, Info, LogOut, Pencil, Trash, TriangleAlert, WifiOff } from '@/components/icons';
 import { GUTTER, Row, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { t } from '@/i18n/en';
@@ -15,6 +15,7 @@ import { useConnection } from '@/stores/connection';
 import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, text, useBrand, useColors } from '@/theme';
+import { MyReports } from './MyReports';
 import { minutesFor, requestNotice, statsLines, verifyNotice, type Notice } from './signIn';
 import { useLanguage } from '@/i18n/useLanguage';
 
@@ -66,6 +67,10 @@ export function AccountScreen() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [focus, setFocus] = useState<'email' | 'code' | 'name' | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const wait = useCountdown();
   const codeRef = useRef<ComponentRef<typeof TextInput>>(null);
 
@@ -158,6 +163,49 @@ export function AccountScreen() {
       },
     ]);
 
+  const startEdit = () => {
+    setNameDraft(user?.displayName ?? '');
+    setEditing(true);
+  };
+
+  /** An empty box removes the name. The server returns the stored (plain text) name, which is what is kept. */
+  const saveName = async () => {
+    if (!token) return;
+    setSavingName(true);
+    try {
+      const next = nameDraft.trim();
+      const r = await api.updateMe(apiUrl, token, next.length ? next : null);
+      useAuth.getState().setUser(r.user);
+      setEditing(false);
+      useToast.getState().show(t('accountNameSaved'), 'positive');
+    } catch {
+      useToast.getState().show(t('accountNameError'), 'warn');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const confirmDelete = () =>
+    Alert.alert(t('accountDeleteTitle'), t('accountDeleteBody'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('accountDeleteConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          if (!token) return;
+          setDeleting(true);
+          api
+            .deleteMe(apiUrl, token)
+            .then(() => {
+              useAuth.getState().clearLocal();
+              useToast.getState().show(t('accountDeletedToast'));
+            })
+            .catch(() => useToast.getState().show(t('accountDeleteError'), 'warn'))
+            .finally(() => setDeleting(false));
+        },
+      },
+    ]);
+
   // The thank-you count: loading, offline and error each have a line of their own.
   const [stats, setStats] = useState<Stats>({ state: 'loading' });
   useEffect(() => {
@@ -220,7 +268,39 @@ export function AccountScreen() {
                 </View>
               </View>
             </Section>
-            <Section title={t('accountStatsTitle')} index={1} hint={t('accountPrivacyNote')}>
+            <Section title={t('accountNameRow')} index={1}>
+              {editing ? (
+                <View style={styles.cardBody}>
+                  <TextInput
+                    value={nameDraft}
+                    onChangeText={setNameDraft}
+                    onFocus={() => setFocus('name')}
+                    onBlur={() => setFocus(null)}
+                    maxLength={DISPLAY_NAME_MAX}
+                    autoComplete="name"
+                    textContentType="name"
+                    autoFocus
+                    returnKeyType="done"
+                    onSubmitEditing={() => void saveName()}
+                    style={input('name')}
+                    accessibilityLabel={t('accountNameLabel')}
+                    testID="account-name-edit"
+                  />
+                  <View style={styles.buttons}>
+                    <Button label={t('accountSave')} onPress={() => void saveName()} loading={savingName} disabled={offline} style={styles.flex} testID="account-name-save" />
+                    <Button label={t('cancel')} kind="ghost" onPress={() => setEditing(false)} style={styles.flex} testID="account-name-cancel" />
+                  </View>
+                </View>
+              ) : (
+                <Row
+                  first
+                  icon={Pencil}
+                  title={user.displayName ?? t('accountNameNone')}
+                  trailing={<Button label={t('accountEdit')} kind="ghost" onPress={startEdit} testID="account-name-open" />}
+                />
+              )}
+            </Section>
+            <Section title={t('accountStatsTitle')} index={2} hint={t('accountPrivacyNote')}>
               <View accessibilityLiveRegion="polite" testID="account-stats">
                 {stats.state === 'loading' ? (
                   <Row first icon={CircleCheck} iconTone="neutral" title={t('accountStatsLoading')} trailing={<ActivityIndicator color={tc.inkMuted} />} />
@@ -233,8 +313,10 @@ export function AccountScreen() {
                 )}
               </View>
             </Section>
-            <Section bare index={2}>
+            <MyReports />
+            <Section bare index={3}>
               <Button label={t('accountSignOut')} kind="secondary" icon={LogOut} onPress={confirmSignOut} testID="account-signout" />
+              <Button label={t('accountDelete')} kind="danger" icon={Trash} onPress={confirmDelete} loading={deleting} disabled={offline} testID="account-delete" />
             </Section>
           </>
         ) : (

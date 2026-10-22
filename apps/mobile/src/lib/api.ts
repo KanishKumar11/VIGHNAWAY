@@ -7,7 +7,9 @@ import {
   HospitalStatesResponseSchema,
   IncidentsResponseSchema,
   MeResponseSchema,
+  MyReportsResponseSchema,
   MyStatsResponseSchema,
+  UpdateMeResponseSchema,
   OtpRequestResponseSchema,
   ReportPhotoResponseSchema,
   ReportResponseSchema,
@@ -19,7 +21,9 @@ import {
   type HospitalStatesResponse,
   type IncidentsResponse,
   type MeResponse,
+  type MyReportsResponse,
   type MyStatsResponse,
+  type UpdateMeResponse,
   type OtpRequestBody,
   type OtpRequestResponse,
   type OtpVerifyBody,
@@ -59,7 +63,7 @@ async function request<T>(
   baseUrl: string,
   path: string,
   schema: Parser<T>,
-  init: { method?: 'GET' | 'POST'; body?: unknown; timeoutMs?: number; token?: string | null } = {},
+  init: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown; timeoutMs?: number; token?: string | null } = {},
 ): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init.timeoutMs ?? TIMEOUT_MS);
@@ -165,6 +169,13 @@ export const api = {
   authLogout: async (baseUrl: string, token: string): Promise<void> => {
     await request(baseUrl, API_PATHS.authLogout, anyBody, { method: 'POST', token, timeoutMs: 5000 });
   },
+  updateMe: (baseUrl: string, token: string, displayName: string | null): Promise<UpdateMeResponse> =>
+    request(baseUrl, API_PATHS.me, UpdateMeResponseSchema, { method: 'PATCH', token, body: { displayName }, timeoutMs: 8000 }),
+  deleteMe: async (baseUrl: string, token: string): Promise<void> => {
+    await request(baseUrl, API_PATHS.me, anyBody, { method: 'DELETE', token, timeoutMs: 10000 });
+  },
+  myReports: (baseUrl: string, token: string): Promise<MyReportsResponse> =>
+    request(baseUrl, API_PATHS.myReports, MyReportsResponseSchema, { token, timeoutMs: 8000 }),
   myStats: (baseUrl: string, token: string): Promise<MyStatsResponse> =>
     request(baseUrl, API_PATHS.myStats, MyStatsResponseSchema, { token, timeoutMs: 6000 }),
 };

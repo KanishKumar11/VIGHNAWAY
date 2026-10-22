@@ -28,6 +28,8 @@ interface AuthState {
   user: AuthUser | null;
   server: string | null;
   setSession: (s: AuthSessionResponse) => void;
+  /** The name changed on the server: keep the new one on this phone. */
+  setUser: (user: AuthUser) => void;
   /** Drop the session on this phone only. */
   clearLocal: () => void;
   /** Revalidate with GET /auth/me. Offline or a network failure keeps the cached user. */
@@ -66,6 +68,12 @@ export const useAuth = create<AuthState>()((set, get) => ({
     const server = apiUrl();
     storage.setJSON(KEYS.auth, { token: s.token, expiresAt: s.expiresAt, user: s.user, server } satisfies Persisted);
     set({ token: s.token, expiresAt: s.expiresAt, user: s.user, server });
+  },
+  setUser: (user) => {
+    const { token, expiresAt, server } = get();
+    if (!token || !expiresAt || !server) return;
+    storage.setJSON(KEYS.auth, { token, expiresAt, user, server } satisfies Persisted);
+    set({ user });
   },
   clearLocal: () => {
     storage.remove(KEYS.auth);

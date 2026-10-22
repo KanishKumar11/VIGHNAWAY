@@ -32,7 +32,10 @@ export const API_PATHS = {
   authOtpVerify: '/auth/otp/verify',
   authLogout: '/auth/logout',
   authMe: '/auth/me',
+  /** PATCH changes the display name; DELETE removes the account (its reports stay, without the link to the person). */
+  me: '/me',
   myStats: '/me/stats',
+  myReports: '/me/reports',
   adminUsers: '/admin/users',
   adminUser: (id: string) => `/admin/users/${encodeURIComponent(id)}`,
 } as const;
