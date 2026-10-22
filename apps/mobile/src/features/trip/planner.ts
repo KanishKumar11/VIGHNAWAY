@@ -26,7 +26,7 @@ import { motion } from '@/theme';
 export function planContextKey(): string {
   const { profile } = useSettings.getState();
   const { originId, destinationId } = useTrip.getState();
-  return `${profile}|${originId}|${destinationId}`;
+  return `${profile}|${originId}|${destinationId ?? 'none'}`;
 }
 
 export interface PlanOutcome {
@@ -111,7 +111,11 @@ export function schedulePlan(opts: { showEvaluating?: boolean; delayMs?: number 
 export function runPlanNow(): PlanResult | null {
   const before = useTrip.getState();
   const outcome = computePlan();
-  if (!outcome) return null;
+  if (!outcome) {
+    // No destination yet (or a place that cannot be planned): nothing to show and nothing to wait for.
+    if (before.plan || before.evaluating) useTrip.setState({ plan: null, planContext: null, evaluating: false });
+    return null;
+  }
   const { plan, vehicle } = outcome;
   const context = planContextKey();
   const contextChanged = before.planContext !== context;
@@ -275,6 +279,34 @@ function accessM(graph: Graph, point: LatLng): number {
   const id = snapToNode(graph, point);
   const idx = id === null ? undefined : graph.nodeIndex.get(id);
   return idx === undefined ? Infinity : haversineM(point, nodePoint(graph, idx));
+}
+
+/**
+ * Starts a new trip from a place with no destination yet, as Google Maps does: the app opens on where
+ * the traveller is and asks where to. Moves to the road map the start is on, and drops any plan,
+ * destination and choice from before.
+ */
+export function setStartOnly(from: Place): ChooseResult {
+  const trip = useTrip.getState();
+  if (trip.mode !== 'planning') return 'en_route';
+  const region = regionOfPoint(from.point);
+  if (!region) return 'outside';
+  registerCustomPlace(from);
+  const scenarioState = useScenario.getState();
+  if (scenarioState.region !== region) scenarioState.setRegion(region);
+  useTrip.setState({
+    originId: from.id,
+    destinationId: null,
+    plan: null,
+    planContext: null,
+    history: [],
+    banner: null,
+    transition: null,
+    selectedRouteId: null,
+    access: null,
+    evaluating: false,
+  });
+  return 'ok';
 }
 
 /**

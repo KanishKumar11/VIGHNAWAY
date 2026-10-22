@@ -1,7 +1,7 @@
 import BottomSheet, { BottomSheetScrollView, useBottomSheetSpringConfigs, type BottomSheetModal } from '@gorhom/bottom-sheet';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, useWindowDimensions, View } from 'react-native';
+import { Keyboard, Linking, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatSimClock, type Incident } from '@vighnaway/contracts';
@@ -10,13 +10,14 @@ import { graphAttribution } from '@vighnaway/scenario-data';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Flag, LocateFixed, MapIcon, Navigation } from '@/components/icons';
-import { startFromPhoneIfLive } from '@/features/search/myLocation';
+import { useRecentPlaces } from '@/features/search/recent';
+import { startFromHere, watchMyStart } from '@/features/search/startHere';
 import { accurateFix, requestLocationPermission } from '@/lib/location';
 import { PressScale } from '@/components/motion';
 import { ToastHost } from '@/components/Toast';
 import { WhyCard } from '@/components/WhyCard';
 import { beginTrip } from '@/features/trip/deviceTrip';
-import { changeDestination, endTrip } from '@/features/trip/planner';
+import { changeDestination, endTrip, setTripPlaces } from '@/features/trip/planner';
 import { useBackToClose } from '@/hooks/useBackToClose';
 import { t } from '@/i18n/en';
 import { whatToDoNow } from '@/i18n/engineText';
@@ -58,6 +59,8 @@ import {
   PeekCard,
   PeekMore,
   RoadsOnlyNote,
+  StartHereCard,
+  WhereToCard,
   RouteDetail,
   RouteRow,
   SectionLabel,
@@ -77,6 +80,7 @@ function SheetBody({
   onHalf,
   onIncidentPress,
   onDrive,
+  onSearch,
 }: {
   onPeekLayout: (h: number) => void;
   onCompareLayout: (h: number) => void;
@@ -84,8 +88,11 @@ function SheetBody({
   onHalf: () => void;
   onIncidentPress: (i: Incident) => void;
   onDrive: () => void;
+  onSearch: () => void;
 }) {
   const styles = useStyles();
+  const startHere = useUi((s) => s.startHere);
+  const recents = useRecentPlaces((s) => s.places);
   const scenario = useScenario((s) => s.scenario);
   const graphFile = useScenario((s) => s.graphFile);
   const profile = useSettings((s) => s.profile);
@@ -151,7 +158,7 @@ function SheetBody({
   const bars = useMemo(() => (plan ? etaDeltaBars(plan.routes, plan.recommendedRouteId) : []), [plan]);
 
   const onShare = useCallback(() => {
-    if (!plan || !rec) return;
+    if (!plan || !rec || !destinationId) return;
     const message = buildShareText({
       plan,
       route: rec,
@@ -192,7 +199,17 @@ function SheetBody({
       ? t('waitingForClock')
       : null;
   // The scan shows for at least motion.evaluatingMin whenever the planner evaluates (planner.ts).
-  const showEvaluating = !plan || (evaluating && !plan.noViableRoute && mode !== 'en_route');
+  // Like Google Maps, the app opens on where you are with no destination: there is nothing to evaluate yet.
+  const noDestination = !destinationId && mode === 'planning';
+  const showEvaluating = !noDestination && (!plan || (evaluating && !plan.noViableRoute && mode !== 'en_route'));
+  const originName = placeById(scenario, originId)?.name ?? '';
+  const pickRecent = (id: string) => {
+    const r = recents.find((x) => x.id === id);
+    const from = placeById(scenario, originId);
+    if (!r || !from) return;
+    const result = setTripPlaces(from, { id: r.id, name: r.name, kind: 'landmark', point: r.point, nodeId: '', side: null, address: null });
+    if (result !== 'ok') useToast.getState().show(t('tripNoMapFor', { place: r.name }), 'warn');
+  };
   const arriveClock = rec ? formatSimClock(scenario.clockStartsAt, minuteS + etaS) : undefined;
   // In the no-viable state the card is the message: its banner's cause moves into the card.
   const noViableBanner = !!plan?.noViableRoute && banner?.title === t('noViableTitle');
@@ -201,7 +218,19 @@ function SheetBody({
     <>
       <View onLayout={(e) => onPeekLayout(e.nativeEvent.layout.height)} style={styles.peekWrap}>
         {banner && !noViableBanner ? <MiniChange banner={banner} onPress={onHalf} onDismiss={() => useTrip.getState().dismissBanner()} /> : null}
-        {showEvaluating ? (
+        {noDestination ? (
+          liveMode && startHere !== 'idle' && startHere !== 'ready' ? (
+            <StartHereCard
+              status={startHere}
+              onAllow={() => void startFromHere({ ask: true, force: true })}
+              onSettings={() => void Linking.openSettings()}
+              onRetry={() => void startFromHere({ force: true })}
+              onSearch={onSearch}
+            />
+          ) : (
+            <WhereToCard origin={originName} recents={recents.slice(0, 3).map((r) => ({ id: r.id, name: r.name }))} onSearch={onSearch} onPick={pickRecent} />
+          )
+        ) : showEvaluating ? (
           <EvaluatingCard routes={plan?.routes.length || maxDisplayedRoutes} incidents={incidents.length} />
         ) : mode === 'arrived' ? (
           <ArrivedCard placeName={dest?.name ?? ''} onDone={endTrip} />
@@ -262,7 +291,7 @@ function SheetBody({
       ) : null}
       {rec && !showEvaluating && !roadsOnly ? <WhyCard route={rec} /> : null}
       {plan && rec && !showEvaluating && mode !== 'arrived' && !roadsOnly ? <AskCard plan={plan} graph={graph} /> : null}
-      {roadsOnly ? null : (
+      {roadsOnly || !plan ? null : (
         <View style={styles.section}>
           <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
           {routeIncidents.length ? (
@@ -325,9 +354,13 @@ export function NavigateScreen() {
   const tripRunning = useTrip((s) => s.mode === 'en_route');
   const followingCamera = useUi((s) => s.following);
 
-  // Live mode: start from the phone when location is already allowed (never prompts at launch).
+  // Live mode opens like Google Maps: on where the phone is, trip started from there, destination to choose.
+  // It never prompts at launch: with no permission yet a card with an Allow button explains it. While
+  // planning, a "My location" start follows the phone when it moves.
   useEffect(() => {
-    if (liveMode) void startFromPhoneIfLive();
+    if (!liveMode) return;
+    void startFromHere();
+    return watchMyStart();
   }, [liveMode]);
 
   // "Show my location": asks only now (the traveller tapped it), then centres on an accurate fix.
@@ -564,6 +597,10 @@ export function NavigateScreen() {
             onHalf={() => sheetRef.current?.snapToIndex(1)}
             onIncidentPress={openIncident}
             onDrive={() => openRoute('/drive')}
+            onSearch={() => {
+              setDestOpen(true);
+              destRef.current?.present();
+            }}
           />
         </BottomSheetScrollView>
       </BottomSheet>

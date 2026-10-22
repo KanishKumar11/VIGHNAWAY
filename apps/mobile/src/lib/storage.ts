@@ -31,6 +31,7 @@ export const KEYS = {
   asked: 'asked.v1',
   auth: 'auth.v1',
   recentPlaces: 'recentPlaces.v1',
+  lastFix: 'lastFix.v1',
 } as const;
 
 export const storage = {

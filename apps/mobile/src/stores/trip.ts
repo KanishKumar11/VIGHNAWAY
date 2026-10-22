@@ -38,7 +38,8 @@ export interface HistoryEntry {
 
 interface TripState {
   originId: string;
-  destinationId: string;
+  /** null until the traveller has chosen where to go (the app opens on where they are, like Google Maps). */
+  destinationId: string | null;
   mode: TripMode;
   plan: PlanResult | null;
   /**
@@ -64,7 +65,7 @@ interface TripState {
   access: { fromM: number; toM: number } | null;
   setAccess: (a: { fromM: number; toM: number } | null) => void;
   setOrigin: (id: string) => void;
-  setDestination: (id: string) => void;
+  setDestination: (id: string | null) => void;
   setEvaluating: (v: boolean) => void;
   setPlan: (plan: PlanResult, context: string, vehicle?: VehicleState | null) => void;
   startTrip: (vehicle: VehicleState, atS: number) => void;

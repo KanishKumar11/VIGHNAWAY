@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Linking, Pressable, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { formatSimClock, type Incident, type PlanResult, type RouteEvaluation, type RouteRole } from '@vighnaway/contracts';
 import { SCORING_RULES } from '@vighnaway/engine';
@@ -7,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { ConfidenceMeter } from '@/components/ConfidenceMeter';
 import { EvidenceChips } from '@/components/EvidenceChips';
-import { ArrowRight, Car, ChevronRight, CircleCheck, Hospital, Info, Phone, Play, Share2, TriangleAlert, X } from '@/components/icons';
+import { ArrowRight, Car, ChevronRight, CircleCheck, Clock, Hospital, Info, LocateFixed, Phone, Play, Search, Share2, TriangleAlert, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Illustration } from '@/components/Illustration';
 import { enterUp, PressScale, RollingText, SkeletonBlock } from '@/components/motion';
@@ -154,6 +154,101 @@ export function EvaluatingCard({ routes, incidents }: { routes: number; incident
       <View style={styles.actions}>
         <SkeletonBlock width="100%" height={layout.minTouch + spacing.xxs} style={styles.flex} />
         <SkeletonBlock width={layout.minTouch + spacing.xxs} height={layout.minTouch + spacing.xxs} />
+      </View>
+    </View>
+  );
+}
+
+/**
+ * The small card while there is no destination yet (the app opens on where the traveller is, like
+ * Google Maps): "Where to?", the start it will use, one button to search, and the last few places.
+ */
+export function WhereToCard({ origin, recents, onSearch, onPick }: { origin: string; recents: { id: string; name: string }[]; onSearch: () => void; onPick: (id: string) => void }) {
+  const tc = useColors();
+  const styles = useStyles();
+  return (
+    <View style={styles.whereTo} testID="where-to">
+      <View style={styles.whereToHead}>
+        <View style={styles.flex}>
+          <AppText variant="title" accessibilityRole="header">
+            {t('whereToTitle')}
+          </AppText>
+          <AppText variant="meta" tone="muted" numberOfLines={1}>
+            {t('whereToFrom', { place: origin })}
+          </AppText>
+        </View>
+        <Button label={t('whereToSearch')} icon={Search} onPress={onSearch} style={styles.miniButton} testID="where-to-search" />
+      </View>
+      {recents.length ? (
+        <View style={styles.chips}>
+          {recents.map((r) => (
+            <PressScale key={r.id} onPress={() => onPick(r.id)} haptic="selection" accessibilityRole="button" accessibilityLabel={r.name} style={styles.chip} testID={`where-to-recent-${r.id}`}>
+              <Clock size={14} color={tc.inkMuted} />
+              <AppText variant="label" numberOfLines={1} style={styles.chipText}>
+                {r.name}
+              </AppText>
+            </PressScale>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Why the trip does not start from the phone yet, with the one thing the traveller can do about it. */
+export function StartHereCard({
+  status,
+  onAllow,
+  onSettings,
+  onRetry,
+  onSearch,
+}: {
+  status: 'locating' | 'needs_permission' | 'denied' | 'outside' | 'unavailable';
+  onAllow: () => void;
+  onSettings: () => void;
+  onRetry: () => void;
+  onSearch: () => void;
+}) {
+  const tc = useColors();
+  const styles = useStyles();
+  if (status === 'locating') {
+    return (
+      <View style={styles.whereTo} testID="start-here-locating" accessibilityLiveRegion="polite">
+        <View style={styles.whereToHead}>
+          <ActivityIndicator color={tc.accentInk} />
+          <AppText variant="body" style={[styles.flex, styles.strong]}>
+            {t('hereLocating')}
+          </AppText>
+        </View>
+      </View>
+    );
+  }
+  const copy = {
+    needs_permission: { title: 'hereNeedsTitle', body: 'hereNeedsBody' },
+    denied: { title: 'hereDeniedTitle', body: 'hereDeniedBody' },
+    outside: { title: 'hereOutsideTitle', body: 'hereOutsideBody' },
+    unavailable: { title: 'hereUnavailableTitle', body: 'hereUnavailableBody' },
+  }[status] as { title: StringKey; body: StringKey };
+  return (
+    <View style={styles.whereTo} testID={`start-here-${status}`} accessibilityLiveRegion="polite">
+      <View style={styles.whereToHead}>
+        <View style={styles.hereIcon}>
+          <LocateFixed size={20} color={tc.accentInk} strokeWidth={2.25} />
+        </View>
+        <View style={styles.flex}>
+          <AppText variant="title" accessibilityRole="header">
+            {t(copy.title)}
+          </AppText>
+          <AppText variant="meta" tone="muted">
+            {t(copy.body)}
+          </AppText>
+        </View>
+      </View>
+      <View style={styles.hereButtons}>
+        {status === 'needs_permission' ? <Button label={t('hereAllow')} icon={LocateFixed} onPress={onAllow} testID="start-here-allow" /> : null}
+        {status === 'denied' ? <Button label={t('hereOpenSettings')} kind="secondary" onPress={onSettings} testID="start-here-settings" /> : null}
+        {status === 'unavailable' ? <Button label={t('hereTryAgain')} kind="secondary" onPress={onRetry} testID="start-here-retry" /> : null}
+        <Button label={t('hereSearch')} kind={status === 'needs_permission' ? 'ghost' : 'primary'} icon={Search} onPress={onSearch} testID="start-here-search" />
       </View>
     </View>
   );
@@ -713,6 +808,13 @@ const useStyles = createStyles((tc) => ({
   row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   rowDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   rowRecommended: { borderColor: tc.routeRecommended, borderWidth: 1.5 },
+  whereTo: { gap: spacing.sm },
+  whereToHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs + 2, maxWidth: '100%', paddingHorizontal: spacing.sm, minHeight: layout.minTouch - spacing.xs, borderRadius: radius.chip, backgroundColor: tc.panelSunken },
+  chipText: { flexShrink: 1, fontFamily: fontFamily.semibold },
+  hereIcon: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
+  hereButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   choiceNote: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panelSunken },
   rowBlocked: { borderColor: tc.danger, borderStyle: 'dashed' },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
