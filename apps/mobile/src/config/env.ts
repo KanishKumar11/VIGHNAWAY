@@ -18,6 +18,15 @@ const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
 export const googleMapsConfigured: boolean =
   Platform.OS === 'ios' ? !!extra.googleMapsConfigured?.ios : !!extra.googleMapsConfigured?.android;
 
+
+/**
+ * Live place search (typing "Ambala" lists real places with addresses). A Photon server: free search
+ * over OpenStreetMap data, no key. EXPO_PUBLIC_GEOCODER_URL changes the host; "off" turns it off and
+ * leaves only the built-in places. The text typed and a rough area (about 10 km) are sent to it.
+ */
+const geocoder = (process.env.EXPO_PUBLIC_GEOCODER_URL ?? '').trim().replace(/\/+$/, '');
+export const GEOCODER_URL: string = geocoder.toLowerCase() === 'off' ? '' : geocoder || 'https://photon.komoot.io';
+
 export const appVersion: string = Constants.expoConfig?.version ?? '0.0.0';
 
 /** Milliseconds to wait for the map's onMapReady before showing the fallback. */

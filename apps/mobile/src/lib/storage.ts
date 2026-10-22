@@ -30,6 +30,7 @@ export const KEYS = {
   deviceId: 'deviceId.v1',
   asked: 'asked.v1',
   auth: 'auth.v1',
+  recentPlaces: 'recentPlaces.v1',
 } as const;
 
 export const storage = {

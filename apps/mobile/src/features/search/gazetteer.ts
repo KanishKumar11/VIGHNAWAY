@@ -7,7 +7,7 @@ import type { NorthPlace } from '@/regions';
  * start) and every named road of the bundled OpenStreetMap graph. Nothing here is a router and no
  * network is used; a result is only a point that the engine later snaps to a graph node.
  */
-export type SearchKind = 'hospital' | 'shelter' | 'landmark' | 'origin' | 'road' | 'city' | 'town' | 'village';
+export type SearchKind = 'hospital' | 'shelter' | 'landmark' | 'origin' | 'road' | 'city' | 'town' | 'village' | 'station' | 'airport' | 'shop' | 'school' | 'poi';
 
 export interface SearchEntry {
   /** Scenario place id, `road:{edgeId}` for a road, or `place:{lat}:{lng}` for a corridor town. */
@@ -120,7 +120,7 @@ export function buildGazetteer(file: GraphFile, places: readonly Place[], towns:
   return [...placeEntries(places), ...roadEntries(file), ...townEntries(towns)];
 }
 
-const KIND_ORDER: Record<SearchKind, number> = { city: 0, hospital: 1, shelter: 2, town: 3, landmark: 4, origin: 5, village: 6, road: 7 };
+const KIND_ORDER: Record<SearchKind, number> = { city: 0, hospital: 1, shelter: 2, town: 3, station: 4, airport: 5, landmark: 6, origin: 7, school: 8, shop: 9, poi: 10, village: 11, road: 12 };
 
 /** Rank of a match: 0 name starts with the query, 1 every word starts a word, 2 contained; null = no match. */
 function matchRank(entry: SearchEntry, query: string, tokens: string[]): number | null {
