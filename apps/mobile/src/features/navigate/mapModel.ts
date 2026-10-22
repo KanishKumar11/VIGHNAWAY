@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { isOpenStatus, type Incident, type LatLng, type Place, type PlanResult, type RouteEvaluation, type RouteRole } from '@vighnaway/contracts';
-import { routeFlow, vehiclePosition, type EvalContext, type Graph, type IncidentIndex, type VehicleState } from '@vighnaway/engine';
+import { haversineM, routeFlow, vehiclePosition, type EvalContext, type Graph, type IncidentIndex, type VehicleState } from '@vighnaway/engine';
 import { incidentA11y } from '@/i18n/engineText';
-import { fmtAge } from '@/i18n/format';
+import { fmtAge, fmtDuration } from '@/i18n/format';
 import { edgeMidpoint, floodProneSegments, routeCoords, travelledCoords, type MapCoord } from '@/lib/engine';
 import { dur } from '@/lib/motion';
 import type { Transition } from '@/stores/trip';
@@ -11,6 +11,8 @@ import { motion, routeStyles, zIndex, type RouteStyleKey } from '@/theme';
 /** Everything the map draws, derived from the stores; shared by the Google map and the schematic. */
 export interface MapLine {
   key: string;
+  /** Set on a route's own line (not on the underlay, the old route or the flash): tapping it chooses that route. */
+  routeId?: string;
   coords: MapCoord[];
   style: RouteStyleKey;
   /** Overrides for the route-change moment. */
@@ -30,6 +32,15 @@ export interface MapLine {
    * distinct static treatment. Absent for lines without a route (underlay, flash).
    */
   flow?: { runs: MapCoord[][]; slow: MapCoord[][] };
+}
+
+/** A time bubble on a route: its total time on the chosen route, the difference on an alternative. Tap to choose it. */
+export interface MapRouteLabel {
+  key: string;
+  routeId: string;
+  coordinate: MapCoord;
+  text: string;
+  primary: boolean;
 }
 
 export interface MapPin {
@@ -101,6 +112,59 @@ export function mapIncidents(graph: Graph, incidents: Incident[], routes: RouteE
   return [...first, ...rest].slice(0, Math.max(MAP_MARKERS_MAX, first.length));
 }
 
+/** An alternative needs at least this much road of its own to earn a bubble; otherwise it is the same line as the main route. */
+const OWN_ROAD_MIN_FRACTION = 0.08;
+const OWN_ROAD_MIN_M = 400;
+const MAX_ROUTE_LABELS = 4;
+/** Where along the main route its bubble may sit (a share of its length), best first. */
+const MAIN_BUBBLE_AT = [0.5, 0.3, 0.7, 0.15, 0.85];
+const MIN_BUBBLE_GAP_M = 300;
+const BUBBLE_GAP_FRACTION = 0.12;
+
+const signed = (deltaS: number): string => `${deltaS >= 0 ? '+' : '−'}${fmtDuration(Math.max(60, Math.abs(deltaS)))}`;
+
+/**
+ * Time bubbles like Google Maps: the main route shows its total time, each alternative the time it
+ * adds or saves, placed on the stretch where it leaves the main route. An alternative that is the
+ * same line as the main one (almost all shared road) gets none; it is still in the list.
+ */
+export function routeLabelsFor(graph: Graph, routes: readonly RouteEvaluation[], primaryId: string | null): MapRouteLabel[] {
+  const primary = routes.find((r) => r.routeId === primaryId);
+  if (!primary) return [];
+  const midOf = (id: string) => edgeMidpoint(graph, id);
+  const shared = new Set(primary.edgeIds);
+  // Alternatives first: their bubble sits where they leave the main route.
+  const alts: MapRouteLabel[] = [];
+  for (const r of routes) {
+    if (r.routeId === primary.routeId || r.role === 'blocked' || alts.length >= MAX_ROUTE_LABELS - 1) continue;
+    const own = r.edgeIds.filter((id) => !shared.has(id));
+    const ownM = own.reduce((sum, id) => sum + (graph.edges[graph.edgeIndex.get(id) ?? -1]?.lengthM ?? 0), 0);
+    if (ownM < OWN_ROAD_MIN_M || ownM < r.distanceM * OWN_ROAD_MIN_FRACTION) continue;
+    const at = midOf(own[Math.floor(own.length / 2)]!);
+    if (at) alts.push({ key: `label-${r.routeId}`, routeId: r.routeId, coordinate: toCoord(at), text: signed(r.etaS - primary.etaS), primary: false });
+  }
+  // The main route's bubble goes where it is farthest from those bubbles, so none hides another.
+  const ids = primary.edgeIds;
+  if (!ids.length) return alts;
+  const first = midOf(ids[0]!);
+  const last = midOf(ids[ids.length - 1]!);
+  const spanM = first && last ? haversineM(first, last) : 0;
+  const wanted = Math.max(MIN_BUBBLE_GAP_M, spanM * BUBBLE_GAP_FRACTION);
+  let best: { at: LatLng; gap: number } | null = null;
+  for (const f of MAIN_BUBBLE_AT) {
+    const at = midOf(ids[Math.min(ids.length - 1, Math.floor(ids.length * f))]!);
+    if (!at) continue;
+    const gap = alts.reduce((m, l) => Math.min(m, haversineM(at, { lat: l.coordinate.latitude, lng: l.coordinate.longitude })), Infinity);
+    if (!best || gap > best.gap) best = { at, gap };
+    if (gap >= wanted) {
+      best = { at, gap };
+      break;
+    }
+  }
+  const main: MapRouteLabel[] = best ? [{ key: `label-${primary.routeId}`, routeId: primary.routeId, coordinate: toCoord(best.at), text: fmtDuration(primary.etaS), primary: true }] : [];
+  return [...main, ...alts];
+}
+
 /** Progressive coordinate reveal (polylines cannot animate their stroke). */
 export function sliceCoords(coords: MapCoord[], progress: number): MapCoord[] {
   if (progress >= 1) return coords;
@@ -138,12 +202,19 @@ export function useMapModel(args: {
   /** Alert context and incident index for the speed encoding; omitted in tests that do not need it. */
   ctx?: EvalContext;
   index?: IncidentIndex;
+  /** The route the traveller chose; null or absent means the recommended one. */
+  selectedRouteId?: string | null;
 }) {
-  const { graph, plan, vehicle, transition, incidents, origin, destination, nowS, revealProgress, ctx, index } = args;
+  const { graph, plan, vehicle, transition, incidents, origin, destination, nowS, revealProgress, ctx, index, selectedRouteId } = args;
 
   const underlay = useMemo(() => floodProneSegments(graph), [graph]);
 
   const routes = plan?.routes;
+  // The route drawn as the main (blue) one: the traveller's choice, else the engine's recommendation.
+  const primaryId = useMemo(() => {
+    const chosen = selectedRouteId ? routes?.find((r) => r.routeId === selectedRouteId && r.role !== 'blocked') : undefined;
+    return chosen ? chosen.routeId : (plan?.recommendedRouteId ?? null);
+  }, [routes, plan?.recommendedRouteId, selectedRouteId]);
   const lines = useMemo(() => {
     const out: MapLine[] = underlay.map((s) => ({
       key: `fp-${s.id}`,
@@ -176,7 +247,9 @@ export function useMapModel(args: {
         if (reveal <= 0) continue;
       }
       const flow = ctx && index ? flowRuns(graph, r.edgeIds, index, ctx) : undefined;
-      out.push({ key: `route-${r.role}-${r.routeId}`, coords, style: r.role, zIndex: roleZ[r.role], casing: r.role === 'recommended', reveal, flow });
+      const style: RouteStyleKey = r.role === 'blocked' ? 'blocked' : r.routeId === primaryId ? 'recommended' : r.role === 'usual_fastest' ? 'usual_fastest' : 'alternative';
+      const z = style === 'recommended' ? roleZ.recommended : style === 'blocked' ? roleZ.blocked : r.role === 'usual_fastest' ? roleZ.usual_fastest : roleZ.alternative;
+      out.push({ key: `route-${r.role}-${r.routeId}`, routeId: r.routeId, coords, style, zIndex: z, casing: style !== 'blocked', reveal, flow });
     }
     if (revealing?.blockedEdgeId && revealing.phase === 'flash') {
       const flashOn = Math.round(revealing.progress * 4) % 2 === 0;
@@ -193,7 +266,7 @@ export function useMapModel(args: {
       }
     }
     return out;
-  }, [graph, underlay, routes, transition, revealProgress, ctx, index]);
+  }, [graph, underlay, routes, transition, revealProgress, ctx, index, primaryId]);
 
   const travelled = useMemo<MapLine | null>(() => {
     if (!vehicle || (vehicle.index === 0 && vehicle.fraction === 0)) return null;
@@ -230,7 +303,9 @@ export function useMapModel(args: {
     [shown, minute],
   );
 
-  return { lines, travelled, pins, vehiclePin, markers };
+  const routeLabels = useMemo(() => routeLabelsFor(graph, routes ?? [], primaryId), [graph, routes, primaryId]);
+
+  return { lines, travelled, pins, vehiclePin, markers, routeLabels };
 }
 
 /**

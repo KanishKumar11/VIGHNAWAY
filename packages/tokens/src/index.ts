@@ -113,8 +113,9 @@ export type TypeToken = keyof typeof type;
 
 export const routeStyles = {
   recommended: { color: colors.routeRecommended, width: 6, casing: colors.routeRecommendedCasing, casingWidth: 9, opacity: 1, dash: null },
-  usual_fastest: { color: colors.routeMuted, width: 4, casing: null, casingWidth: 0, opacity: 1, dash: null },
-  alternative: { color: colors.routeMuted, width: 3, casing: null, casingWidth: 0, opacity: 0.6, dash: null },
+  // Alternatives are drawn the way Google Maps draws them: a clear grey line with an outline, under the blue route.
+  usual_fastest: { color: colors.routeMuted, width: 5, casing: colors.routeRecommendedCasing, casingWidth: 8, opacity: 1, dash: null },
+  alternative: { color: colors.routeMuted, width: 5, casing: colors.routeRecommendedCasing, casingWidth: 8, opacity: 0.9, dash: null },
   blocked: { color: colors.danger, width: 4, casing: null, casingWidth: 0, opacity: 1, dash: [10, 8] as readonly number[] },
   travelled: { color: colors.routeTravelled, width: 6, casing: colors.routeRecommendedCasing, casingWidth: 9, opacity: 1, dash: null },
   floodProne: { color: colors.floodProne, width: 8, casing: null, casingWidth: 0, opacity: 1, dash: [2, 6] as readonly number[] },

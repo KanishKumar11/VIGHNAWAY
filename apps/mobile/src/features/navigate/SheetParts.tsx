@@ -15,7 +15,7 @@ import { RouteStrip } from '@/components/RouteStrip';
 import { StatusRing } from '@/components/StatusRing';
 import { t, type StringKey } from '@/i18n/en';
 import { counterfactualOf, hazardWhere, incidentA11y, reasonOf, routeLabel, tradeOffOf } from '@/i18n/engineText';
-import { fmtDistance, fmtDuration } from '@/i18n/format';
+import { fmtDelta, fmtDistance, fmtDuration } from '@/i18n/format';
 import type { DeltaBar } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import type { ActivityEntry } from '@/stores/activity';
@@ -163,6 +163,8 @@ interface PeekProps {
   route: RouteEvaluation;
   etaS: number;
   enRoute: boolean;
+  /** The traveller picked this route instead of the recommended one. */
+  chosen?: boolean;
   onStart: () => void;
   onEnd: () => void;
 }
@@ -172,7 +174,7 @@ interface PeekProps {
  * main action. Everything else (what to do now, the reason, confidence, share and drive) is in
  * PeekMore, which the sheet reveals as it is pulled up, so the map stays open by default.
  */
-export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, onStart, onEnd }: PeekProps) {
+export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, chosen, onStart, onEnd }: PeekProps) {
   const styles = useStyles();
   const eta = fmtDuration(etaS);
   const conf = route.explanation.confidence;
@@ -196,6 +198,11 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, onStart, 
           <AppText variant="num" tone="muted" numberOfLines={1} style={styles.noShrink} testID="peek-distance">
             {fmtDistance(route.distanceM)}
           </AppText>
+          {chosen ? (
+            <AppText variant="label" tone="accent" numberOfLines={1} style={styles.noShrink} testID="peek-chosen">
+              {t('yourChoice')}
+            </AppText>
+          ) : null}
           <AppText variant="body" tone="muted" numberOfLines={1} style={[styles.strong, styles.flexShrink]}>
             {name}
           </AppText>
@@ -464,7 +471,23 @@ export function NoViableCard({ plan, onGoTo, cause, onDetails }: { plan: PlanRes
 const barColor = (tc: ThemeColors, role: RouteRole) => (role === 'recommended' ? tc.routeRecommended : tc.routeMuted);
 
 /** One route in the comparison: a row, not a card. Role, name, ETA, a delta bar, the reason. */
-export const RouteRow = memo(function RouteRow({ route, bar, index, strip }: { route: RouteEvaluation; bar: DeltaBar | undefined; index: number; strip?: boolean }) {
+export const RouteRow = memo(function RouteRow({
+  route,
+  bar,
+  index,
+  strip,
+  selected,
+  onSelect,
+}: {
+  route: RouteEvaluation;
+  bar: DeltaBar | undefined;
+  index: number;
+  strip?: boolean;
+  /** This is the route the trip will follow (default: the recommended one). */
+  selected?: boolean;
+  /** Tapping the card chooses this route. Absent = the card is read-only. */
+  onSelect?: () => void;
+}) {
   const tc = useColors();
   const styles = useStyles();
   const reduce = useReduceMotion();
@@ -473,10 +496,17 @@ export const RouteRow = memo(function RouteRow({ route, bar, index, strip }: { r
   const name = routeLabel(route);
   const whyNot = counterfactualOf(route);
   return (
-    <Animated.View
-      entering={enterUp(index, reduce)}
-      style={[styles.row, rec && styles.rowRecommended, blocked && styles.rowBlocked]}
+    <Animated.View entering={enterUp(index, reduce)}>
+    <PressScale
+      onPress={onSelect}
+      disabled={!onSelect}
+      haptic="selection"
+      scaleTo={0.99}
+      style={[styles.row, (selected ?? rec) && styles.rowRecommended, blocked && styles.rowBlocked]}
       accessible
+      accessibilityRole={onSelect ? 'button' : undefined}
+      accessibilityState={onSelect ? { selected: !!(selected ?? rec) } : undefined}
+      testID={`route-row-${index}`}
       accessibilityLabel={`${t('routeA11y', { role: roleLabel(route.role), name, eta: fmtDuration(route.etaS) })}. ${reasonOf(route)}${whyNot ? `. ${t('whyNot')} ${whyNot}` : ''}`}
     >
       <View style={styles.rowHead}>
@@ -490,6 +520,11 @@ export const RouteRow = memo(function RouteRow({ route, bar, index, strip }: { r
               {roleLabel(route.role)}
             </AppText>
           )}
+          {selected && !rec ? (
+            <AppText variant="label" tone="accent" testID="row-chosen">
+              {t('yourChoice')}
+            </AppText>
+          ) : null}
           <AppText variant="body" style={styles.strong} numberOfLines={2}>
             {name}
           </AppText>
@@ -527,9 +562,23 @@ export const RouteRow = memo(function RouteRow({ route, bar, index, strip }: { r
         </AppText>
       ) : null}
       {strip ? <RouteStrip route={route} /> : null}
+    </PressScale>
     </Animated.View>
   );
 });
+
+/** Shown while the traveller's chosen route is not the recommended one: what it costs, and a way back. */
+export function ChoiceNote({ route, recommended, onReset }: { route: RouteEvaluation; recommended: RouteEvaluation; onReset: () => void }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.choiceNote} testID="choice-note">
+      <AppText variant="meta" tone="muted" style={styles.flex}>
+        {t('choiceVsRecommended', { delta: fmtDelta(route.etaS - recommended.etaS) })}
+      </AppText>
+      <Button label={t('useRecommended')} kind="secondary" onPress={onReset} testID="use-recommended" />
+    </View>
+  );
+}
 
 /** One incident in the evidence list; opens the evidence sheet. */
 export function IncidentRow({ incident, nowS, onPress, index = 0 }: { incident: Incident; nowS: number; onPress: (i: Incident) => void; index?: number }) {
@@ -664,6 +713,7 @@ const useStyles = createStyles((tc) => ({
   row: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   rowDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   rowRecommended: { borderColor: tc.routeRecommended, borderWidth: 1.5 },
+  choiceNote: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panelSunken },
   rowBlocked: { borderColor: tc.danger, borderStyle: 'dashed' },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   rowTitle: { gap: spacing.xxs },

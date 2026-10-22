@@ -9,7 +9,7 @@ import { buildIncidentIndex, remainingEtaS, travelledM } from '@vighnaway/engine
 import { graphAttribution } from '@vighnaway/scenario-data';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
-import { Flag, LocateFixed, MapIcon } from '@/components/icons';
+import { Flag, LocateFixed, MapIcon, Navigation } from '@/components/icons';
 import { startFromPhoneIfLive } from '@/features/search/myLocation';
 import { accurateFix, requestLocationPermission } from '@/lib/location';
 import { PressScale } from '@/components/motion';
@@ -37,7 +37,7 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
-import { recommendedRoute, useTrip } from '@/stores/trip';
+import { activeRoute, recommendedRoute, useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, spacing, useColors } from '@/theme';
 import { DestinationSheet } from './DestinationSheet';
@@ -48,6 +48,7 @@ import {
   ActivityRows,
   ArrivedCard,
   ChangeBanner,
+  ChoiceNote,
   EmptyEvidence,
   EvaluatingCard,
   IncidentRow,
@@ -109,7 +110,11 @@ function SheetBody({
   const activity = useActivity((s) => s.entries);
 
   const graph = useMemo(() => getGraph(graphFile, profile), [graphFile, profile]);
-  const rec = recommendedRoute(plan);
+  // The route the trip uses: the one the traveller tapped, else the recommended one.
+  const selectedRouteId = useTrip((s) => s.selectedRouteId);
+  const rec = activeRoute(plan, selectedRouteId);
+  const engineRec = recommendedRoute(plan);
+  const chosen = !!rec && !!engineRec && rec.routeId !== engineRec.routeId;
   const dest = placeById(scenario, destinationId);
   const enRoute = mode === 'en_route' && !!vehicle;
 
@@ -203,7 +208,7 @@ function SheetBody({
         ) : plan?.noViableRoute ? (
           <NoViableCard plan={plan} onGoTo={changeDestination} cause={noViableBanner ? banner?.message : undefined} onDetails={onDetails} />
         ) : rec ? (
-          <PeekCard route={rec} etaS={etaS} enRoute={enRoute} onStart={() => void beginTrip()} onEnd={endTrip} />
+          <PeekCard route={rec} etaS={etaS} enRoute={enRoute} chosen={chosen} onStart={() => void beginTrip()} onEnd={endTrip} />
         ) : enRoute ? (
           <AppText variant="eta">{t('etaLeft', { eta: fmtDuration(etaS) })}</AppText>
         ) : null}
@@ -219,6 +224,7 @@ function SheetBody({
               onDismiss={() => useTrip.getState().dismissBanner()}
             />
           ) : null}
+          {chosen && engineRec && !enRoute ? <ChoiceNote route={rec} recommended={engineRec} onReset={() => useTrip.getState().selectRoute(null)} /> : null}
           <PeekMore
             route={rec}
             arriveClock={arriveClock}
@@ -241,7 +247,14 @@ function SheetBody({
             <SectionLabel count={plan.routes.length}>{t('compareTitle')}</SectionLabel>
             <View style={styles.rows}>
               {plan.routes.map((r, i) => (
-                <RouteRow key={r.routeId} route={r} bar={bars.find((b) => b.routeId === r.routeId)} index={i} />
+                <RouteRow
+                  key={r.routeId}
+                  route={r}
+                  bar={bars.find((b) => b.routeId === r.routeId)}
+                  index={i}
+                  selected={r.routeId === rec?.routeId}
+                  onSelect={r.role !== 'blocked' && mode === 'planning' ? () => useTrip.getState().selectRoute(r.routeId === plan.recommendedRouteId ? null : r.routeId) : undefined}
+                />
               ))}
             </View>
           </View>
@@ -308,6 +321,9 @@ export function NavigateScreen() {
   const schematic = useUi((s) => s.mapStatus === 'unavailable');
   const mapReady = useUi((s) => s.mapStatus === 'ready');
   const liveMode = useSettings((s) => s.dataMode === 'live');
+  // While a trip runs the camera follows the vehicle; dragging the map lets go, and this button takes it back.
+  const tripRunning = useTrip((s) => s.mode === 'en_route');
+  const followingCamera = useUi((s) => s.following);
 
   // Live mode: start from the phone when location is already allowed (never prompts at launch).
   useEffect(() => {
@@ -478,6 +494,17 @@ export function NavigateScreen() {
             <View />
           )}
           <View style={styles.fabs} pointerEvents="box-none">
+            {tripRunning && !followingCamera && mapReady ? (
+              <PressScale
+                onPress={() => useUi.getState().setFollowing(true)}
+                style={[styles.fab, styles.fabSmall, shadow('md')]}
+                accessibilityRole="button"
+                accessibilityLabel={t('recenterNav')}
+                testID="recenter-nav"
+              >
+                <Navigation size={20} color={tc.accentInk} strokeWidth={2.25} />
+              </PressScale>
+            ) : null}
             {liveMode && mapReady ? (
               <PressScale
                 onPress={() => void locateMe()}

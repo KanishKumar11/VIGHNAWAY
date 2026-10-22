@@ -1,4 +1,7 @@
+import { haversineM } from '@vighnaway/engine';
+import { routeLabelsFor } from '@/features/navigate/mapModel';
 import { runPlanNow, setTripPlaces } from '@/features/trip/planner';
+import { getGraph } from '@/lib/engine';
 import { buildGazetteer, entryToPlace, searchEntries, townEntries, type SearchEntry } from '@/features/search/gazetteer';
 import { graphForRegion, northPlaces, regionOfPoint } from '@/regions';
 import { placeById, useScenario } from '@/stores/scenario';
@@ -75,6 +78,16 @@ describe('a trip from Amritsar to Ambala', () => {
     expect(rec.etaS).toBeLessThan(6 * 3600);
     expect(rec.name).toMatch(/NH ?44|Grand Trunk/);
     expect(plan.routes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('puts the main route time bubble clear of the alternative bubbles, so none hides another', () => {
+    expect(setTripPlaces(place('Amritsar'), place('Ambala'))).toBe('ok');
+    const plan = runPlanNow()!;
+    const labels = routeLabelsFor(getGraph(useScenario.getState().graphFile, 'car'), plan.routes, plan.recommendedRouteId);
+    expect(labels[0]?.primary).toBe(true);
+    expect(labels.length).toBeGreaterThanOrEqual(2);
+    const at = (l: (typeof labels)[number]) => ({ lat: l.coordinate.latitude, lng: l.coordinate.longitude });
+    for (const alt of labels.slice(1)) expect(haversineM(at(labels[0]!), at(alt))).toBeGreaterThan(10_000);
   });
 
   it('plans the same drive in the other direction within a few percent', () => {

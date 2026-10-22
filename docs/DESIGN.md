@@ -58,8 +58,8 @@ sky-blue underlay before any incident arrives. The console uses the same style.
 | Role | Line |
 | --- | --- |
 | Recommended | 6 px teal over a 9 px dark casing |
-| Usual fastest | 4 px slate |
-| Alternative | 3 px slate at 60% |
+| Usual fastest | 5 px slate over an 8 px casing |
+| Alternative | 5 px slate at 90% over an 8 px casing, drawn under the recommended route like Google Maps; tap it, or its time bubble, to choose it |
 | Not viable | 4 px red, dashed where supported (Android), plus a cross marker on the blocking segment and the words "Not viable" |
 | Travelled | 6 px darker teal |
 

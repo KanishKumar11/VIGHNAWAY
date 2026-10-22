@@ -19,6 +19,12 @@ interface UiState {
   devicePosition: DevicePosition | null;
   /** Incremented to ask the map to centre on the phone. */
   recenterRequest: number;
+  /**
+   * While a trip runs the camera follows the vehicle (zoomed in, tilted, turned to the heading, like
+   * Google Maps). Panning the map turns it off; the re-centre button turns it back on.
+   */
+  following: boolean;
+  setFollowing: (on: boolean) => void;
   setMapCenter: (c: LatLng) => void;
   setMapStatus: (s: UiState['mapStatus']) => void;
   setLocationPermission: (p: LocationPermission) => void;
@@ -32,6 +38,8 @@ export const useUi = create<UiState>()((set, get) => ({
   locationPermission: 'unknown',
   devicePosition: null,
   recenterRequest: 0,
+  following: false,
+  setFollowing: (following) => set({ following }),
   setMapCenter: (mapCenter) => set({ mapCenter }),
   setMapStatus: (mapStatus) => set({ mapStatus }),
   setLocationPermission: (locationPermission) => set({ locationPermission }),

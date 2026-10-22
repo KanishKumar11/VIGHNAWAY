@@ -15,7 +15,7 @@ import { isCustomPlaceId, placeById, registerCustomPlace, useScenario } from '@/
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
-import { recommendedRoute, useTrip, type Transition } from '@/stores/trip';
+import { activeRoute, recommendedRoute, useTrip, type Transition } from '@/stores/trip';
 import { motion } from '@/theme';
 
 /**
@@ -248,7 +248,8 @@ export function startTransition(fromRoute: RouteEvaluation | null, toRouteId: st
 /** Start trip: the simulated vehicle sets off along the recommended route. */
 export function startTrip(): void {
   const trip = useTrip.getState();
-  const rec = recommendedRoute(trip.plan);
+  // The route the traveller chose, else the recommended one.
+  const rec = activeRoute(trip.plan, trip.selectedRouteId);
   if (!rec) return;
   const simTimeS = useSim.getState().simTimeS;
   trip.startTrip(startVehicle(rec.edgeIds), simTimeS);
