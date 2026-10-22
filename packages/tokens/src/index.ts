@@ -226,8 +226,8 @@ export const googleMapStyle = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4B5D7A' }] },
 ] as const;
 
-export { themes, phoneThemes, consoleThemes, consoleChrome, consoleBrand, chromeContrastPairs, brandContrastPairs, defaultTheme, contrastPairs } from './themes';
-export type { ThemeColors, ThemeName } from './themes';
+export { themes, phoneThemes, phoneBrand, phoneBrandContrastPairs, phoneRadius, phoneElevation, consoleThemes, consoleChrome, consoleBrand, chromeContrastPairs, brandContrastPairs, defaultTheme, contrastPairs } from './themes';
+export type { PhoneBrand, ThemeColors, ThemeName } from './themes';
 
 /** Google Maps style for the light theme: warm neutral land, white roads, quiet blue water, visible railway. */
 export const googleMapStyleLight = [

@@ -40,7 +40,7 @@ import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
 import { activeRoute, recommendedRoute, useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, spacing, useColors } from '@/theme';
+import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, shadowUp, spacing, useColors, withAlpha } from '@/theme';
 import { DestinationSheet } from './DestinationSheet';
 import { EvidenceSheet } from './EvidenceSheet';
 import { MapMenu } from './MapMenu';
@@ -640,7 +640,7 @@ const useStyles = createStyles((tc) => ({
     borderRadius: radius.chip,
     backgroundColor: tc.shellOverlay,
     borderWidth: hairline,
-    borderColor: tc.shellHairlineStrong,
+    borderColor: tc.panelLine,
     marginBottom: spacing.xxs,
   },
   legendText: { flexShrink: 1 },
@@ -648,7 +648,9 @@ const useStyles = createStyles((tc) => ({
   fab: {
     height: layout.minTouch,
     borderRadius: radius.chip,
-    backgroundColor: tc.panelRaised,
+    backgroundColor: tc.panel,
+    borderWidth: hairline,
+    borderColor: tc.panelLine,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
@@ -658,8 +660,9 @@ const useStyles = createStyles((tc) => ({
   fabs: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
   fabSmall: { width: layout.minTouch, paddingLeft: 0, paddingRight: 0, justifyContent: 'center' },
   attributionText: { textAlign: 'right', alignSelf: 'flex-end', maxWidth: '78%' },
-  sheetBg: { backgroundColor: tc.panel, borderRadius: radius.sheet },
-  handle: { backgroundColor: tc.panelLine, width: spacing.xl + spacing.xxs, height: spacing.xxs + 1 },
+  // The sheet rises from the bottom edge: rounder top corners, a soft blue shadow cast upward, a fine light edge.
+  sheetBg: { backgroundColor: tc.panel, borderTopLeftRadius: radius.sheet + spacing.xxs, borderTopRightRadius: radius.sheet + spacing.xxs, borderTopWidth: hairline, borderColor: tc.panelLine, ...shadowUp('lg') },
+  handle: { backgroundColor: withAlpha(tc.inkSubtle, 0.35), width: spacing.xl + spacing.md, height: spacing.xxs + 1 },
   sheetContent: { paddingHorizontal: spacing.md, paddingTop: spacing.xxs, gap: spacing.lg },
   peekWrap: { gap: spacing.xs },
   more: { gap: spacing.sm, paddingTop: spacing.sm },

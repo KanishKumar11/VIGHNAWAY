@@ -14,7 +14,9 @@ import { StateTag } from '@/features/navigate/SheetParts';
 import { t, type StringKey } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
 import { useSettings } from '@/stores/settings';
-import { createStyles, fontFamily, hairline, layout, letterSpacing, motion, radius, spacing, type, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, letterSpacing, motion, radius, shadow, spacing, type, useColors } from '@/theme';
+
+const STAGE_PAD = spacing.md;
 
 type Step = 1 | 2 | 3;
 const STEPS: { title: StringKey; body: StringKey; tag: { kind: 'warning' | 'recommended'; label: StringKey } }[] = [
@@ -39,7 +41,8 @@ export default function FirstRun() {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [step, setStep] = useState<Step>(1);
   const s = STEPS[step - 1]!;
-  const diagramW = Math.min(winW - spacing.lg * 2 - insets.left - insets.right, 420);
+  // The diagram sits on a raised stage card, so it is narrower than the content by the card's padding.
+  const diagramW = Math.min(winW - spacing.lg * 2 - insets.left - insets.right, 420) - STAGE_PAD * 2 - 2;
   const finish = () => {
     useSettings.getState().completeFirstRun();
     router.replace('/');
@@ -73,9 +76,11 @@ export default function FirstRun() {
             {t('firstRunBadge')}
           </AppText>
         </View>
-        <ScrollView style={styles.flex} contentContainerStyle={styles.story} showsVerticalScrollIndicator={false}>
+        <ScrollView style={[styles.flex, styles.scrollBleed]} contentContainerStyle={styles.story} showsVerticalScrollIndicator={false}>
           <Animated.View key={step} entering={reduce ? undefined : FadeIn.duration(motion.banner)} style={styles.panel} testID={`story-${step}`}>
-            <StoryDiagram step={step} width={diagramW} />
+            <View style={[styles.stage, shadow('lg')]}>
+              <StoryDiagram step={step} width={diagramW} />
+            </View>
             <StateTag kind={s.tag.kind} label={t(s.tag.label, { n: 2 })} />
             <AppText variant="eta" tone="onShell" accessibilityRole="header" style={styles.title}>
               {t(s.title)}
@@ -88,7 +93,7 @@ export default function FirstRun() {
         <View style={styles.foot}>
           <View style={styles.dots} accessible accessibilityRole="text" accessibilityLabel={t('storyStep', { n: step })}>
             {[1, 2, 3].map((n) => (
-              <View key={n} style={[styles.dot, n === step ? styles.dotOn : styles.dotOff]} />
+              <View key={n} style={[styles.dot, n === step ? [styles.dotOn, glow(tc.accent, 0.4)] : n < step ? styles.dotDone : styles.dotOff]} />
             ))}
             <AppText variant="meta" tone="onShellMuted" style={styles.stepText}>
               {t('storyStep', { n: step })}
@@ -127,15 +132,20 @@ const useStyles = createStyles((tc) => ({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs + 2,
     backgroundColor: tc.shellRaised,
+    ...shadow('sm'),
   },
-  story: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.md },
+  // The stage card's shadow is wider than the card: the scroller reaches past the gutters so it is not cut off.
+  scrollBleed: { marginHorizontal: -spacing.lg },
+  story: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   panel: { gap: spacing.sm },
-  title: { marginTop: spacing.sm },
-  body: { maxWidth: 420 },
+  stage: { alignSelf: 'flex-start', padding: STAGE_PAD, marginBottom: spacing.xs, borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine },
+  title: { marginTop: spacing.xs, fontSize: 36, lineHeight: 42, letterSpacing: -1.2 },
+  body: { maxWidth: 420, fontSize: type.title.size - 1, lineHeight: 26 },
   foot: { gap: spacing.md },
   dots: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  dot: { height: spacing.xs - 2, borderRadius: radius.chip },
-  dotOn: { width: spacing.lg, backgroundColor: tc.inkOnShell },
-  dotOff: { width: spacing.xs - 2, backgroundColor: tc.inkOnShellMuted },
+  dot: { height: spacing.xs, borderRadius: radius.chip },
+  dotOn: { width: spacing.xl + spacing.xs, backgroundColor: tc.accent },
+  dotDone: { width: spacing.md, backgroundColor: tc.accentInk, opacity: 0.55 },
+  dotOff: { width: spacing.md, backgroundColor: tc.shellLine },
   stepText: { marginLeft: spacing.xs },
 }));

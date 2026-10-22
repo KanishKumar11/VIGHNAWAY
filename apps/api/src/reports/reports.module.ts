@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_CONFIG, type AppConfig } from '../config';
 import { saltedHash } from '../common/hash';
+import { OperatorGuard } from '../common/operator.guard';
 import { IncidentsModule } from '../incidents/incidents.module';
 import { LiveModule } from '../live/live.module';
 import { ScenariosModule } from '../scenarios/scenarios.module';
@@ -39,7 +40,7 @@ const deviceIdOf = (req: Record<string, unknown>): string | null => {
     }),
   ],
   controllers: [ReportsController, PhotosController],
-  providers: [ReportsService, PhotosService],
+  providers: [ReportsService, PhotosService, OperatorGuard],
   exports: [ReportsService],
 })
 export class ReportsModule {}

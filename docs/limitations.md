@@ -66,3 +66,7 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 - Nothing in this repository has run on a physical phone yet (see docs/TASKS.md).
 - Report photos have no retention or deletion job, no operator "delete photo" action, no face or number-plate blurring and no virus or content scan beyond a JPEG sanity check. They are operator-only, but they are stored in Postgres until the table is cleared. Decide a retention rule before real use.
 - Live place search sends the typed text and a rough area (about 10 km) to a third-party Photon server (photon.komoot.io by default). It is a free public instance with fair-use limits and no uptime promise; the built-in places and recent picks keep working without it. Places outside Andheri and the Amritsar to Ambala corridor can be found but not routed.
+
+## Step-free profile
+
+Step-free access is known only where OpenStreetMap says so. The profile never uses a way mapped as steps, but footpaths, paths, pedestrian streets and corridors may still have steps, kerbs or no ramp that the map does not record, and ordinary roads are assumed passable. The route shows how many of its segments have no recorded step-free access and its confidence is Medium when there are any. It is a planning aid for people who cannot use steps, it does not promise that a route can be used.

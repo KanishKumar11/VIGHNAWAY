@@ -544,6 +544,7 @@ Docs: CONTRACTS.md, UX_FLOWS.md §9.
 | --- | --- | --- | --- |
 | P2-3.a | Graph edge attribute `stepFree: true / false / null` (unknown). Fixture tags are hand-set and marked `stepFreeSource: 'fixture'` | schema; fixture build | 1 h |
 | P2-3.b | Engine profile `step_free`: walking speeds; avoids `stepFree === false`; unknown edges allowed but counted, and confidence says "Step-free access unknown on N segments" | engine tests; parity case | 2 h |
+| P2-3 status | **engine and phone done, run**: profile `step_free` (contracts PROFILES, engine graph/rules/explain, new scoring rule `stepFree`, Hindi and Marathi rule and confidence text, scoring.md regenerated). It walks like `foot` but never uses a way mapped `highway=steps` (the real Andheri graph has 153), even with foot=yes. No hand-set `stepFree` attribute: the OSM tag is the source, and footways, paths, pedestrian streets, corridors and tracks count as "not recorded" (`RouteEvaluation.stepFreeUnknownCount`, optional, only for this profile); any such segment makes confidence Medium with "Step-free access is not recorded on N segments of this route". Engine test/step-free.test.ts 7 pass; the pinned parity hash is unchanged because parity still covers car, two-wheeler and foot. Phone: a fourth profile chip in the top bar and Settings (en/hi/mr). **Console chip not built**: the console's demo trip is a car trip | | |
 | P2-3.c | Profile chip on the phone and the console | jest and vitest; screenshots | 1 h |
 
 Docs: scoring.md, DATA_MODEL.md, limitations.md.

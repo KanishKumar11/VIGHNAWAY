@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { haptic } from '@/lib/feedback';
 import { useReduceMotion } from '@/lib/motion';
 import { useSettings } from '@/stores/settings';
-import { createStyles, fontFamily, LARGER_TEXT, hairline, layout, motion, radius, shadow, spacing, useColors, withAlpha } from '@/theme';
+import { createStyles, fontFamily, glow, LARGER_TEXT, hairline, layout, motion, radius, shadow, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
 import type { LucideIcon } from './icons';
 
@@ -57,19 +57,19 @@ export function Segmented<T extends string>({ options, value, onChange, variant 
       accessibilityRole="radiogroup"
       accessibilityLabel={accessibilityLabel}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      style={[styles.track, shell ? styles.trackShell : styles.trackPanel, dense && styles.dense, style]}
+      style={[styles.track, shell ? [styles.trackShell, shadow('md')] : styles.trackPanel, dense && styles.dense, style]}
     >
       {segW > 0 && value !== null ? (
         <Animated.View
           pointerEvents="none"
-          style={[styles.indicator, { width: segW }, shell ? [styles.indicatorShell, shadow('sm')] : [styles.indicatorPanel, shadow('sm')], indicator]}
+          style={[styles.indicator, { width: segW }, glow(tc.accent, 0.55), indicator]}
         />
       ) : null}
       {options.map((o) => {
         const selected = o.value === value;
         const Icon = o.icon;
-        // Shell: an ink pill with the panel colour as its label (dark on light, light on dark).
-        const fg = shell ? (selected ? tc.ink : tc.inkOnShellMuted) : selected ? tc.ink : tc.inkMuted;
+        // The chosen segment is a solid accent pill with the onAccent label (an AA pair).
+        const fg = selected ? tc.onAccent : shell ? tc.inkOnShellMuted : tc.inkMuted;
         return (
           <Pressable
             key={o.value}
@@ -96,15 +96,12 @@ export function Segmented<T extends string>({ options, value, onChange, variant 
 
 const PAD = spacing.xxs;
 
-const useStyles = createStyles((tc, name) => ({
+const useStyles = createStyles((tc) => ({
   track: { flexDirection: 'row', padding: PAD, borderRadius: radius.button + PAD, minHeight: layout.minTouch },
   dense: { minHeight: layout.minTouch - PAD },
-  trackShell: { backgroundColor: name === 'dark' ? tc.shellOverlay : tc.panelSunken, borderWidth: hairline, borderColor: tc.shellHairlineStrong },
+  trackShell: { backgroundColor: tc.shellOverlay, borderWidth: hairline, borderColor: tc.panelLine },
   trackPanel: { backgroundColor: tc.panelSunken },
-  indicator: { position: 'absolute', top: PAD, bottom: PAD, left: PAD, borderRadius: radius.button },
-  // A raised neutral pill, not ink: the profile is a setting, the ETA is the hero.
-  indicatorShell: { backgroundColor: name === 'dark' ? withAlpha(tc.ink, 0.14) : tc.panel },
-  indicatorPanel: { backgroundColor: tc.panelRaised },
+  indicator: { position: 'absolute', top: PAD, bottom: PAD, left: PAD, borderRadius: radius.button, backgroundColor: tc.accent },
   segment: {
     flex: 1,
     flexDirection: 'row',
@@ -116,5 +113,5 @@ const useStyles = createStyles((tc, name) => ({
   },
   segmentDense: { minHeight: layout.minTouch - PAD * 3 },
   label: { flexShrink: 1, textAlign: 'center' },
-  labelSelected: { fontFamily: fontFamily.semibold },
+  labelSelected: { fontFamily: fontFamily.bold },
 }));

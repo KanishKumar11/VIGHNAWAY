@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type Incident, IncidentSchema } from './incidents';
+import { CongestionLevelSchema, DepthSchema, type Incident, IncidentSchema, ReportTypeSchema, SeveritySchema } from './incidents';
 import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 import { ScenarioSchema } from './scenario';
 import { SimStateSchema } from './events';
@@ -24,6 +24,7 @@ export const API_PATHS = {
   history: (id: string) => `/scenarios/${encodeURIComponent(id)}/history`,
   clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
   closures: (id: string) => `/scenarios/${encodeURIComponent(id)}/closures`,
+  offmapReports: (id: string) => `/scenarios/${encodeURIComponent(id)}/offmap-reports`,
   hospitals: (id: string) => `/scenarios/${encodeURIComponent(id)}/hospitals`,
   hospital: (id: string, placeId: string) => `/scenarios/${encodeURIComponent(id)}/hospitals/${encodeURIComponent(placeId)}`,
   authOtpRequest: '/auth/otp/request',
@@ -164,6 +165,30 @@ export type HospitalStatesResponse = z.infer<typeof HospitalStatesResponseSchema
 
 export const SetHospitalStateRequestSchema = z.object({ state: HospitalStateSchema }).strict();
 export type SetHospitalStateRequest = z.infer<typeof SetHospitalStateRequestSchema>;
+
+/**
+ * GET /scenarios/:id/offmap-reports (operator): live-mode reports that landed outside every mapped road, newest first
+ * (at most OFFMAP_REPORTS_LIMIT). They create no incident and change no route; this list is for triage only. It carries
+ * no device or reporter identity. `description` is the reporter's free text: show it as plain text.
+ */
+export const OFFMAP_REPORTS_LIMIT = 200;
+export const OffMapReportSchema = z.object({
+  id: IdSchema,
+  type: ReportTypeSchema,
+  depth: DepthSchema.nullable(),
+  congestion: CongestionLevelSchema.nullable(),
+  severity: SeveritySchema.nullable(),
+  description: z.string().nullable(),
+  point: LatLngSchema,
+  receivedAtS: SimSecondsSchema,
+});
+export type OffMapReport = z.infer<typeof OffMapReportSchema>;
+export const OffMapReportsResponseSchema = z.object({
+  scenarioId: IdSchema,
+  total: z.number().int().min(0),
+  reports: z.array(OffMapReportSchema),
+});
+export type OffMapReportsResponse = z.infer<typeof OffMapReportsResponseSchema>;
 
 /** POST /scenarios/:id/audience/clear: dismisses every open incident that only audience reports support. */
 export const ClearAudienceResponseSchema = z.object({ cleared: z.number().int().min(0), incidentIds: z.array(IdSchema) });

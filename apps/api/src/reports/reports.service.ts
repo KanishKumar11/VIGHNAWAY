@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
-import { and, eq, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
 import {
   OBSERVED_AT_MAX_AGE_S,
+  OFFMAP_REPORTS_LIMIT,
+  type OffMapReportsResponse,
   type CongestionLevel,
   type Depth,
   type IncidentSource,
@@ -287,6 +289,29 @@ export class ReportsService {
     });
     this.incidents.publish(changes);
     return response;
+  }
+
+  /** Newest live-mode off-map reports (operator triage). No device or reporter identity leaves the server. */
+  async listOffMap(scenarioId: string): Promise<OffMapReportsResponse> {
+    const where = eq(offmapReports.scenarioId, scenarioId);
+    const [rows, [count]] = await Promise.all([
+      this.db.select().from(offmapReports).where(where).orderBy(desc(offmapReports.receivedAtS), desc(offmapReports.id)).limit(OFFMAP_REPORTS_LIMIT),
+      this.db.select({ n: sql<number>`count(*)::int` }).from(offmapReports).where(where),
+    ]);
+    return {
+      scenarioId,
+      total: count?.n ?? 0,
+      reports: rows.map((r) => ({
+        id: r.id,
+        type: r.type as ReportInput['type'],
+        depth: r.depth as Depth | null,
+        congestion: r.congestion as CongestionLevel | null,
+        severity: r.severity as Severity | null,
+        description: r.description,
+        point: { lat: r.geom[1], lng: r.geom[0] },
+        receivedAtS: r.receivedAtS,
+      })),
+    };
   }
 
   /** Stores a report that has no mapped road nearby (live mode). Never touches incidents or routing. */

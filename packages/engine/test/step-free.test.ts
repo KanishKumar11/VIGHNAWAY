@@ -7,11 +7,12 @@ import { gridGraph, noAlerts } from './helpers';
  * many segments step-free access is not recorded, and gives only Medium confidence when there are any.
  */
 
-// Row 0 is the short way (g0_0 to g2_0) and its first edge is mapped as steps; row 1 is a longer footpath detour.
+// Row 0 is the short way (g0_0 to g2_0) and its first edge is mapped as steps; the middle cross street is steps too, so row 1 is the only way round: four footways.
 const STEPS = { highway: 'steps' };
 const FOOTWAY = { highway: 'footway' };
 const overrides = {
   'g0_0|g1_0': STEPS,
+  'g1_0|g1_1': STEPS,
   'g0_0|g0_1': FOOTWAY,
   'g0_1|g1_1': FOOTWAY,
   'g1_1|g2_1': FOOTWAY,

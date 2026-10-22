@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { IncidentsResponseSchema, ReportResponseSchema } from '@vighnaway/contracts';
+import { IncidentsResponseSchema, OffMapReportsResponseSchema, ReportResponseSchema } from '@vighnaway/contracts';
 import { andheriLiveScenario } from '@vighnaway/scenario-data';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDb } from '../src/db/client';
 import { TEST_DATABASE_URL } from './env';
-import { OFF_ROAD, report, SID, startApp, SUBWAY, type TestApp } from './helpers';
+import { AUTH, OFF_ROAD, report, SID, startApp, SUBWAY, type TestApp } from './helpers';
 
 const LIVE = andheriLiveScenario.id;
 /** Amritsar: nowhere near the Andheri graph. */
@@ -82,5 +82,20 @@ describe('the scripted demo stays strict', () => {
     const res = await post(SID, report({ deviceId: 'device-aaaa', point: AMRITSAR }));
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('NOT_ON_ROAD');
+  });
+});
+
+describe('GET /scenarios/:id/offmap-reports (operator)', () => {
+  it('401 without the operator token, then lists the saved reports newest first without identity', async () => {
+    await post(LIVE, report({ deviceId: 'device-aaaa', point: AMRITSAR, description: 'water <b>here</b>' }));
+    await post(LIVE, report({ deviceId: 'device-bbbb', point: { lat: 31.65, lng: 74.86 }, type: 'congestion', congestion: 'heavy' } as never));
+    expect((await t.http().get(`/scenarios/${LIVE}/offmap-reports`)).status).toBe(401);
+    const res = await t.http().get(`/scenarios/${LIVE}/offmap-reports`).set(AUTH);
+    expect(res.status).toBe(200);
+    const body = OffMapReportsResponseSchema.parse(res.body);
+    expect(body.total).toBe(2);
+    expect(body.reports).toHaveLength(2);
+    expect(JSON.stringify(res.body)).not.toMatch(/deviceHash|ipHash|userId|deviceId/);
+    expect(body.reports.some((r) => r.description?.includes('<b>'))).toBe(false);
   });
 });

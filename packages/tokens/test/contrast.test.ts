@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { brandContrastPairs, chromeContrastPairs, consoleBrand, consoleChrome, consoleThemes, contrastPairs, phoneThemes, themes, type ThemeColors } from '../src/themes';
+import { brandContrastPairs, chromeContrastPairs, consoleBrand, consoleChrome, consoleThemes, contrastPairs, phoneBrand, phoneBrandContrastPairs, phoneThemes, themes, type ThemeColors } from '../src/themes';
 
 type RGBA = [number, number, number, number];
 function parse(c: string): RGBA {
@@ -49,6 +49,13 @@ describe('console chrome meets WCAG AA', () => {
 describe('console brand meets WCAG AA', () => {
   it.each(brandContrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
     const ratio = contrast(consoleBrand[p.fg], consoleBrand[p.bg], consoleBrand.onBrand);
+    expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
+  });
+});
+
+describe.each(Object.entries(phoneBrand))('phone brand layer (%s) meets WCAG AA', (_name, b) => {
+  it.each(phoneBrandContrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
+    const ratio = contrast(b[p.fg], b[p.bg], b.from);
     expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
   });
 });

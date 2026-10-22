@@ -1,18 +1,20 @@
 import { Platform, StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 import {
-  elevation,
   fontFamily,
+  phoneBrand,
+  phoneElevation as elevation,
   phoneGoogleMapStyles as googleMapStyles,
+  phoneRadius as radius,
   layout,
   letterSpacing,
   marker,
   motion,
-  radius,
   routeStyles,
   spacing,
   phoneThemes as themes,
   type,
   zIndex,
+  type PhoneBrand,
   type RouteStyleKey,
   type ThemeColors,
   type ThemeName,
@@ -22,7 +24,7 @@ import type { IncidentStatus } from '@vighnaway/contracts';
 import { useSettings } from '@/stores/settings';
 
 export { fontFamily, googleMapStyles, layout, letterSpacing, marker, motion, radius, routeStyles, spacing, themes, type, zIndex };
-export type { RouteStyleKey, ThemeColors, ThemeName };
+export type { PhoneBrand, RouteStyleKey, ThemeColors, ThemeName };
 
 // ---------------------------------------------------------------------------------------------
 // Themes (DESIGN.md 12): light and dark share keys; the phone follows the system by default.
@@ -38,6 +40,11 @@ export function useThemeName(): ThemeName {
 /** Colours of the active theme. */
 export function useColors(): ThemeColors {
   return themes[useThemeName()];
+}
+
+/** The premium layer for the active theme: brand and hero gradients, aurora glows, glass, shadow tint. */
+export function useBrand(): PhoneBrand {
+  return phoneBrand[useThemeName()];
 }
 
 export function useTheme() {
@@ -140,11 +147,11 @@ export function textStyle(token: TypeToken): TextStyle {
  */
 export const text = {
   /** The hero ETA. */
-  display: { fontFamily: fontFamily.bold, fontSize: type.display.size, lineHeight: type.display.lineHeight, fontVariant: tabular, letterSpacing: -1 },
-  eta: textStyle('eta'),
+  display: { fontFamily: fontFamily.bold, fontSize: type.display.size, lineHeight: type.display.lineHeight, fontVariant: tabular, letterSpacing: -1.6 },
+  eta: { ...textStyle('eta'), letterSpacing: -1 },
   /** Large screen title (DESIGN.md 15): a step under the ETA. */
-  headline: { fontFamily: fontFamily.bold, fontSize: type.eta.size - spacing.xxs, lineHeight: type.eta.lineHeight - spacing.xxs, letterSpacing: -0.5 },
-  title: textStyle('title'),
+  headline: { fontFamily: fontFamily.bold, fontSize: type.eta.size, lineHeight: type.eta.lineHeight, letterSpacing: -0.9 },
+  title: { ...textStyle('title'), letterSpacing: -0.25 },
   body: textStyle('body'),
   meta: textStyle('meta'),
   /** Small semibold label (section labels, states). Sentence case, never uppercase. */
@@ -181,10 +188,26 @@ export const LARGER_TEXT = 1.25;
 /** Hairline used for dividers and outlines. */
 export const hairline = 1;
 
-/** Native shadows on Android/iOS; the same levels as CSS box-shadows on the web preview. */
+/** Native shadows on Android/iOS; the same levels as CSS box-shadows on the web preview. Cast in deep blue. */
 export function shadow(level: 'sm' | 'md' | 'lg'): ViewStyle {
   if (Platform.OS === 'web') return { boxShadow: elevation.web[level] } as ViewStyle;
   return elevation.native[level];
+}
+
+/** The same blue shadow cast upward, for a surface that rises from the bottom edge (the sheet). */
+export function shadowUp(level: 'sm' | 'md' | 'lg'): ViewStyle {
+  if (Platform.OS === 'web') return { boxShadow: elevation.web[level].replace(/(d+px) (d+px)/, (_m, _x, y) => `0 -${y}`) } as ViewStyle;
+  const s = elevation.native[level];
+  return { ...s, shadowOffset: { width: 0, height: -s.shadowOffset.height } };
+}
+
+/**
+ * Light cast under a brand surface (a primary button, the selected tile): the surface's own hue,
+ * not a grey shadow. `color` is an opaque brand colour; `strength` 1 is a button, 0.6 a small tile.
+ */
+export function glow(color: string, strength = 1): ViewStyle {
+  if (Platform.OS === 'web') return { boxShadow: `0 ${Math.round(10 * strength)}px ${Math.round(24 * strength)}px -6px ${withAlpha(color, 0.55)}` } as ViewStyle;
+  return { shadowColor: color, shadowOpacity: 0.45 * strength + 0.05, shadowRadius: 16 * strength, shadowOffset: { width: 0, height: 8 * strength }, elevation: Math.round(8 * strength) };
 }
 
 /** Ease-out curve from tokens, for Reanimated's Easing.bezier. */

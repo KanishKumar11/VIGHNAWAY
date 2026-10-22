@@ -11,7 +11,7 @@ import { Phone, Play, TriangleAlert, X } from '@/components/icons';
 import { RoundButton } from '@/components/ui';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { beginTrip } from '@/features/trip/deviceTrip';
-import { ArriveAt, StateTag } from '@/features/navigate/SheetParts';
+import { StateTag } from '@/features/navigate/SheetParts';
 import { t } from '@/i18n/en';
 import { routeLabel, whatToDoNow } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
@@ -22,10 +22,24 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { recommendedRoute, useTrip } from '@/stores/trip';
-import { createStyles, fontFamily, hairline, layout, radius, shadow, spacing, type, useColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, type, useBrand, useColors } from '@/theme';
 import { roadsAhead } from './roads';
 
 const DRIVE_ETA = Math.round(type.display.size * 1.5);
+
+/** "Arrive 14:22": words in Manrope, the simulation clock in the technical face, in the hero's own ink. */
+function ArriveLine({ clock, color }: { clock: string; color: string }) {
+  const [before, after = ''] = t('arriveAt', { clock: '\u0000' }).split('\u0000');
+  return (
+    <AppText variant="meta" style={{ color }}>
+      {before}
+      <AppText variant="mono" style={{ color }}>
+        {clock}
+      </AppText>
+      {after}
+    </AppText>
+  );
+}
 
 /**
  * Drive mode (DESIGN_VISION appendix A): a reduced composition for a glance at a mount. The ETA,
@@ -34,6 +48,7 @@ const DRIVE_ETA = Math.round(type.display.size * 1.5);
  */
 export function DriveScreen() {
   const tc = useColors();
+  const brand = useBrand();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
@@ -81,31 +96,31 @@ export function DriveScreen() {
     </View>
   );
 
-  // The ETA is the hero: the accent fills the card when there is a route, a plain card otherwise.
+  // The ETA is the hero: a deep solid card with large light numerals when there is a route, a plain card otherwise.
   const hero = !!rec;
   const etaBlock = (
     <View
-      style={[styles.etaBlock, hero ? styles.etaHero : styles.etaPlain, shadow(hero ? 'md' : 'sm')]}
+      style={[styles.etaBlock, hero ? [styles.etaHero, { backgroundColor: brand.hero, borderColor: brand.heroEdge }] : styles.etaPlain, shadow(hero ? 'lg' : 'sm')]}
       accessible
       accessibilityLabel={rec ? `${enRoute ? t('etaLeft', { eta }) : eta}. ${routeLabel(rec)}` : next}
     >
       {rec ? (
         <View style={styles.heroTag}>
           <View style={styles.heroDot} />
-          <AppText variant="label" tone="onAccent">
+          <AppText variant="label" style={{ color: brand.onHeroMuted }}>
             {t('recommended')}
           </AppText>
         </View>
       ) : noViable ? (
         <StateTag kind="critical" label={t('notViable')} />
       ) : null}
-      <AppText variant="display" tone={hero ? 'onAccent' : 'ink'} style={styles.eta} numberOfLines={1} adjustsFontSizeToFit testID="drive-eta">
+      <AppText variant="display" tone="ink" style={[styles.eta, hero && { color: brand.onHero }]} numberOfLines={1} adjustsFontSizeToFit testID="drive-eta">
         {eta}
       </AppText>
       {rec ? (
         <>
-          <ArriveAt clock={formatSimClock(scenario.clockStartsAt, minuteS + etaS)} tone="onAccent" />
-          <AppText variant="title" tone="onAccent" numberOfLines={2}>
+          <ArriveLine clock={formatSimClock(scenario.clockStartsAt, minuteS + etaS)} color={brand.onHeroMuted} />
+          <AppText variant="title" style={{ color: brand.onHero }} numberOfLines={2}>
             {routeLabel(rec)}
           </AppText>
         </>
@@ -165,7 +180,7 @@ export function DriveScreen() {
     <View style={[styles.root, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]} testID="drive-mode">
       <ThemedStatusBar />
       {head}
-      <ScrollView contentContainerStyle={[styles.body, landscape && styles.bodyLandscape]} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollBleed} contentContainerStyle={[styles.body, landscape && styles.bodyLandscape]} showsVerticalScrollIndicator={false}>
         {landscape ? (
           <>
             <View style={styles.col}>{etaBlock}</View>
@@ -192,16 +207,18 @@ const useStyles = createStyles((tc) => ({
   flex: { flex: 1 },
   strong: { fontFamily: fontFamily.semibold },
   headRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: layout.minTouch },
-  body: { gap: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.lg },
+  // The cards' shadows are wider than the cards: the scroller reaches past the gutters so they are not cut off.
+  scrollBleed: { marginHorizontal: -spacing.md },
+  body: { gap: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.lg, paddingHorizontal: spacing.md },
   bodyLandscape: { flexDirection: 'row', gap: spacing.md },
   col: { flex: 1, gap: spacing.md },
-  etaBlock: { gap: spacing.xs, padding: spacing.lg, borderRadius: radius.sheet },
-  etaHero: { backgroundColor: tc.accent },
-  etaPlain: { backgroundColor: tc.panel },
+  etaBlock: { gap: spacing.xs, padding: spacing.lg + spacing.xxs, borderRadius: radius.sheet },
+  etaHero: { borderWidth: hairline },
+  etaPlain: { backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine },
   heroTag: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
-  heroDot: { width: spacing.xs, height: spacing.xs, borderRadius: radius.chip, backgroundColor: tc.onAccent },
+  heroDot: { width: spacing.xs, height: spacing.xs, borderRadius: radius.chip, backgroundColor: tc.accent, ...glow(tc.accent, 0.5) },
   eta: { fontSize: DRIVE_ETA, lineHeight: Math.round(DRIVE_ETA * 1.08), letterSpacing: -2 },
-  card: { borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelHairline, overflow: 'hidden' },
+  card: { borderRadius: radius.sheet, backgroundColor: tc.panel, borderWidth: hairline, borderColor: tc.panelLine, overflow: 'hidden' },
   roadRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   roadDivider: { borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   roadKey: { width: spacing.xl + spacing.md },

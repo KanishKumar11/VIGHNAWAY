@@ -7,7 +7,7 @@ import { PressScale } from '@/components/motion';
 import { t, type StringKey } from '@/i18n/en';
 import { haptic } from '@/lib/feedback';
 import { takePhoto, type CapturedPhoto } from '@/lib/photo';
-import { createStyles, fontFamily, hairline, layout, radius, spacing, useColors } from '@/theme';
+import { createStyles, fontFamily, hairline, layout, radius, shadow, spacing, useColors, withAlpha } from '@/theme';
 
 const THUMB = spacing.xl * 3;
 
@@ -60,7 +60,7 @@ export function PhotoField({ photo, onChange }: { photo: CapturedPhoto | null; o
           accessibilityRole="button"
           accessibilityLabel={t('photoTakeA11y')}
           accessibilityHint={t('photoHint')}
-          style={styles.take}
+          style={[styles.take, shadow('sm')]}
           testID="photo-take"
         >
           <View style={styles.tile}>{busy ? <ActivityIndicator size="small" color={tc.accentInk} /> : <Camera size={22} color={tc.accentInk} strokeWidth={2.25} />}</View>
@@ -95,16 +95,17 @@ const useStyles = createStyles((tc) => ({
     gap: spacing.sm,
     minHeight: layout.minTouch + spacing.md,
     padding: spacing.sm,
-    borderRadius: radius.card,
+    borderRadius: radius.sheet,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: tc.controlBorder,
+    // A soft accent edge: the label and the camera disc say what this is, so the edge need not shout.
+    borderColor: withAlpha(tc.accent, 0.45),
     backgroundColor: tc.panel,
   },
-  tile: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
+  tile: { width: spacing.xl + spacing.sm, height: spacing.xl + spacing.sm, borderRadius: radius.chip, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
   takeText: { flex: 1, gap: spacing.xxs },
   preview: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
-  thumb: { width: THUMB, height: THUMB, borderRadius: radius.card, backgroundColor: tc.panelSunken, borderWidth: hairline, borderColor: tc.panelHairline },
+  thumb: { width: THUMB, height: THUMB, borderRadius: radius.sheet, backgroundColor: tc.panelSunken, borderWidth: hairline, borderColor: tc.panelLine },
   previewSide: { flex: 1, gap: spacing.xs },
   notice: { gap: spacing.xs },
 }));
