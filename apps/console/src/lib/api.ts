@@ -74,6 +74,25 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * A message for any error: the server's own wording, and for a rejected request the fields it
+ * refused ("The request is not valid (Unrecognized key(s) in object: 'origin')"), so a version
+ * mismatch between the app and the API is visible instead of a bare "not valid".
+ */
+export function describeApiError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  if (!(err instanceof ApiError) || err.code !== 'VALIDATION_FAILED' || !Array.isArray(err.details) || err.details.length === 0) return err.message;
+  const parts = err.details
+    .slice(0, 3)
+    .map((d) => {
+      const i = d as { path?: unknown; message?: unknown };
+      const path = Array.isArray(i.path) ? i.path.join('.') : '';
+      return [path, typeof i.message === 'string' ? i.message : ''].filter(Boolean).join(': ');
+    })
+    .filter(Boolean);
+  return parts.length ? `${err.message} (${parts.join('; ')})` : err.message;
+}
+
 const STATUS_CODE: Record<number, ApiErrorCode> = {
   400: 'VALIDATION_FAILED',
   401: 'UNAUTHORIZED',

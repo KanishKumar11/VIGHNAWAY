@@ -626,6 +626,7 @@ export const mr: Strings = {
     codeFormat: '6 अंकी कोड टाका',
     rateLimited: (s: number) => `खूप प्रयत्न झाले. ${s} सेकंदांनी पुन्हा प्रयत्न करा.`,
     generic: (message: string) => `साइन इन करता आले नाही: ${message}`,
+    serverOutdated: 'हा सर्व्हर अॅपपेक्षा जुना आहे आणि अजून साइन इनला समर्थन देत नाही. API चालवणाऱ्याला तो अपडेट करायला सांगा, मग पुन्हा प्रयत्न करा.',
     signedInTitle: 'तुम्ही साइन इन आहात',
     openConsole: 'कंट्रोल रूम उघडा',
     openAdmin: 'खाती व्यवस्थापित करा',

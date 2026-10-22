@@ -522,6 +522,7 @@ export const hi: Dictionary = {
   accountOffline: "आप ऑफ़लाइन हैं। साइन इन करने के लिए कनेक्शन चाहिए।",
   accountNetworkError: "{url} तक नहीं पहुँच सके। कनेक्शन जाँचकर फिर कोशिश करें।",
   accountGenericError: "कुछ गड़बड़ हुई: {message}",
+  accountServerOutdated: "यह सर्वर ऐप से पुराना है और अभी साइन इन का समर्थन नहीं करता। API चलाने वाले से इसे अपडेट करने को कहें, फिर दोबारा कोशिश करें।",
   accountSignedInToast: "साइन इन हो गया",
   accountSignedOutToast: "साइन आउट हो गया",
   accountSignedInAs: "साइन इन है",

@@ -9,7 +9,7 @@ import { CircleAlert, LocateFixed, MapPin, Send } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { t } from '@/i18n';
-import { ApiError } from '@/lib/api';
+import { ApiError, describeApiError } from '@/lib/api';
 import { sendReport } from '@/lib/sendReport';
 import { cn } from '@/lib/cn';
 import { buildScene } from '@/lib/scene';
@@ -237,7 +237,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
             ? t.report.errors.rateLimited
             : code === 'NETWORK'
               ? t.report.errors.network
-              : t.report.errors.generic(err instanceof Error ? err.message : String(err));
+              : t.report.errors.generic(describeApiError(err));
       setErrors(code === 'NOT_ON_ROAD' ? { point: msg } : { form: msg });
       setPhase('form');
     }

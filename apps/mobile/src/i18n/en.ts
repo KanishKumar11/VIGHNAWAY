@@ -576,6 +576,7 @@ export const en = {
   accountOffline: 'You are offline. Signing in needs a connection.',
   accountNetworkError: 'Could not reach {url}. Check your connection and try again.',
   accountGenericError: 'Something went wrong: {message}',
+  accountServerOutdated: 'This server is older than the app and does not support sign-in yet. Ask whoever runs the API to update it, then try again.',
   accountSignedInToast: 'Signed in',
   accountSignedOutToast: 'Signed out',
   accountSignedInAs: 'Signed in',
