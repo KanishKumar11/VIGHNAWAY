@@ -1,0 +1,54 @@
+[
+ {
+  "id": "origin-marol",
+  "name": "Marol Naka, Andheri East",
+  "kind": "origin",
+  "point": {
+   "lat": 19.10856,
+   "lng": 72.87864
+  },
+  "nodeId": "14019451450",
+  "side": "east",
+  "address": "Andheri-Kurla Road",
+  "_snapDistanceM": 0.3
+ },
+ {
+  "id": "hosp-kokilaben",
+  "name": "Kokilaben Dhirubhai Ambani Hospital",
+  "kind": "hospital",
+  "point": {
+   "lat": 19.1315,
+   "lng": 72.8249
+  },
+  "nodeId": "5994692913",
+  "side": "west",
+  "address": "Four Bungalows, Andheri West",
+  "_snapDistanceM": 81.6
+ },
+ {
+  "id": "hosp-hbt",
+  "name": "HBT Trauma Care Hospital",
+  "kind": "hospital",
+  "point": {
+   "lat": 19.138,
+   "lng": 72.858
+  },
+  "nodeId": "2233649357",
+  "side": "east",
+  "address": "Jogeshwari East",
+  "_snapDistanceM": 9.7
+ },
+ {
+  "id": "hosp-holy-spirit",
+  "name": "Holy Spirit Hospital",
+  "kind": "hospital",
+  "point": {
+   "lat": 19.124,
+   "lng": 72.8665
+  },
+  "nodeId": "8711653300",
+  "side": "east",
+  "address": "Mahakali Caves Road, Andheri East",
+  "_snapDistanceM": 110.4
+ }
+]
