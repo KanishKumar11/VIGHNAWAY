@@ -99,6 +99,27 @@ may it return a reversal, labelled "Turn back only where it is safe to do so", w
 modelled cost never makes a reversal acceptable. If the vehicle is already on a newly blocked edge,
 the plan is shown from the next junction ahead with a prominent warning.
 
+## How counterfactuals are computed ("Why not that route?")
+
+Every shown route that is not recommended carries a `counterfactual`: the smallest change that would
+make it the recommendation. Nothing is estimated. Each claim is checked by re-ranking all candidate
+routes with the same rules (including the switching rule above), so it can never disagree with the
+decision. "Cleared" means the incident is resolved: it stops counting as a hazard but still counts as
+a recent report for the data-gap rule.
+
+- **blocked**: the route is not viable while its blocking incidents stand. A faster ETA never makes
+  it recommended. `wouldBeRecommended` says whether clearing all of them would.
+- **hazards**: clearing one active hazard flips the ranking (hazards tried one at a time in incident
+  id order; that single hazard is the smallest change), else clearing all of them together does
+  ("if these were cleared": no claim of minimality).
+- **time**: the smallest whole-second cut in the route's ranking cost that makes it the
+  recommendation, found by search over the same ranking, so it already includes the threshold
+  (gain > 120 s and gain x 10 > current cost when a route is being followed). Shown rounded
+  up to whole minutes, as "if it were N min faster".
+- **none_sufficient**: clearing its hazards, or saving any time, would not make it recommended.
+
+The explanation is part of the plan hash (`counterfactual`); only its text rendering is not.
+
 ## Candidates
 
 Yen's k-shortest paths (k = 5, at most 60 searches) on free-flow time, plus edge-penalty

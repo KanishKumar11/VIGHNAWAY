@@ -34,7 +34,7 @@ export default function HowItDecides() {
             </AppText>
           </View>
           <AppText variant="mono" style={styles.formula}>
-            {SCORING_RULES.formula}
+            {ruleText('formula', SCORING_RULES.formula)}
           </AppText>
         </Animated.View>
         <Animated.View entering={enterUp(1, reduce)} style={styles.intro}>

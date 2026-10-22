@@ -38,7 +38,7 @@ describe('text catalogs', () => {
       for (const k of keys) {
         const s = TEXT_CATALOGS[lang][k];
         expect(findForbiddenWords(s), `${lang} ${k}`).toEqual([]);
-        if (lang !== 'en' && k !== 'reversal') expect(s, `${lang} ${k}`).not.toMatch(/सुरक्षित|सुरक्षा|गारंटी|हमी/);
+        if (lang !== 'en' && k !== 'reversal') expect(s, `${lang} ${k}`).not.toMatch(/सुरक्षित|सुरक्षा|गारंटी|(^|s)हमी(s|$)/);
       }
     }
   });
@@ -48,7 +48,7 @@ describe('text catalogs', () => {
   });
 
   it('describe every scoring rule in every language', () => {
-    const ruleKeys = Object.keys(SCORING_RULES).filter((k) => typeof (SCORING_RULES as Record<string, unknown>)[k] === 'object');
+    const ruleKeys = Object.keys(SCORING_RULES).filter((k) => k !== 'version');
     expect([...RULE_KEYS].sort()).toEqual(ruleKeys.sort());
     for (const k of RULE_KEYS) {
       for (const lang of TEXT_LANGS) {

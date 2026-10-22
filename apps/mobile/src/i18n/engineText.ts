@@ -43,7 +43,7 @@ export const counterfactualOf = (route: RouteEvaluation): string => (route.count
 
 /** A scoring rule's description in the active language (English is the engine's own). */
 export const ruleText = (key: string, plain: string): string =>
-  key in SCORING_RULES && key !== 'version' && key !== 'formula' ? ruleDescription(key as RuleKey, lang()) : plain;
+  key in SCORING_RULES && key !== 'version' ? ruleDescription(key as RuleKey, lang()) : plain;
 
 export const hazardText = (inc: Incident): string => renderText(hazardLabelText(inc), lang());
 

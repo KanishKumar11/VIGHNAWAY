@@ -24,7 +24,7 @@ export function RulesContent() {
     >
       <section className="mt-10 border-y border-shell-line py-6">
         <h2 className="text-meta font-semibold text-accent-ink">{t.rules.formula}</h2>
-        <p className="mt-2 font-mono text-title leading-relaxed font-medium text-ink-on-shell">{SCORING_RULES.formula}</p>
+        <p className="mt-2 font-mono text-title leading-relaxed font-medium text-ink-on-shell">{ruleDescription('formula', currentLang())}</p>
       </section>
 
       <dl className="mt-2">
