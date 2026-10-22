@@ -10,6 +10,9 @@ import { IdSchema, LatLngSchema, SimSecondsSchema } from './primitives';
 
 export const REPORT_DESCRIPTION_MAX = 200;
 
+/** How far back a device may say it saw something (P2-2, offline relay): the last 2 simulated hours. */
+export const OBSERVED_AT_MAX_AGE_S = 7200;
+
 /**
  * Where a report came from, so each kind can be listed and limited on its own:
  * app (the phone), web (the public report page), audience (a demo-audience phone scanning the
@@ -34,6 +37,16 @@ export const ReportInputSchema = z
     point: LatLngSchema,
     observedPersonally: z.boolean(),
     origin: ReportOriginSchema.optional(),
+    /**
+     * Made on the device (a UUID) when the report is written, so the same report relayed twice, or once by
+     * the phone and once by someone who scanned its QR code, is stored once (P2-2). Not evidence.
+     */
+    clientReportId: z.string().uuid().optional(),
+    /**
+     * The device's claim of when it saw this (simulation seconds), within the last 2 hours and not in the
+     * future. A label only: the server assigns the received time and uses that for ordering and age.
+     */
+    observedAtS: SimSecondsSchema.optional(),
     description: z.string().trim().max(REPORT_DESCRIPTION_MAX).optional(),
     /** Random id kept on the device. Not authoritative evidence; hashed server-side. */
     deviceId: z
@@ -76,6 +89,8 @@ export const ReportOutcomeSchema = z.enum([
   'resolved_by_clear_reports',
   'clear_noted',
   'linked_new_incident',
+  /** Live mode only: saved, but no mapped road within snap range, so it creates no incident and changes no route. */
+  'off_map',
 ]);
 export type ReportOutcome = z.infer<typeof ReportOutcomeSchema>;
 
@@ -84,9 +99,10 @@ export const ReportReceiptSchema = z.object({
   scenarioId: IdSchema,
   outcome: ReportOutcomeSchema,
   receivedAtS: SimSecondsSchema,
-  snappedEdgeId: z.string(),
+  /** null for an 'off_map' report. */
+  snappedEdgeId: z.string().nullable(),
   roadName: z.string().nullable(),
-  distanceToRoadM: z.number().nonnegative(),
+  distanceToRoadM: z.number().nonnegative().nullable(),
 });
 export type ReportReceipt = z.infer<typeof ReportReceiptSchema>;
 

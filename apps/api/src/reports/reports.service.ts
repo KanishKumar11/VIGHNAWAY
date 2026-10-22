@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
-import { eq, sql, type SQL } from 'drizzle-orm';
-import type {
-  CongestionLevel,
-  Depth,
-  IncidentSource,
-  ReportInput,
-  ReportOrigin,
-  ReportOutcome,
-  ReportResponse,
-  Severity,
+import { and, eq, sql, type SQL } from 'drizzle-orm';
+import {
+  OBSERVED_AT_MAX_AGE_S,
+  type CongestionLevel,
+  type Depth,
+  type IncidentSource,
+  type ReportInput,
+  type ReportOrigin,
+  type ReportOutcome,
+  type ReportResponse,
+  type Severity,
 } from '@vighnaway/contracts';
 import { APP_CONFIG, type AppConfig } from '../config';
 import { ApiException } from '../common/errors';
@@ -17,8 +18,8 @@ import { saltedHash } from '../common/hash';
 import { plainText } from '../common/validation';
 import type { Db, Tx } from '../db/client';
 import { DB } from '../db/db.module';
-import { incidentReports } from '../db/schema';
-import { type IncidentChange, type IncidentDraft, IncidentsService } from '../incidents/incidents.service';
+import { incidentReports, offmapReports } from '../db/schema';
+import { type IncidentChange, type IncidentDraft, IncidentsService, toIncident } from '../incidents/incidents.service';
 import { ScenariosService } from '../scenarios/scenarios.service';
 import { SimClockService } from '../scenarios/sim-clock.service';
 
@@ -40,6 +41,11 @@ const CONGESTION_RANK: Record<CongestionLevel, number> = { moderate: 1, heavy: 2
 const SEVERITY_RANK: Record<Severity, number> = { low: 1, medium: 2, high: 3 };
 const deeper = <T extends string>(rank: Record<T, number>, a: T | null, b: T | null | undefined): T | null =>
   b == null ? a : a == null || rank[b] > rank[a] ? b : a;
+
+const offMapReceipt = (reportId: string, scenarioId: string, receivedAtS: number): ReportResponse => ({
+  receipt: { reportId, scenarioId, outcome: 'off_map', receivedAtS, snappedEdgeId: null, roadName: null, distanceToRoadM: null },
+  incident: null,
+});
 
 const OPEN = sql`('unverified','corroborated','verified')`;
 
@@ -63,7 +69,7 @@ interface Snap {
   d: number;
 }
 
-const randomId = (scenarioId: string, kind: 'rep' | 'inc') =>
+const randomId = (scenarioId: string, kind: 'rep' | 'inc' | 'off') =>
   `${scenarioId}:${kind}:u${randomBytes(8).toString('hex')}`;
 
 @Injectable()
@@ -87,18 +93,36 @@ export class ReportsService {
    */
   async submit(scenarioId: string, input: ReportInput, ctx: ReportContext): Promise<ReportResponse> {
     const nowS = ctx.nowS ?? (await this.clock.nowS(scenarioId));
+    if (input.observedAtS != null && (input.observedAtS > nowS || input.observedAtS < nowS - OBSERVED_AT_MAX_AGE_S)) {
+      throw new ApiException('VALIDATION_FAILED', 'observedAtS must be within the last 2 hours and not in the future', [
+        { path: ['observedAtS'], code: 'custom', message: 'Outside the last 2 simulated hours' },
+      ]);
+    }
     const changes: IncidentChange[] = [];
     const response = await this.db.transaction(async (tx) => {
       const scenarioRow = await this.scenarios.lock(tx, scenarioId);
+      // The same report relayed twice (offline relay, a retry) is stored once: a repeat id gets the original receipt.
+      if (input.clientReportId) {
+        const original = await this.originalReceipt(tx, scenarioRow.graphVersion, scenarioId, input.clientReportId);
+        if (original) return original;
+        const offmap = await this.originalOffMap(tx, scenarioId, input.clientReportId);
+        if (offmap) return offmap;
+      }
       const pt = sql`ST_SetSRID(ST_MakePoint(${input.point.lng}::float8, ${input.point.lat}::float8), 4326)`;
       const snap = await this.snap(tx, scenarioRow.graphVersion, pt);
+      const deviceHash = this.hashDevice(input.deviceId);
+      const origin: ReportOrigin = input.origin ?? 'app';
       if (!snap) {
+        // Live mode takes a report from anywhere. With no mapped road it is saved as off-map: it creates no
+        // incident and changes no route. The scripted demo, audience and prompt reports stay strict.
+        const live = (scenarioRow.definition as { simulated?: boolean }).simulated === false;
+        if (live && ctx.source === 'user_report' && (origin === 'app' || origin === 'web')) {
+          return this.saveOffMap(tx, scenarioId, input, { nowS, deviceHash, origin, ctx });
+        }
         throw new ApiException('NOT_ON_ROAD', 'Not on a known road', {
           maxDistanceM: REPORT_RULES.snapM,
         });
       }
-      const deviceHash = this.hashDevice(input.deviceId);
-      const origin: ReportOrigin = input.origin ?? 'app';
       if (origin === 'prompt') await this.requireNoRecentPromptAnswer(tx, scenarioRow.graphVersion, scenarioId, deviceHash, snap, nowS);
       const base = {
         scenarioId,
@@ -119,6 +143,8 @@ export class ReportsService {
         distanceToRoadM: Math.round(snap.d * 10) / 10,
         geom: [input.point.lng, input.point.lat] as [number, number],
       };
+      // Only a new report row carries the device's id, claim and outcome; a duplicate update leaves the original's.
+      const client = { clientReportId: input.clientReportId ?? null, observedAtS: input.observedAtS ?? null };
       const receipt = (reportId: string, outcome: ReportOutcome) => ({
         reportId,
         scenarioId,
@@ -145,7 +171,7 @@ export class ReportsService {
         if (dup) {
           await tx.update(incidentReports).set({ ...base, incidentId }).where(eq(incidentReports.id, dup));
         } else {
-          await tx.insert(incidentReports).values({ ...base, id: reportId, incidentId });
+          await tx.insert(incidentReports).values({ ...base, ...client, id: reportId, incidentId });
         }
         let outcome: ReportOutcome = 'clear_noted';
         for (const id of near) {
@@ -173,6 +199,7 @@ export class ReportsService {
           );
         }
         const first = changes[0]?.incident ?? null;
+        await this.keepOutcome(tx, reportId, outcome);
         return { receipt: receipt(reportId, outcome), incident: first };
       }
 
@@ -203,7 +230,7 @@ export class ReportsService {
           outcome = 'updated_duplicate';
         } else {
           reportId = ctx.reportId ?? randomId(scenarioId, 'rep');
-          await tx.insert(incidentReports).values({ ...base, id: reportId, incidentId: openId });
+          await tx.insert(incidentReports).values({ ...base, ...client, id: reportId, incidentId: openId });
           outcome = 'attached';
         }
       } else {
@@ -237,7 +264,7 @@ export class ReportsService {
           audienceOnly: origin === 'audience',
         };
         reportId = ctx.reportId ?? randomId(scenarioId, 'rep');
-        await tx.insert(incidentReports).values({ ...base, id: reportId, incidentId: id });
+        await tx.insert(incidentReports).values({ ...base, ...client, id: reportId, incidentId: id });
         outcome = resolved ? 'linked_new_incident' : 'created_incident';
       }
 
@@ -255,10 +282,80 @@ export class ReportsService {
         payload: payloadFor(reportId, outcome),
       });
       changes.push(change);
+      await this.keepOutcome(tx, reportId, outcome);
       return { receipt: receipt(reportId, outcome), incident: change.incident };
     });
     this.incidents.publish(changes);
     return response;
+  }
+
+  /** Stores a report that has no mapped road nearby (live mode). Never touches incidents or routing. */
+  private async saveOffMap(
+    tx: Tx,
+    scenarioId: string,
+    input: ReportInput,
+    v: { nowS: number; deviceHash: string; origin: ReportOrigin; ctx: ReportContext },
+  ): Promise<ReportResponse> {
+    const id = randomId(scenarioId, 'off');
+    await tx.insert(offmapReports).values({
+      id,
+      scenarioId,
+      type: input.type,
+      depth: input.type === 'flood' ? (input.depth ?? null) : null,
+      congestion: input.type === 'congestion' ? (input.congestion ?? null) : null,
+      severity: input.type === 'debris' || input.type === 'accident' ? (input.severity ?? null) : null,
+      impassable: input.impassable ?? false,
+      observedPersonally: input.observedPersonally,
+      description: plainText(input.description),
+      deviceHash: v.deviceHash,
+      ipHash: v.ctx.ip ? saltedHash(this.config.deviceHashSalt, v.ctx.ip) : null,
+      source: v.ctx.source,
+      origin: v.origin,
+      userId: v.ctx.userId ?? null,
+      clientReportId: input.clientReportId ?? null,
+      observedAtS: input.observedAtS ?? null,
+      receivedAtS: v.nowS,
+      geom: [input.point.lng, input.point.lat] as [number, number],
+    });
+    return offMapReceipt(id, scenarioId, v.nowS);
+  }
+
+  /** Remembers the receipt's outcome on the report row so a repeat of its client id can return it again. */
+  private async keepOutcome(tx: Tx, reportId: string, outcome: ReportOutcome): Promise<void> {
+    await tx.update(incidentReports).set({ outcome }).where(eq(incidentReports.id, reportId));
+  }
+
+  private async originalOffMap(tx: Tx, scenarioId: string, clientReportId: string): Promise<ReportResponse | null> {
+    const [row] = await tx
+      .select({ id: offmapReports.id, receivedAtS: offmapReports.receivedAtS })
+      .from(offmapReports)
+      .where(and(eq(offmapReports.scenarioId, scenarioId), eq(offmapReports.clientReportId, clientReportId)))
+      .limit(1);
+    return row ? offMapReceipt(row.id, scenarioId, row.receivedAtS) : null;
+  }
+
+  /** The receipt (and the incident as it is now) for a report this scenario already stored under `clientReportId`. */
+  private async originalReceipt(tx: Tx, graphVersion: string, scenarioId: string, clientReportId: string): Promise<ReportResponse | null> {
+    const [row] = await tx
+      .select()
+      .from(incidentReports)
+      .where(and(eq(incidentReports.scenarioId, scenarioId), eq(incidentReports.clientReportId, clientReportId)))
+      .limit(1);
+    if (!row) return null;
+    const edge = await tx.execute<{ name: string | null }>(sql`SELECT name FROM road_edges WHERE graph_version = ${graphVersion} AND id = ${row.snappedEdgeId} LIMIT 1`);
+    const incidentRow = row.incidentId ? await this.incidents.findRow(tx, scenarioId, row.incidentId) : null;
+    return {
+      receipt: {
+        reportId: row.id,
+        scenarioId,
+        outcome: (row.outcome ?? 'attached') as ReportOutcome,
+        receivedAtS: row.receivedAtS,
+        snappedEdgeId: row.snappedEdgeId,
+        roadName: edge[0]?.name ?? null,
+        distanceToRoadM: row.distanceToRoadM,
+      },
+      incident: incidentRow ? toIncident(incidentRow) : null,
+    };
   }
 
   /**
