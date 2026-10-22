@@ -131,6 +131,8 @@ export const incidentReports = pgTable(
     source: text('source').notNull(),
     /** Report origin: app, web, audience or prompt (contracts ReportOrigin). Labels and limits only. */
     origin: text('origin').notNull().default('app'),
+    /** Signed-in reporter (users.id), or null for an anonymous report. Thanks and history only; never evidence. */
+    userId: text('user_id'),
     receivedAtS: integer('received_at_s').notNull(),
     snappedEdgeId: text('snapped_edge_id').notNull(),
     distanceToRoadM: doublePrecision('distance_to_road_m').notNull(),
@@ -140,6 +142,7 @@ export const incidentReports = pgTable(
     index('incident_reports_geom_gist').using('gist', t.geom),
     index('incident_reports_scenario_device_idx').on(t.scenarioId, t.deviceHash),
     index('incident_reports_incident_idx').on(t.incidentId),
+    index('incident_reports_user_idx').on(t.userId),
   ],
 );
 
@@ -168,6 +171,50 @@ export const simRuns = pgTable('sim_runs', {
   eventsApplied: integer('events_applied').notNull().default(0),
 });
 
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  /** Lower-cased. */
+  email: text('email').notNull().unique(),
+  role: text('role').notNull().default('citizen'),
+  displayName: text('display_name'),
+  disabled: boolean('disabled').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+});
+
+/** One row per code sent. The code itself is never stored, only an HMAC of email + code. */
+export const authOtps = pgTable(
+  'auth_otps',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    codeHash: text('code_hash').notNull(),
+    client: text('client').notNull(),
+    ipHash: text('ip_hash'),
+    attempts: integer('attempts').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  },
+  (t) => [index('auth_otps_email_created_idx').on(t.email, t.createdAt), index('auth_otps_ip_created_idx').on(t.ipHash, t.createdAt)],
+);
+
+/** Opaque bearer sessions. Only the sha256 of the token is stored. */
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    client: text('client').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => [index('auth_sessions_user_idx').on(t.userId)],
+);
+
+export type UserRow = typeof users.$inferSelect;
 export type IncidentRow = typeof incidents.$inferSelect;
 export type IncidentReportRow = typeof incidentReports.$inferSelect;
 export type ScenarioRow = typeof scenarios.$inferSelect;

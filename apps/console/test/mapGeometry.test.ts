@@ -56,7 +56,8 @@ describe('display geometry', () => {
   it('gives twins the same line reversed, so routes and roads share pixels', () => {
     const idx = renderGeometryIndex(andheriGraph, 55);
     for (const e of andheriGraph.edges) {
-      if (!e.reverseId) continue;
+      // A closed loop (a cul-de-sac ring) has a distinct twin that runs the same way round.
+      if (!e.reverseId || e.from === e.to) continue;
       expect(idx.get(e.reverseId)).toEqual([...idx.get(e.id)!].reverse());
     }
     const route = andheriGraph.edges.slice(0, 1).map((e) => e.id);
@@ -68,9 +69,9 @@ describe('display geometry', () => {
     const chains = roadChains(andheriGraph);
     const unique = new Set(andheriGraph.edges.map((e) => [e.id, e.reverseId].sort().join('|'))).size;
     expect(chains.reduce((n, c) => n + c.edgeIds.length, 0)).toBe(unique);
-    const sv = chains.filter((c) => c.name === 'S.V. Road');
+    const sv = chains.filter((c) => c.name === 'Swami Vivekanand Road');
     expect(sv.length).toBeGreaterThan(0);
-    expect(sv.length).toBeLessThan(andheriGraph.edges.filter((e) => e.name === 'S.V. Road').length / 2);
+    expect(sv.length).toBeLessThan(andheriGraph.edges.filter((e) => e.name === 'Swami Vivekanand Road').length / 2);
   });
 
   it('walks a two-edge road in order regardless of edge direction', () => {

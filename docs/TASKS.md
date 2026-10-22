@@ -212,7 +212,7 @@ Priority P0 · Status todo · Effort 1.5 h · Depends —
 | P0-4.a | Run `python3 scripts/extract_graph.py` with Overpass access | blocked (network) |
 | P0-4.b | Review `graph.overlay.html` at the three crossings; check one-ways, bridges, tunnels and access tags | blocked (P0-4.a) |
 | P0-4.c | Fill `flood-prone.json` `osmWayIds` from documented sources; mark the assumptions | blocked |
-| P0-4.d | **Demo risk, now unblocked:** the real graph is merged (Data and sim); the scenario still names Andheri Subway / Gokhale roads that do not exist in it, so the scenario-data, console and phone demo tests fail. Re-tune `scenario.json` (`pnpm --filter @vighnaway/scenario-data tune`); regenerate the seeds; record the new route order | blocked |
+| P0-4.d | Re-tune the scenario on the real graph | **done**: new trip Ramesh Nagar → Holy Spirit Hospital; the Andheri Subway (OSM ways 1111987532/3) is named and marked flood-prone by `scripts/apply_flood_prone.py` (assumption, documented in flood-prone.json); engine now counts one data gap per flood-prone stretch and drops same-title routes from the list; replay, console follower and scenario-data tests agree; API test expectations updated, **not run** (redeploy, `db:seed` to load graph `osm-7efdf89a8094`, `pnpm --filter api test`) |
 
 ## P0-5 Rehearsals and fallback
 

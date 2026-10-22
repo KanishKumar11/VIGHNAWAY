@@ -20,6 +20,13 @@ export const API_PATHS = {
   feed: (id: string) => `/scenarios/${encodeURIComponent(id)}/feed`,
   history: (id: string) => `/scenarios/${encodeURIComponent(id)}/history`,
   clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
+  authOtpRequest: '/auth/otp/request',
+  authOtpVerify: '/auth/otp/verify',
+  authLogout: '/auth/logout',
+  authMe: '/auth/me',
+  myStats: '/me/stats',
+  adminUsers: '/admin/users',
+  adminUser: (id: string) => `/admin/users/${encodeURIComponent(id)}`,
 } as const;
 
 export const OperatorActionSchema = z.enum(['verify', 'resolve', 'dismiss']);
@@ -157,6 +164,7 @@ export const ERROR_CODES = [
   'VALIDATION_FAILED',
   'NOT_ON_ROAD',
   'UNAUTHORIZED',
+  'FORBIDDEN',
   'NOT_FOUND',
   'RATE_LIMITED',
   'CONFLICT',
@@ -169,6 +177,7 @@ export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 export const ERROR_STATUS: Record<ErrorCode, number> = {
   VALIDATION_FAILED: 400,
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
   NOT_FOUND: 404,
   CONFLICT: 409,
   PAYLOAD_TOO_LARGE: 413,

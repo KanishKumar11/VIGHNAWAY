@@ -2,9 +2,9 @@
 
 Last updated 2026-10-22 (evening). Details are in docs/TASKS.md; the plan is in docs/IMPLEMENTATION_PLAN.md.
 
-> **▶ Continue from here:** deploy and test the API changes below (migration 0003), then P1-3.d (the two-browser end-to-end), P0-4.d (re-tune on the real graph) and P0-6a.
-> Data and sim: **P0-4.d re-tune the demo scenario on the real graph** is now the demo's biggest risk (see "Real graph
-> landed" below). Whoever runs the demo on a phone needs P0-3 next.
+> **▶ Continue from here:** deploy and test the API changes below (migration 0003 and the re-tuned scenario: `pnpm --filter api db:migrate`, `db:seed`, `pnpm --filter api test`), then P1-3.d (the two-browser end-to-end) and P0-5
+> (runbook, drill, recording). P0-4.d (the scenario on the real graph) is done and replays identically in the engine and the
+> console (see "Real graph landed"). Whoever runs the demo on a phone needs P0-3 next.
 
 ## Now
 
@@ -15,7 +15,23 @@ Last updated 2026-10-22 (evening). Details are in docs/TASKS.md; the plan is in 
 | **Next** | P1-4 ask the crowd, P1-5 evidence coverage map, then P0-6a Docker image, P0-5a–c runbook, drill and recording |
 | **Gate in view** | G-P0 sandbox |
 
-## Real graph landed (P0-4 data merged by the Data and sim workstream)
+## Real graph landed (P0-4 data merged by the Data and sim workstream); scenario re-tuned (P0-4.d)
+
+**Re-tuned (this change).** New demo trip: Ramesh Nagar (Andheri West) → Holy Spirit Hospital, three distinct corridors
+(Andheri Subway 11 min, Balasaheb Thackeray Flyover, Ceasar Road), then the G K Gokhale Flyover when the subway floods. The
+replay still shows the three proofs in order: one unverified report holds the route; a corroborated knee-deep flood switches
+to G K Gokhale Flyover; corroborated heavy congestion there switches to Balasaheb Thackeray Flyover; a verified closure of the
+single road into Holy Spirit Hospital switches to HBT. What had to change to make that true on real data:
+- the real OSM data has no flood-prone underpass the demo could use, so `flood-prone.json` marks OSM ways 1111987532 and
+  1111987533 (the road under the Andheri railway line) as flood-prone, named "Andheri Subway", tunnel (an assumption, not a
+  measurement; `python scripts/apply_flood_prone.py` applies it and re-versions the graph: `osm-7efdf89a8094`);
+- **scoring rule change** (docs/scoring.md, BUILD_PROMPT): the data-gap penalty counts one gap per continuous stretch of
+  flood-prone edges, covered when any edge of the stretch has a recent report (real roads are split into many short edges);
+  engine test `gap-stretch.test.ts`; parity hash on the frozen fixture unchanged;
+- **display rule**: a route whose title equals one already shown is dropped from the list (the real graph produced
+  several "Via Mathuradas Vasanji Road"); parity hash on the frozen fixture unchanged;
+- the vehicle runs at 0.5 speed, a new origin place `origin-ramesh-nagar`, new event points (see scenario.json).
+
 
 `packages/scenario-data/andheri/graph.json` is now a real OSM extract (10 MB, `osm-8bb15d429936`) with new places and
 scenario files. It replaced the schematic fixture, so everything that asserted fixture roads fails until the scenario is
@@ -24,14 +40,15 @@ re-tuned. This is expected and is the P0-4.d task, not a regression:
 | Where | State on the real graph |
 | --- | --- |
 | `packages/engine` tests | Decoupled: they now run on a frozen copy of the fixture in `packages/engine/test/fixtures`. 72/72 pass |
-| `packages/scenario-data` | 2 fail: "A beats B and B beats C by 4 to 6 minutes", and "produces the three proofs in order" (the re-tune) |
-| `apps/console` | 9 fail: demo trip follower, map geometry, decision replay and one Hindi sentence test, all asserting Andheri Subway / Gokhale names |
-| `apps/mobile` | Hero-fixture tests fail (planner, status, map, sheet, navigate, v4 speech); the new engineText test passes |
-| Offline replay (`tune`) | The script still runs and changes routes, but its incidents snap to unnamed roads ("null (2 edges)") and two shown routes share the name "Via Mathuradas Vasanji Road (Andheri Kurla Road)" |
+| `packages/scenario-data` | 6/6 after the re-tune |
+| `apps/console` | demo trip, map geometry, decision replay and the Hindi sentence tests updated to the new roads; 30 s test timeout for the 10 MB graph |
+| `apps/mobile` | fixture-based suites pass on the real graph (110/110 when the machine is not overloaded); jest timeout 30 s |
+| `apps/api` | tests updated to the real graph (points, edge ids, the TomTom fixture): **written, not run** (no Postgres here) |
 
-Data and sim: pick the three crossings, give the scenario events road names that exist in the real graph, re-run
-`pnpm --filter @vighnaway/scenario-data tune`, then update the hero fixtures and the console and phone tests (Console and
-Mobile own their tests) and record the new hashes below.
+**Hashes on the real graph** (`osm-7efdf89a8094`, `pnpm --filter @vighnaway/scenario-data hashes`): parity
+`670fb828acd334e9` (162 cases); replay plan at 0 s `9f9f276cfff73b2d`, 60 s `4c3d4694e7d0dddb`, 180 s
+`3c27f789b4c5d320`, 270 s `f5fb1326227508f9`, 360 s `870203bd9333c92e`, 370 s `7d66966e610ba761`, 480 s
+`778228f71464e93e`, 490 s and end `b1786ee712b38072`. The engine, phone and console `/debug` must still agree.
 
 ## Hash baselines
 
@@ -51,7 +68,7 @@ fixture** that the engine tests use.
 
 P0-2 was verified by computing the old columns with `counterfactual` excluded from the hash: every one equals the
 pre-refactor baseline, so the structured-text refactor changed no routing output and no English string.
-The hash table must be recomputed on the real graph after P0-4.d (the engine, phone and console `/debug` must still agree).
+The real-graph hashes are listed above under "Real graph landed".
 
 ## Completed
 
@@ -108,7 +125,7 @@ in "Real graph landed". `tsc` and `eslint` are clean for engine, contracts, cons
 | P0-3 Android run | blocked |
 | P0-4p graph validation | todo |
 | P0-4a–c real graph | graph merged by Data and sim; review pending |
-| P0-4d re-tune the scenario on it | todo, **demo risk** |
+| P0-4d re-tune the scenario on it | done (engine replay, console follower; API test expectations written, not run) |
 | P0-5a–c runbook, drill, recording | todo |
 | P0-5d rehearsals | blocked |
 | P0-6a Docker image | todo |

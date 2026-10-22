@@ -30,7 +30,8 @@
     "seed:sql": "tsx --conditions=@vighnaway/source scripts/gen-seed-sql.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "scoreboard": "tsx --conditions=@vighnaway/source scripts/scoreboard.ts"
   },
   "dependencies": {
     "@vighnaway/contracts": "workspace:*"

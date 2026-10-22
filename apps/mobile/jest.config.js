@@ -11,6 +11,8 @@ const lucide = path.resolve(path.dirname(require.resolve('lucide-react-native'))
 module.exports = {
   preset: 'jest-expo',
   roots: ['<rootDir>/test'],
+  // The bundled OSM extract is 10 MB; loading it on a busy machine can exceed Jest's 5 s default.
+  testTimeout: 30000,
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
   setupFiles: ['<rootDir>/test/setup.ts'],
   moduleNameMapper: {
