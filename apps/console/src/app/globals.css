@@ -1,0 +1,359 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind theme mapped onto the --vw-* variables generated from @vighnaway/tokens
+ * (src/lib/theme.ts, injected by the root layout). Default palettes, radii, type sizes and
+ * shadows are cleared so only token values exist. No colour literals in this file or in src/.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-shell: var(--vw-shell);
+  --color-shell-deep: var(--vw-shell-deep);
+  --color-shell-raised: var(--vw-shell-raised);
+  --color-shell-overlay: var(--vw-shell-overlay);
+  --color-shell-line: var(--vw-shell-line);
+  --color-shell-hairline: var(--vw-shell-hairline);
+  --color-shell-hairline-strong: var(--vw-shell-hairline-strong);
+  --color-shell-highlight: var(--vw-shell-highlight);
+  --color-panel: var(--vw-panel);
+  --color-panel-raised: var(--vw-panel-raised);
+  --color-panel-line: var(--vw-panel-line);
+  --color-panel-hairline: var(--vw-panel-hairline);
+  --color-panel-sunken: var(--vw-panel-sunken);
+  --color-ink: var(--vw-ink);
+  --color-ink-muted: var(--vw-ink-muted);
+  --color-ink-on-shell: var(--vw-ink-on-shell);
+  --color-ink-on-shell-muted: var(--vw-ink-on-shell-muted);
+  --color-ink-subtle: var(--vw-ink-subtle);
+  --color-accent: var(--vw-accent);
+  --color-on-accent: var(--vw-on-accent);
+  --color-accent-ink: var(--vw-accent-ink);
+  --color-control-border: var(--vw-control-border);
+  --color-recommended-surface: var(--vw-recommended-surface);
+  --color-recommended-ink: var(--vw-recommended-ink);
+  --color-brand: var(--vw-brand);
+  --color-brand-alt: var(--vw-brand-alt);
+  --color-focus: var(--vw-focus);
+  --color-corroborated: var(--vw-corroborated);
+  --color-corroborated-ink: var(--vw-corroborated-ink);
+  --color-corroborated-surface: var(--vw-corroborated-surface);
+  --color-live: var(--vw-live);
+  --color-live-ink: var(--vw-live-ink);
+  --color-live-surface: var(--vw-live-surface);
+  --color-route-recommended: var(--vw-route-recommended);
+  --color-route-casing: var(--vw-route-recommended-casing);
+  --color-route-travelled: var(--vw-route-travelled);
+  --color-route-muted: var(--vw-route-muted);
+  --color-teal-soft: var(--vw-teal-soft);
+  --color-teal-glow: var(--vw-teal-glow);
+  --color-warn: var(--vw-warn);
+  --color-warn-ink: var(--vw-warn-ink);
+  --color-warn-surface: var(--vw-warn-surface);
+  --color-warn-soft: var(--vw-warn-soft);
+  --color-danger: var(--vw-danger);
+  --color-danger-ink: var(--vw-danger-ink);
+  --color-danger-surface: var(--vw-danger-surface);
+  --color-danger-soft: var(--vw-danger-soft);
+  --color-danger-glow: var(--vw-danger-glow);
+  --color-positive: var(--vw-positive);
+  --color-positive-ink: var(--vw-positive-ink);
+  --color-positive-soft: var(--vw-positive-soft);
+  --color-flood-prone: var(--vw-flood-prone);
+  --color-flood-prone-solid: var(--vw-flood-prone-solid);
+  --color-road-major: var(--vw-road-major);
+  --color-road-minor: var(--vw-road-minor);
+  --color-railway: var(--vw-railway);
+  --color-resolved: var(--vw-resolved);
+  --color-scrim: var(--vw-scrim);
+  --color-white: var(--vw-white);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --spacing: var(--vw-space-xxs);
+
+  --radius-*: initial;
+  --radius-sheet: var(--vw-radius-sheet);
+  --radius-card: var(--vw-radius-card);
+  --radius-chip: var(--vw-radius-chip);
+  --radius-button: var(--vw-radius-button);
+  --radius-marker: var(--vw-radius-marker);
+
+  --text-*: initial;
+  --text-eyebrow: var(--vw-text-eyebrow);
+  --text-eyebrow--line-height: var(--vw-leading-eyebrow);
+  --text-meta: var(--vw-text-meta);
+  --text-meta--line-height: var(--vw-leading-meta);
+  --text-body: var(--vw-text-body);
+  --text-body--line-height: var(--vw-leading-body);
+  --text-title: var(--vw-text-title);
+  --text-title--line-height: var(--vw-leading-title);
+  --text-eta: var(--vw-text-eta);
+  --text-eta--line-height: var(--vw-leading-eta);
+  --text-display: var(--vw-text-display);
+  --text-display--line-height: var(--vw-leading-display);
+  /* Console projector scale. */
+  --text-base: var(--vw-text-console-base);
+  --text-base--line-height: var(--vw-leading-console-base);
+  --text-console-title: var(--vw-text-console-title);
+  --text-console-title--line-height: var(--vw-leading-console-title);
+  --text-clock: var(--vw-text-console-clock);
+  --text-clock--line-height: var(--vw-leading-console-clock);
+
+  --tracking-eyebrow: var(--vw-tracking-eyebrow);
+  --tracking-wordmark: var(--vw-tracking-wordmark);
+
+  --font-*: initial;
+  --font-sans: var(--vw-font-web);
+  --font-mono: var(--vw-font-web-mono);
+
+  --shadow-*: initial;
+  /*
+   * Elevation from the theme's scrim colour (soft in light, deep in dark), geometry on the
+   * spacing scale, so one definition serves both themes.
+   */
+  --shadow-sm: 0 1px 2px var(--vw-shadow-1), inset 0 1px 0 var(--vw-shell-highlight);
+  --shadow-md: 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1.5) var(--vw-shadow-2), 0 2px var(--vw-space-xs) var(--vw-shadow-1), inset 0 1px 0 var(--vw-shell-highlight);
+  --shadow-lg: 0 var(--vw-space-lg) calc(var(--vw-space-xl) * 2) calc(var(--vw-space-sm) * -1) var(--vw-shadow-3), 0 var(--vw-space-xxs) var(--vw-space-sm) var(--vw-shadow-1), inset 0 1px 0 var(--vw-shell-highlight);
+  --shadow-panel: 0 var(--vw-space-md) calc(var(--vw-space-xl) * 1.5) calc(var(--vw-space-xs) * -1) var(--vw-shadow-3), 0 var(--vw-space-xxs) var(--vw-space-sm) var(--vw-shadow-1);
+  --shadow-glow-teal: 0 0 0 1px var(--vw-teal-glow), 0 0 var(--vw-space-lg) var(--vw-teal-glow);
+  --shadow-glow-danger: 0 0 0 1px var(--vw-danger-glow), 0 0 var(--vw-space-lg) var(--vw-danger-glow);
+  --shadow-glow-accent: 0 0 0 1px var(--vw-accent), 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-xxs) * -1) var(--vw-teal-glow);
+  --shadow-soft: var(--shadow-md);
+
+  --ease-out: var(--vw-ease-out);
+  --ease-in-out: var(--vw-ease-in-out);
+}
+
+/* Shadow tints derived from the theme's scrim (no colour literals). */
+:root {
+  /* Schematic road fill: light maps read as white roads with grey casings; dark roads stay solid. */
+  --vw-road-fill: var(--vw-road-major);
+  --vw-shadow-1: color-mix(in srgb, var(--vw-scrim) 22%, transparent);
+  --vw-shadow-2: color-mix(in srgb, var(--vw-scrim) 38%, transparent);
+  --vw-shadow-3: color-mix(in srgb, var(--vw-scrim) 52%, transparent);
+}
+:root[data-theme='light'] {
+  --vw-road-fill: var(--vw-white);
+}
+.vw-road-fill { stroke: var(--vw-road-fill); }
+
+@layer base {
+  html,
+  body {
+    background: var(--vw-shell);
+    color: var(--vw-ink-on-shell);
+    font-family: var(--vw-font-web);
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  :focus-visible {
+    outline: 2px solid var(--vw-focus);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  ::selection {
+    background: var(--vw-teal-glow);
+  }
+  /* Theme switches cross-fade surfaces instead of snapping. */
+  html.vw-theme-anim,
+  html.vw-theme-anim * {
+    transition: background-color 240ms var(--vw-ease-out), border-color 240ms var(--vw-ease-out), color 240ms var(--vw-ease-out), fill 240ms var(--vw-ease-out), stroke 240ms var(--vw-ease-out) !important;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Section labels: Inter, semibold, sentence case (DESIGN_VISION section 6: no uppercase or
+ * monospace outside technical information).
+ */
+@utility eyebrow {
+  font-family: var(--vw-font-web);
+  font-size: var(--vw-text-meta);
+  line-height: var(--vw-leading-meta);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+/* Technical information only: simulation time, identifiers, diagnostics. */
+@utility tech {
+  font-family: var(--vw-font-web-mono);
+  font-size: var(--vw-text-eyebrow);
+  line-height: var(--vw-leading-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Raised navy surface: shellRaised, hairline border, elevation with the inner top highlight. */
+@utility surface {
+  background: var(--vw-shell-raised);
+  border: 1px solid var(--vw-shell-hairline);
+  box-shadow: var(--shadow-md);
+}
+@utility surface-overlay {
+  background: var(--vw-shell-overlay);
+  border: 1px solid var(--vw-shell-hairline);
+  box-shadow: var(--shadow-sm);
+}
+/* Brand moments only (logo, empty states, the report header): indigo to mint, never status, routes or text. */
+
+/* Faint top highlight line on floating navy surfaces. */
+@utility hairline-top {
+  box-shadow: inset 0 1px 0 var(--vw-shell-highlight);
+}
+
+/* ---------- Motion (durations from tokens.motion; all instant under reduced motion) ---------- */
+
+/* Skeleton shimmer: a highlight band sweeping across (transform only). */
+.vw-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--vw-shell-line);
+}
+.vw-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.vw-skeleton-panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--vw-panel-line);
+}
+.vw-skeleton-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+@keyframes vw-sweep {
+  to { transform: translateX(100%); }
+}
+
+/* One-shot rings (operator verify). No perpetual pulsing anywhere (DESIGN_VISION section 7.3). */
+@keyframes vw-ring {
+  0% { opacity: 0.75; transform: scale(1); }
+  80%, 100% { opacity: 0; transform: scale(1.9); }
+}
+
+
+/* Operator verify: two expanding danger rings (marker) and a glow flash (card). */
+.vw-verify-ring { animation: vw-ring calc(var(--vw-motion-status-upgrade) * 3) var(--vw-ease-out) 2 forwards; opacity: 0; }
+@keyframes vw-flash-glow {
+  0%, 100% { opacity: 0; }
+  20%, 60% { opacity: 1; }
+}
+.vw-flash-glow { animation: vw-flash-glow calc(var(--vw-motion-status-upgrade) * 4) var(--vw-ease-in-out) 1 forwards; opacity: 0; }
+
+/* Origin: soft teal ripple. */
+@keyframes vw-origin {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+
+/* Flowing dashes along the recommended route (motion.routeFlow per cycle). */
+@keyframes vw-flow {
+  to { stroke-dashoffset: -32; }
+}
+
+
+/* Route-change: old route dims to slate and thins, then fades. */
+.vw-line-fade {
+  transition:
+    opacity calc(var(--vw-motion-route-change-total) - 4 * var(--vw-motion-route-change-flash)) var(--vw-ease-out),
+    stroke var(--vw-motion-banner) var(--vw-ease-out),
+    stroke-width var(--vw-motion-banner) var(--vw-ease-out);
+}
+
+.vw-press { transition: transform var(--vw-motion-button-press) var(--vw-ease-out); }
+.vw-press:active:not(:disabled) { transform: scale(var(--vw-motion-button-press-scale)); }
+
+/* Odometer digit column. */
+.vw-digit-col { transition: transform 520ms var(--vw-ease-out); will-change: transform; }
+
+/* Playhead glides between server ticks. */
+.vw-playhead { transition: transform 1000ms linear; }
+
+.vw-field {
+  background: var(--vw-shell-deep);
+}
+
+/* Map labels: Inter, semibold, sentence case, on a halo of the map field. */
+.vw-map-label {
+  font-family: var(--vw-font-web);
+  font-size: var(--vw-text-eyebrow);
+  font-weight: 600;
+}
+.vw-halo {
+  paint-order: stroke fill;
+  stroke: var(--vw-shell-deep);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+/* Thin, quiet scrollbars inside the rails. */
+.vw-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vw-shell-hairline-strong) transparent;
+}
+
+/* ---------- Vision pass: signature motion (DESIGN_VISION section 2) ---------- */
+
+/* Devanagari: no tracking (it breaks conjuncts) and no mono for eyebrows. */
+:lang(hi) .eyebrow,
+:lang(mr) .eyebrow {
+  letter-spacing: 0;
+  font-family: var(--vw-font-web);
+  text-transform: none;
+}
+
+/* Water rising at the blocking incident during a route change. */
+@keyframes vw-water-rise {
+  0% { transform: scale(0.2); opacity: 0; }
+  35% { opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+.vw-water-rise { animation: vw-water-rise calc(var(--vw-motion-route-change-flash) * 4) var(--vw-ease-out) forwards; }
+
+/* The comet that leads the new route as it threads around the obstacle. */
+@keyframes vw-comet {
+  0% { offset-distance: 0%; opacity: 1; }
+  85% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.vw-comet { animation: vw-comet var(--vw-comet-ms, 450ms) var(--vw-ease-out) forwards; offset-rotate: 0deg; }
+
+/* The old route sinks: thins, turns dashed, settles down a few pixels and fades. */
+.vw-sink {
+  transition:
+    transform calc(var(--vw-motion-route-change-total) - 4 * var(--vw-motion-route-change-flash)) var(--vw-ease-in-out),
+    opacity calc(var(--vw-motion-route-change-total) - 4 * var(--vw-motion-route-change-flash)) var(--vw-ease-in-out);
+}
+.vw-sink path { transition: stroke-dasharray 240ms var(--vw-ease-out), stroke-width 240ms var(--vw-ease-out), stroke 240ms var(--vw-ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .vw-skeleton::after,
+  .vw-skeleton-panel::after,
+  .vw-live-ring,
+  .vw-origin-pulse {
+    animation: none !important;
+    opacity: 0;
+  }
+  .vw-route-flow { animation: none !important; }
+  .vw-comet { display: none; }
+}

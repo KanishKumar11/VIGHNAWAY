@@ -1,0 +1,40 @@
+# Primary journey (BUILD_PROMPT section 10): launch, see the recommendation, open Report, submit.
+# Run on a device or emulator with the dev or release build installed:
+#   maestro test apps/mobile/maestro/primary-journey.yaml
+# Not run in this repository yet: it needs a phone or an emulator.
+appId: app.vighnaway
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'Simulated flood scenario: Andheri, Mumbai'
+    timeout: 15000
+- tapOn:
+    id: 'first-run-continue'
+# The recommendation comes from the on-phone engine, with or without the API.
+- extendedWaitUntil:
+    visible:
+      id: 'peek-card'
+    timeout: 15000
+- assertVisible: 'Recommended · .*'
+- assertVisible:
+    id: 'peek-eta'
+- assertVisible: 'Simulated'
+- tapOn:
+    id: 'open-report'
+- extendedWaitUntil:
+    visible: 'Report a hazard'
+    timeout: 5000
+# Sending without a type shows the validation message.
+- tapOn:
+    id: 'send-report'
+- assertVisible: 'Choose what you saw'
+- tapOn:
+    id: 'type-flood'
+- tapOn: 'Knee'
+- tapOn:
+    id: 'send-report'
+# Online: "Sent. Shown as Unverified until confirmed." Offline: queued as Pending send.
+- extendedWaitUntil:
+    visible: '(Sent\. Shown as Unverified until confirmed\.|Saved\. Pending send when you are back online\.|Sent)'
+    timeout: 10000

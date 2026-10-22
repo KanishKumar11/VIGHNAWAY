@@ -1,0 +1,39 @@
+{
+  "name": "@vighnaway/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Design tokens from docs/DESIGN.md: colours, type, spacing, radius, route and marker styles, motion, map style.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@vighnaway/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./lottie/*.json": "./lottie/*.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "lottie"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean && tsx scripts/gen-css.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "lottie": "tsx --conditions=@vighnaway/source scripts/gen-lottie.ts"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "@vighnaway/scenario-data",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Andheri road graph, places, flood-prone list and the simulated monsoon scenario.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@vighnaway/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./andheri/*.json": "./andheri/*.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "andheri"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "build:fixture": "tsx --conditions=@vighnaway/source scripts/build-fixture.ts",
+    "tune": "tsx --conditions=@vighnaway/source scripts/tune.ts",
+    "hashes": "tsx --conditions=@vighnaway/source scripts/hashes.ts",
+    "seed:sql": "tsx --conditions=@vighnaway/source scripts/gen-seed-sql.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@vighnaway/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@vighnaway/engine": "workspace:*",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

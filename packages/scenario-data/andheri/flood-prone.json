@@ -1,0 +1,7 @@
+{
+ "description": "Way ids treated as flood-prone in addition to tunnels and negative layers under the railway. wayIds: schematic fixture ways. osmWayIds: hand-maintained OSM way ids of named low-lying roads, read by scripts/extract_graph.py (fill in after checking the map).",
+ "wayIds": [
+  "fx-way-101"
+ ],
+ "osmWayIds": []
+}

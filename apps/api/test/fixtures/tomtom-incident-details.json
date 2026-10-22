@@ -1,0 +1,323 @@
+{
+ "incidents": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      72.856884,
+      19.126757
+     ],
+     [
+      72.855933,
+      19.127028
+     ],
+     [
+      72.855268,
+      19.127571
+     ],
+     [
+      72.854412,
+      19.127028
+     ],
+     [
+      72.854697,
+      19.126305
+     ],
+     [
+      72.854127,
+      19.1254
+     ],
+     [
+      72.853366,
+      19.124496
+     ],
+     [
+      72.852606,
+      19.123863
+     ],
+     [
+      72.852226,
+      19.122958
+     ],
+     [
+      72.851275,
+      19.121873
+     ],
+     [
+      72.850704,
+      19.120878
+     ],
+     [
+      72.849944,
+      19.119703
+     ]
+    ]
+   },
+   "properties": {
+    "id": "TT-JAM-1",
+    "iconCategory": 6,
+    "magnitudeOfDelay": 3,
+    "events": [
+     {
+      "description": "Stationary traffic",
+      "code": 101,
+      "iconCategory": 6
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "Western Express Highway",
+    "to": "Gokhale Bridge",
+    "length": 900.0,
+    "delay": 540,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "certain",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      72.847852,
+      19.116357
+     ],
+     [
+      72.846569,
+      19.116357
+     ],
+     [
+      72.84519,
+      19.116357
+     ]
+    ]
+   },
+   "properties": {
+    "id": "TT-CLOSED-2",
+    "iconCategory": 8,
+    "magnitudeOfDelay": 4,
+    "events": [
+     {
+      "description": "Closed",
+      "code": 101,
+      "iconCategory": 8
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "Andheri-Kurla Road",
+    "to": "S.V. Road",
+    "length": 900.0,
+    "delay": null,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "certain",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     72.84606,
+     19.1359365
+    ]
+   },
+   "properties": {
+    "id": "TT-ACC-3",
+    "iconCategory": 1,
+    "magnitudeOfDelay": 2,
+    "events": [
+     {
+      "description": "Accident",
+      "code": 101,
+      "iconCategory": 1
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "S.V. Road",
+    "to": "S.V. Road",
+    "length": 900.0,
+    "delay": 120,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "probable",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     72.84606,
+     19.1359365
+    ]
+   },
+   "properties": {
+    "id": "TT-FOG-4",
+    "iconCategory": 2,
+    "magnitudeOfDelay": 0,
+    "events": [
+     {
+      "description": "Fog",
+      "code": 101,
+      "iconCategory": 2
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "S.V. Road",
+    "to": "S.V. Road",
+    "length": 900.0,
+    "delay": null,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "certain",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      72.856884,
+      19.126757
+     ],
+     [
+      72.855933,
+      19.127028
+     ],
+     [
+      72.855268,
+      19.127571
+     ],
+     [
+      72.854412,
+      19.127028
+     ],
+     [
+      72.854697,
+      19.126305
+     ],
+     [
+      72.854127,
+      19.1254
+     ],
+     [
+      72.853366,
+      19.124496
+     ],
+     [
+      72.852606,
+      19.123863
+     ],
+     [
+      72.852226,
+      19.122958
+     ],
+     [
+      72.851275,
+      19.121873
+     ],
+     [
+      72.850704,
+      19.120878
+     ],
+     [
+      72.849944,
+      19.119703
+     ]
+    ]
+   },
+   "properties": {
+    "id": "TT-RISK-5",
+    "iconCategory": 6,
+    "magnitudeOfDelay": 2,
+    "events": [
+     {
+      "description": "Risk of queueing",
+      "code": 101,
+      "iconCategory": 6
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "A",
+    "to": "B",
+    "length": 900.0,
+    "delay": 60,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "risk_of",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      72.7,
+      19.05
+     ],
+     [
+      72.701,
+      19.051
+     ]
+    ]
+   },
+   "properties": {
+    "id": "TT-FAR-6",
+    "iconCategory": 6,
+    "magnitudeOfDelay": 2,
+    "events": [
+     {
+      "description": "Queueing traffic",
+      "code": 101,
+      "iconCategory": 6
+     }
+    ],
+    "startTime": "2026-10-22T08:10:00Z",
+    "endTime": null,
+    "from": "Far",
+    "to": "Away",
+    "length": 900.0,
+    "delay": 60,
+    "roadNumbers": [],
+    "aci": {
+     "probabilityOfOccurrence": "certain",
+     "numberOfReports": 3,
+     "lastReportTime": "2026-10-22T08:20:00Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "TT-BROKEN-7",
+    "iconCategory": 6
+   }
+  }
+ ]
+}

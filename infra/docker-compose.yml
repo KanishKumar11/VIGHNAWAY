@@ -1,0 +1,53 @@
+# Local stack: Postgres 16 + PostGIS 3.4 and the API.
+#   docker compose -f infra/docker-compose.yml up -d          # both
+#   docker compose -f infra/docker-compose.yml up -d db       # database only (pnpm --filter api dev)
+# Variables come from the shell or infra/.env (see apps/api/.env.example). Nothing here is a secret
+# except OPERATOR_TOKEN, which has no default: without it every operator/sim action returns 401.
+name: vighnaway
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vighnaway}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vighnaway}
+      POSTGRES_DB: ${POSTGRES_DB:-vighnaway}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" && psql -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc "select 1" >/dev/null']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-vighnaway}:${POSTGRES_PASSWORD:-vighnaway}@db:5432/${POSTGRES_DB:-vighnaway}
+      OPERATOR_TOKEN: ${OPERATOR_TOKEN:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      DEVICE_HASH_SALT: ${DEVICE_HASH_SALT:-change-me-local-salt}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+    ports:
+      - '${API_PORT:-4000}:4000'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  pgdata:

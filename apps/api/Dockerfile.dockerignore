@@ -1,0 +1,14 @@
+# BuildKit uses this file for builds with -f apps/api/Dockerfile (context: repo root).
+**/node_modules
+**/dist
+**/.turbo
+**/.next
+**/.expo
+**/coverage
+**/*.log
+**/.env
+**/.env.*
+!**/.env.example
+.git
+apps/mobile
+apps/console

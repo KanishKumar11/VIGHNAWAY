@@ -1,0 +1,75 @@
+{
+ "id": "andheri-live",
+ "name": "Andheri live",
+ "area": "Andheri, Mumbai",
+ "mode": "live",
+ "simulated": false,
+ "timezone": "Asia/Kolkata",
+ "clockStartsAt": "2026-01-01T00:00:00+05:30",
+ "simSecondsPerRealSecond": 1,
+ "graphVersion": "fixture-1f7635ec4925",
+ "alerts": [],
+ "hasAlertInformation": false,
+ "places": [
+  {
+   "id": "live-origin-marol",
+   "name": "Marol Naka, Andheri East",
+   "kind": "origin",
+   "point": {
+    "lat": 19.112106,
+    "lng": 72.881128
+   },
+   "nodeId": "fx018",
+   "side": "east",
+   "address": "Andheri-Kurla Road"
+  },
+  {
+   "id": "live-hosp-kokilaben",
+   "name": "Kokilaben Dhirubhai Ambani Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.132952,
+    "lng": 72.824274
+   },
+   "nodeId": "fx017",
+   "side": "west",
+   "address": "Four Bungalows, Andheri West"
+  },
+  {
+   "id": "live-hosp-hbt",
+   "name": "HBT Trauma Care Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.14091,
+    "lng": 72.860212
+   },
+   "nodeId": "fx016",
+   "side": "east",
+   "address": "Jogeshwari-Vikhroli Link Road, Jogeshwari East"
+  },
+  {
+   "id": "live-hosp-holy-spirit",
+   "name": "Holy Spirit Hospital",
+   "kind": "hospital",
+   "point": {
+    "lat": 19.131595,
+    "lng": 72.864965
+   },
+   "nodeId": "fx021",
+   "side": "east",
+   "address": "Mahakali Caves Road, Andheri East"
+  }
+ ],
+ "demoTrip": {
+  "profile": "car",
+  "originId": "live-origin-marol",
+  "destinationId": "live-hosp-kokilaben",
+  "alternativeDestinationIds": [
+   "live-hosp-hbt",
+   "live-hosp-holy-spirit"
+  ],
+  "vehicleSpeedFactor": 1,
+  "startTripAtS": 0
+ },
+ "events": []
+}

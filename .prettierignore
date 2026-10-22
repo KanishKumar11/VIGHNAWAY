@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+packages/scenario-data/andheri/*.json
+docs/BUILD_PROMPT.md
+**/dist
+**/.next

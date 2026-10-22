@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: vighnaway
+          POSTGRES_PASSWORD: vighnaway
+          POSTGRES_DB: vighnaway_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U vighnaway" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgres://vighnaway:vighnaway@127.0.0.1:5432/vighnaway_test
+      DATABASE_URL: postgres://vighnaway:vighnaway@127.0.0.1:5432/vighnaway_test
+      OPERATOR_TOKEN: ci-operator-token-not-secret
+      CORS_ORIGINS: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - name: Graph fixture is up to date
+        run: pnpm graph:fixture && git diff --exit-code packages/scenario-data/andheri
+      - name: docs/scoring.md is up to date
+        run: pnpm docs:scoring && git diff --exit-code docs/scoring.md
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Graph extract conversion test (offline)
+        run: pip install -r scripts/requirements.txt && python scripts/test_extract_graph.py
