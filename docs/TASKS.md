@@ -226,7 +226,7 @@ Priority P0 · Status todo · Effort 1 h · Depends —
 - **Acceptance:** Every recovery path names a command or click and the expected screen.
 
 ### P0-5.b Recovery drill in the sandbox
-Priority P0 · Status todo · Effort 1 h · Depends P0-5.a
+Priority P0 · Status script written and run once against the developer's API: 18/18 pass. `pnpm smoke` (scripts/smoke-demo.mjs) drives a running API through the scripted demo, determinism, the audience flow and the ask limits with REST only (see docs/demo-script.md). The stop-the-API and no-Maps-key steps below are manual · Effort 1 h · Depends P0-5.a
 - **Steps:**
   1. Stop the API mid-run.
   2. Restart it.
@@ -400,7 +400,7 @@ Priority P1 · Status done on the data we have (engine test/coverage.test.ts, 8 
   newest edge wins, and the oldest edge is reported as well).
 
 ### P1-5.b Console layer, legend, situation-brief line
-Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer and the view-menu toggle are NOT built yet (they touch both map renderers) · Effort 2–3 h · Depends P1-5.a
+Priority P1 · Status partly done: the Situation panel shows the brief line ("N flood-prone roads have no report in the last hour"), the "No reports is not the same as clear" note and a pattern + colour + word chip per flood-prone road (vitest 4 tests). The map layer is built: View menu → "Evidence coverage on the map" colours each flood-prone road by class (colour tokens positive/warn/danger/muted plus solid, long-dash, short-dash and dotted patterns) in both renderers, with a legend and the "No reports is not the same as clear" note (vitest coverageLayer 4). Screenshots in light and dark, and a CVD check, still to do · Effort 2–3 h · Depends P1-5.a
 - **Behaviour:**
   - A "Coverage" toggle in the view menu.
   - Roads are shaded with existing tokens; each class differs by pattern as well as colour (solid, long dash, short dash,
@@ -415,7 +415,7 @@ Priority P1 · Status partly done: the Situation panel shows the brief line ("N 
 ## P1-6 Scenario scoreboard (batch replay)
 
 ### P1-6.a Seeded scenario generator
-Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
+Priority P1 · Status **done** on the real graph (scenario-data scripts/scoreboard.ts, vitest 5) · Effort 1.5–2 h · Depends — (on the fixture); P0-4.d for real-graph numbers
 - **Files:** `scripts/` (Data and sim). Seeded randomness lives here only and never in packages/engine.
 - **Behaviour:** From a seed, produces a scenario: a trip chosen from a published list of origin and destination pairs, and
   a timed list of incidents (type, status, edges, report times) in the same format `tune` replays. The default set is 20
@@ -423,7 +423,7 @@ Priority P1 · Status todo · Effort 1.5–2 h · Depends — (on the fixture); 
 - **Automated tests:** the same seed gives an identical scenario; every incident references edges that exist in the graph.
 
 ### P1-6.b `pnpm scoreboard` runner and report
-Priority P1 · Status todo · Effort 2 h · Depends P1-6.a
+Priority P1 · Status **done**: `pnpm scoreboard` writes docs/scoreboard.md and docs/scoreboard.json (20 seeds; two runs are byte-identical; a test fails when the committed files are stale; forbidden-words check) · Effort 2 h · Depends P1-6.a
 - **Behaviour:** For each scenario it replays the incidents through the engine at each step and records:
   - whether the usual fastest route crosses a Verified or Corroborated hard block;
   - the extra modelled minutes of the recommendation (median and worst);
@@ -443,7 +443,7 @@ Priority P1 · Status todo · Effort 2 h · Depends P1-6.a
   real-world outcome.
 
 ### P1-6.c Pitch slide
-Priority P1 · Status todo · Effort 0.5 h · Depends P1-6.b
+Priority P1 · Status **done**: docs/pitch-slides.md (the scoreboard slide and the path-to-pilot slide); a test checks the quoted figures against the scoreboard and the forbidden words · Effort 0.5 h · Depends P1-6.b
 - **Behaviour:** One slide with the headline figures and the sentence "Simulated scenarios on real roads; seeds
   published".
 
@@ -533,7 +533,8 @@ Docs: CONTRACTS.md, UX_FLOWS.md §9.
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-1.a | `/after-action`: a timeline built from `/history`, with operator actions, every route change and its reason, the modelled minutes compared with the usual route, provenance (graph, rules hash, scenario, Simulated) and receipts per change | vitest builds it from a recorded history; forbidden-words check (no "saved lives", no "hazard-free") | 2–3 h |
-| P2-1.b | Print stylesheet; both themes on screen | screenshots | 0.5 h |
+| P2-1.a status | **done**: apps/console lib/afterAction.ts (built from the history through the same trip steps as the live console), components/afterAction, route /after-action, nav link, en/hi/mr strings; vitest 8 (moments, operator flags, route and destination changes, usual-route comparison, determinism, every receipt re-verified by /verify, forbidden words in en/hi/mr) | | |
+| P2-1.b | Print stylesheet (header hidden, colours kept; Print button); both themes on screen | screenshots still to capture | 0.5 h |
 
 ## P2-3 Step-free walking profile
 
@@ -560,6 +561,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | Task | Behaviour | Tests | Effort |
 | --- | --- | --- | --- |
 | P2-5.a | A CAP 1.2 alert adapter (SACHET publishes CAP), parsed against a **hand-written fixture marked as such**, because the feed was unreachable when this was written | parser; area filter for Mumbai; expiry | 2 h |
+| P2-5.a status | **done** as a pure parser, apps/api/src/alerts/cap.ts, with test/fixtures/cap-mumbai.xml (hand-written, marked) and test/unit/cap.test.ts (6, run with `pnpm --filter api test:unit`, no database needed): keeps active Mumbai rain alerts, reports why others were left out (not Actual, cancelled, expired, other area, not rain), strips markup, caps length, first usable language. Not wired to the live scenario yet (P2-5.b) | | |
 | P2-5.b | Alerts set the scenario's `alerts[]` in live mode only, with provenance and a freshness status; "Alert feed unavailable" with its age when it fails | API tests | 1.5 h |
 | P2-5.c | Live run against the real feed | **blocked** (network) | 1 h |
 
@@ -569,6 +571,7 @@ Device ids are never treated as identity. The relayer is rate-limited like any r
 | --- | --- | --- | --- |
 | P2-4.a | Hospital state (accepting, busy, diverting) set by an operator action, logged, labelled "Set by control room (simulated)" in the demo | API tests | 2 h |
 | P2-4.b | Engine `assignHospital(trips, reachable, states)`: deterministic; adds the documented per-state cost; tie-break by hospital id | engine tests; parity | 2–3 h |
+| P2-4.b status | **done** as `assignHospitals` (packages/engine/src/hospital.ts) with the new `hospitalLoad` scoring rule (busy 300 s, diverting 1,800 s, 120 s per trip already assigned in the batch; ranking only), Hindi and Marathi rule text, scoring.md regenerated; engine test/hospital.test.ts (7: nearest, spreading, order independence, busy and diverting, all diverting, unreachable). The parity hash is unchanged. P2-4.a (API operator action) and P2-4.c (console and phone) are not built | | |
 | P2-4.c | Console and phone show the assigned hospital and the reason | vitest and jest | 2 h |
 
 ## P2-7 Commute watch
@@ -687,3 +690,10 @@ Priority P2 · Status todo · Effort 1.5–2 h · Depends P2-9.b
 ## Requests from other workstreams
 
 - **Console (from Mobile):** the phone no longer publishes `trip.position` when the start or destination was searched (ids `road:*` or `my-location:*`), because the console demo-trip panel only knows the scenario places. If the console should show those trips, it needs a place lookup by point rather than by scenario place id.
+- **API / Platform (from Mobile):** the deployed API at api.vighnaway.app answers browsers only for the origin http://localhost:3000 (the CORS_ORIGINS default; checked 2026-10-22 with Origin headers). A console hosted on any other domain shows "Server unreachable" and an empty queue, so phone reports never appear there. Set CORS_ORIGINS on Coolify to the console origin (comma separated, plus http://localhost:3000 for local work), then run pnpm preflight.
+- **API / Platform (from Mobile):** the deployed API reports graphVersion osm-7efdf89a8094 while the repo graph is osm-8bb15d429936, so the console shows "Graph version mismatch" and routes may differ from the phone. Redeploy the API from the current commit.
+- **Console (from Mobile):** done 2026-10-22: the console's incident icons (apps/console/src/components/shared/IncidentGlyph.tsx, and the road-clear tile in ReportForm) now draw the shared two-tone pictogram set from packages/tokens (`incidentIcons`), the same as the phone. The ISO 7010 Figma file needs a login and cannot be read by the agents; if ISO symbols are still wanted, export them as SVG and name which hazard each is for (ISO 7010 has no flood, congestion or road-closed sign, so those need drawing in the same style). Console owner: please review the visual change and the one-file edit made in your folder at the product owner's request.
+
+- **Data and sim (from Mobile):** the Amritsar to Ambala corridor graph and place list live in apps/mobile/src/regions/north (generated by apps/mobile/scripts/extract-corridor.mjs from OpenStreetMap), because scenario-data is the Andheri scenario. If the console should plan on it too, move or share it from there. `GraphFile.speedsKmh` (optional) was added to packages/contracts and read by packages/engine/src/graph.ts: Andheri is unaffected.
+- **API / Platform (from Mobile):** report photos need the API redeployed with migration `0005_report_photos` (run `pnpm --filter api db:migrate`; the API runs migrations from apps/api/drizzle). Until then the phone still sends reports; the photo upload simply fails and the user is told. apps/api now depends on `express` directly (it was transitive). The API integration tests in apps/api/test/photos.test.ts need Postgres and were not run by the author (no Docker here); run them in CI.
+- **Mobile (build):** the camera adds native packages (expo-image-picker, expo-image-manipulator) and the CAMERA permission: the Android dev client must be rebuilt (`pnpm --filter mobile android`) before the Take photo button works on a phone.

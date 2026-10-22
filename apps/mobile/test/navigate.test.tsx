@@ -36,6 +36,7 @@ describe('Navigate screen (fixture data, no Google key in tests)', () => {
     expect(screen.getByText('Fixture data for design review')).toBeTruthy();
     expect(screen.getAllByText('Simulated').length).toBeGreaterThan(0);
     expect(screen.getByText('Report')).toBeTruthy();
-    expect(screen.getByText('Schematic road fixture drawn for testing, not OpenStreetMap data.')).toBeTruthy();
+    // The bundled graph is the OpenStreetMap extract, so the attribution line names OpenStreetMap.
+    expect(screen.getAllByText('Road data © OpenStreetMap contributors').length).toBeGreaterThan(0);
   });
 });

@@ -13,7 +13,8 @@
     "preflight": "node scripts/preflight.mjs",
     "docs:scoring": "pnpm --filter @vighnaway/engine run docs:scoring",
     "graph:fixture": "pnpm --filter @vighnaway/scenario-data run build:fixture",
-    "scoreboard": "pnpm --filter @vighnaway/scenario-data scoreboard"
+    "scoreboard": "pnpm --filter @vighnaway/scenario-data scoreboard",
+    "smoke": "node scripts/smoke-demo.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

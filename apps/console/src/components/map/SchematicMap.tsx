@@ -170,7 +170,7 @@ function RouteLine({ pts, l: raw, drawIn, drawMs, runPts }: { pts: Pt[]; l: Scen
         style={{ stroke: l.color, strokeWidth: l.kind === 'blocking' ? l.width + 4 : l.width }}
         strokeDasharray={l.dash ? l.dash.join(' ') : undefined}
       />
-      {l.kind !== 'blocked' && l.kind !== 'old' && <FlowOverlay l={l} runPts={runPts} />}
+      {l.kind !== 'blocked' && l.kind !== 'old' && l.kind !== 'coverage' && <FlowOverlay l={l} runPts={runPts} />}
     </g>
   );
 }

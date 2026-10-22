@@ -380,3 +380,6 @@ export const consoleGoogleMapStyles = { dark: googleMapStyleConsoleDark, light: 
 
 export const tokens = { colors, spacing, radius, fontFamily, type, letterSpacing, elevation, routeStyles, zIndex, marker, motion, layout } as const;
 export default tokens;
+
+export { humanSilhouette, incidentIcons, incidentIconStyle } from './incidentIcons';
+export type { IncidentIconKey, IncidentIconLayer } from './incidentIcons';

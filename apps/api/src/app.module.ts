@@ -2,6 +2,7 @@ import { type DynamicModule, Module } from '@nestjs/common';
 import type { IncomingMessage } from 'node:http';
 import { LoggerModule } from 'nestjs-pino';
 import type { AppConfig } from './config';
+import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config.module';
 import { DbModule } from './db/db.module';
 import { HealthModule } from './health/health.module';
@@ -32,6 +33,7 @@ export class AppModule {
           },
         }),
         DbModule,
+        AuthModule,
         ScenariosModule,
         LiveModule,
         IncidentsModule,

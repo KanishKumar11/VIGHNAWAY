@@ -8,6 +8,7 @@ import { googleMapsConfigured, MAP_READY_TIMEOUT_MS } from '@/config/env';
 import { t } from '@/i18n/en';
 import { buildIncidentIndex } from '@vighnaway/engine';
 import { evalContext, getGraph, routeCoords, type MapCoord } from '@/lib/engine';
+import { checkLocationPermission } from '@/lib/location';
 import { isReduceMotion } from '@/lib/motion';
 import { useIncidentList } from '@/stores/incidents';
 import { placeById, useScenario } from '@/stores/scenario';
@@ -51,6 +52,11 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   const mapStatus = useUi((s) => s.mapStatus);
   // Google's traffic layer is display only: it never reaches the engine.
   const showsTraffic = useSettings((s) => s.googleTraffic);
+  // Live mode shows where the phone really is, once location is allowed (never asked for here).
+  const liveMode = useSettings((s) => s.dataMode === 'live');
+  const permission = useUi((s) => s.locationPermission);
+  const showsUser = liveMode && (permission === 'precise' || permission === 'approximate');
+  const recenter = useUi((s) => s.recenterRequest);
   const [failure, setFailure] = useState<string | null>(googleMapsConfigured ? null : t('mapUnavailable'));
 
   const graph = useMemo(() => getGraph(graphFile, profile), [graphFile, profile]);
@@ -81,6 +87,17 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
       longitudeDelta: (b.east - b.west) * 1.3,
     };
   }, [graphFile]);
+
+  useEffect(() => {
+    if (liveMode) void checkLocationPermission();
+  }, [liveMode]);
+
+  // "Show my location": centre on the latest fix, close enough to read the streets.
+  useEffect(() => {
+    const p = useUi.getState().devicePosition;
+    if (!recenter || !p || !mapRef.current) return;
+    mapRef.current.animateCamera({ center: { latitude: p.lat, longitude: p.lng }, zoom: 17 }, { duration: isReduceMotion() ? 0 : 450 });
+  }, [recenter]);
 
   // Camera: fit every route on a new plan context; fit old and new route on a route change.
   const fit = (coords: MapCoord[]) => {
@@ -113,6 +130,8 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
           initialRegion={initialRegion}
           padding={padding}
           showsTraffic={showsTraffic}
+          showsUserLocation={showsUser}
+          onUserLocation={(p) => useUi.getState().setDevicePosition(p)}
           onReady={() => useUi.getState().setMapStatus('ready')}
           onIncidentPress={onIncidentPress}
           onMapPress={onMapPress}

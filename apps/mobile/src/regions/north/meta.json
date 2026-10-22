@@ -1,0 +1,14 @@
+{
+  "id": "north",
+  "name": "Amritsar to Ambala",
+  "graphVersion": "osm-6ce41ad3ae5d",
+  "bbox": {
+    "south": 30.23986,
+    "west": 74.70407,
+    "north": 31.788,
+    "east": 76.94676
+  },
+  "nodes": 10566,
+  "edges": 21511,
+  "places": 1279
+}

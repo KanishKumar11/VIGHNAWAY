@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { AccountMenu, useSessionRole } from '@/components/account/AccountMenu';
 import { BrandMark } from './BrandMark';
 import { SimulatedBadge } from './EvidenceChips';
 import { ThemeToggle } from './ThemeToggle';
@@ -15,6 +16,7 @@ const NAV = () =>
     ['/console', t.nav.console],
     ['/rules', t.nav.rules],
     ['/verify', t.nav.verify],
+    ['/after-action', t.nav.afterAction],
     ['/debug', t.nav.debug],
     ['/report', t.nav.report],
   ] as const;
@@ -42,6 +44,9 @@ export function PageShell({
   const { scrollY, scrollYProgress } = useScroll();
   // Hidden until the page moves, so a page too short to scroll never shows a full bar.
   const progressOpacity = useTransform(scrollY, [0, 8], [0, 1]);
+  const role = useSessionRole();
+  // The Admin link is for clarity only; the server enforces who may manage accounts.
+  const nav = role === 'admin' ? [...NAV(), ['/admin', t.nav.admin] as const] : NAV();
   return (
     <div className="relative min-h-dvh bg-shell text-base text-ink-on-shell">
       <div
@@ -49,7 +54,7 @@ export function PageShell({
         className="vw-page-glow pointer-events-none absolute inset-x-0 top-0 h-[calc(var(--spacing)*120)]"
       />
       <div className="vw-header sticky top-0 z-30">
-        <header className={cn(CONTAINER, 'flex h-16 items-center gap-4')}>
+        <header className={cn(CONTAINER, 'flex min-h-16 flex-wrap items-center gap-x-4 gap-y-1 py-2')}>
           <Link href="/console" className="flex items-center gap-3">
             <BrandMark className="size-8" />
             <span className="text-body font-bold tracking-wordmark text-ink-on-shell">
@@ -57,14 +62,14 @@ export function PageShell({
             </span>
           </Link>
           <SimulatedBadge onShell />
-          <nav className="ml-auto flex gap-1 text-body">
-            {NAV().map(([href, label]) => (
+          <nav className="order-last flex w-full gap-1 overflow-x-auto text-body md:order-none md:ml-auto md:w-auto">
+            {nav.map(([href, label]) => (
               <Link
                 key={href}
                 href={href}
                 aria-current={active === href ? 'page' : undefined}
                 className={cn(
-                  'relative rounded-button px-3 py-1.5 font-medium transition-colors',
+                  'relative shrink-0 rounded-button px-3 py-1.5 font-medium transition-colors',
                   active === href
                     ? 'bg-brand-from/10 text-ink-on-shell after:absolute after:inset-x-3 after:-bottom-[calc(var(--spacing)*3.5)] after:h-0.5 after:rounded-chip after:bg-brand-from'
                     : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
@@ -74,8 +79,11 @@ export function PageShell({
               </Link>
             ))}
           </nav>
-          <ViewMenu console={false} />
-          <ThemeToggle />
+          <div className="ml-auto flex items-center gap-2 md:ml-0">
+            <ViewMenu console={false} />
+            <ThemeToggle />
+            <AccountMenu />
+          </div>
         </header>
         <motion.div
           aria-hidden

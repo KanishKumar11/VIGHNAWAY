@@ -26,6 +26,11 @@ const DEVICE_KEY = 'vighnaway.deviceId';
 export const loadOperatorToken = (): string | null => readStorage('session', TOKEN_KEY);
 export const saveOperatorToken = (token: string | null): void => writeStorage('session', TOKEN_KEY, token);
 
+const SESSION_KEY = 'vighnaway.session';
+/** The signed-in session as a JSON string (sessionStorage: cleared when the tab closes). */
+export const loadSessionRaw = (): string | null => readStorage('session', SESSION_KEY);
+export const saveSessionRaw = (raw: string | null): void => writeStorage('session', SESSION_KEY, raw);
+
 /** Random id for corroboration grouping. Not authoritative; the server hashes it. */
 export function generateDeviceId(random: (n: number) => Uint8Array = defaultRandom): string {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';

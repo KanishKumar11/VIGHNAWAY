@@ -23,7 +23,17 @@ using the workspace packages' built `dist/*.cjs`, so build `packages/*` first:
 `OPERATOR_TOKEN=... docker compose -f infra/docker-compose.yml up -d` (the API container runs
 migrate, seed, then the server on every start).
 
+## Accounts (email one-time code)
+
+Set `ADMIN_EMAILS=you@example.com` and start the API. Signing in on the console with that email makes you an admin; the
+admin page adds operators by email. Without `SMTP_URL` the 6-digit code is written to the API log (development only; with
+`NODE_ENV=production` sign-in emails are refused). For real email set `SMTP_URL` (for example a Gmail app password:
+`smtps://you%40gmail.com:app-password@smtp.gmail.com:465`) and `MAIL_FROM`. Roles, who may sign in where, limits and the
+endpoints are in docs/CONTRACTS.md "Accounts". `OPERATOR_TOKEN` keeps working for the scripted demo.
+
 ## Tests
+
+`pnpm --filter api test:unit` runs the account tests that need no database (in-memory repository, fake clock and mailer).
 
 `pnpm --filter api test` runs Vitest + supertest + socket.io-client against
 `postgres://vighnaway:vighnaway@127.0.0.1:5432/vighnaway_test` (override with

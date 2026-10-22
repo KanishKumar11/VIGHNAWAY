@@ -4,6 +4,7 @@ import {
   loadGraph,
   pointAlong,
   routeGeometry,
+  snapToEdge,
   type EvalContext,
   type Graph,
   type VehicleState,
@@ -76,6 +77,27 @@ export function edgeMidpoint(graph: Graph, edgeId: string): LatLng | null {
   if (ei === undefined) return null;
   const e = graph.edges[ei]!;
   return pointAlong(e.geometry, edgeCumulative(e), 0.5).point;
+}
+
+/**
+ * A reported or searched point is only accepted when a road is this close. The API itself accepts
+ * 30 m; the app snaps a point onto the road first, so a pin dropped beside a road still counts.
+ */
+export const ROAD_SNAP_MAX_M = 120;
+
+export interface RoadSnap {
+  /** The point on the road, which is what is sent to the API. */
+  point: LatLng;
+  roadName: string | null;
+  distanceM: number;
+}
+
+/** Nearest road within ROAD_SNAP_MAX_M of a point, or null when the point is away from the mapped area. */
+export function snapToRoad(graph: Graph, point: LatLng): RoadSnap | null {
+  const snap = snapToEdge(graph, point);
+  if (!snap || snap.distanceM > ROAD_SNAP_MAX_M) return null;
+  const e = graph.edges[graph.edgeIndex.get(snap.edgeId)!]!;
+  return { point: pointAlong(e.geometry, edgeCumulative(e), snap.fraction).point, roadName: e.name ?? null, distanceM: snap.distanceM };
 }
 
 /** Ordered distinct road names along a route, for share text ("turns from edge names"). */

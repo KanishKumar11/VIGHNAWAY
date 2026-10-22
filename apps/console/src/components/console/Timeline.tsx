@@ -32,6 +32,7 @@ import {
 } from '@/lib/timeline';
 import { useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
+import { useOperatorAccess } from '@/lib/credential';
 import { usePrefs } from '@/stores/prefs';
 import { useReplay } from '@/stores/replay';
 import { useSimAction } from '@/hooks/useOperatorActions';
@@ -339,7 +340,7 @@ export function Timeline({ replayAtS = null }: { replayAtS?: number | null }) {
 
 function SimTimeline({ replayAtS }: { replayAtS: number | null }) {
   const sim = useLiveStore((s) => s.sim);
-  const token = useOperator((s) => s.token);
+  const token = useOperatorAccess();
   const openDialog = useOperator((s) => s.openDialog);
   const presenter = usePrefs((s) => s.presenter);
   const action = useSimAction();

@@ -23,7 +23,7 @@ export class ApiException extends HttpException {
 const STATUS_CODE: Record<number, ErrorCode> = {
   400: 'VALIDATION_FAILED',
   401: 'UNAUTHORIZED',
-  403: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',
   413: 'PAYLOAD_TOO_LARGE',
@@ -34,6 +34,7 @@ const STATUS_CODE: Record<number, ErrorCode> = {
 const DEFAULT_MESSAGE: Record<ErrorCode, string> = {
   VALIDATION_FAILED: 'The request is not valid',
   UNAUTHORIZED: 'Operator token missing or wrong',
+  FORBIDDEN: 'Your account cannot do this',
   NOT_FOUND: 'Not found',
   CONFLICT: 'This incident is already closed',
   PAYLOAD_TOO_LARGE: 'Request body is larger than 16 kB',

@@ -3,7 +3,7 @@
 import { formatSimClock } from '@vighnaway/contracts';
 import { alertContext } from '@vighnaway/engine';
 import { motion as motionTokens } from '@vighnaway/tokens';
-import { BookOpen, Bug, Clock, CloudRain, History, Lock, LockOpen, Presentation, Radio, ServerCrash, TriangleAlert, Volume2, X } from 'lucide-react';
+import { BookOpen, Bug, Users, Clock, CloudRain, History, Lock, LockOpen, Presentation, Radio, ServerCrash, TriangleAlert, Volume2, X } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import Link from 'next/link';
 import { t } from '@/i18n';
@@ -14,6 +14,8 @@ import { timezoneLabel } from '@/lib/timezone';
 import { useActiveScenario, useScenarioStore } from '@/stores/scenario';
 import { useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
+import { useOperatorAccess } from '@/lib/credential';
+import { AccountMenu, useSessionRole } from '@/components/account/AccountMenu';
 import { usePrefs } from '@/stores/prefs';
 import { SimulatedBadge } from '@/components/shared/EvidenceChips';
 import { BrandMark } from '@/components/shared/BrandMark';
@@ -151,7 +153,8 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
   const ready = useScenarioStore((s) => s.ready);
   const switchable = useScenarioStore((s) => !!s.available?.includes(LIVE_SCENARIO.id));
   const live = isLiveScenario(scenario);
-  const token = useOperator((s) => s.token);
+  const access = useOperatorAccess();
+  const role = useSessionRole();
   const openDialog = useOperator((s) => s.openDialog);
   const setToken = useOperator((s) => s.setToken);
   const presenter = usePrefs((s) => s.presenter);
@@ -206,6 +209,12 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
                 <BookOpen aria-hidden className="size-4" />
                 <span className="max-[1899px]:hidden">{t.nav.rules}</span>
               </Link>
+              {role === 'admin' && (
+                <Link href="/admin" className={NAV_LINK} aria-label={t.nav.admin} title={t.nav.admin}>
+                  <Users aria-hidden className="size-4.5 min-[1900px]:hidden" />
+                  <span className="max-[1899px]:hidden">{t.nav.admin}</span>
+                </Link>
+              )}
               <Link href="/debug" className={NAV_LINK} aria-label={t.nav.debug} title={t.nav.debug}>
                 <Bug aria-hidden className="size-4" />
                 <span className="max-[1899px]:hidden">{t.nav.debug}</span>
@@ -221,17 +230,18 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
               <ViewMenu compact bare />
               <ThemeToggle bare />
             </div>
-            {token ? (
+            {access === 'token' ? (
               <button type="button" onClick={() => setToken(null)} aria-label={t.operator.lock} title={t.operator.lock} className="vw-press ctl ml-2 h-9 shrink-0 px-3.5 text-meta whitespace-nowrap">
                 <LockOpen aria-hidden className="size-4 text-positive-ink" />
                 {t.operator.unlocked}
               </button>
-            ) : (
+            ) : access === null ? (
               <button type="button" onClick={openDialog} className="vw-press ctl-primary ml-2 h-9 shrink-0 px-3.5 text-meta whitespace-nowrap">
                 <Lock aria-hidden className="size-4" />
                 {t.operator.locked}
               </button>
-            )}
+            ) : null}
+            <AccountMenu compact />
           </>
         )}
       </div>

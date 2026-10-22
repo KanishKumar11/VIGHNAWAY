@@ -92,7 +92,10 @@ export function loadGraph(json: GraphFile, profile: Profile): Graph {
     const from = nodeIndex.get(e.from);
     const to = nodeIndex.get(e.to);
     if (from === undefined || to === undefined) continue;
-    const timeS = e.lengthM / (speedKmh(e.highway, profile) / 3.6);
+    // A region may carry its own typical speeds (GraphFile.speedsKmh); otherwise the engine table applies.
+    const regional = json.speedsKmh?.[profile];
+    const kmh = regional?.[e.highway] ?? (profile === 'foot' ? regional?.default : undefined) ?? speedKmh(e.highway, profile);
+    const timeS = e.lengthM / (kmh / 3.6);
     const common = {
       baseId: e.id,
       name: e.name,

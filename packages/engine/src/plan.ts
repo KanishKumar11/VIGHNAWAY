@@ -83,7 +83,7 @@ export function edgeMultiplier(e: GEdge, index: IncidentIndex, ctx: EvalContext)
 }
 
 /** Search weight that routes around hard blocks and leans away from penalties. */
-function awareWeight(graph: Graph, index: IncidentIndex, ctx: EvalContext): WeightFn {
+export function awareWeight(graph: Graph, index: IncidentIndex, ctx: EvalContext): WeightFn {
   const cache = new Map<number, number>();
   return (e) => {
     const hit = cache.get(e.idx);

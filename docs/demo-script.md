@@ -37,6 +37,32 @@ speed). The replay and the console follower agree on every step.
 Then press **Reset** on the console and **Play** again to show the replay is identical (same
 banners, same parity hash on /debug and the phone debug screen).
 
+## Drill the API before a rehearsal
+
+With the API deployed, migrated and seeded (`pnpm --filter api db:migrate`, `db:seed`):
+
+```
+OPERATOR_TOKEN=... API_URL=https://your-api node scripts/smoke-demo.mjs     # or: pnpm smoke
+```
+
+It resets the simulated scenario, steps the seven scripted events and checks each outcome (Unverified, Corroborated,
+Verified by the simulated operator, the hospital closure), that a reset replays identically, the audience flow (two phones
+Corroborated and never Verified, tagged audience-only, operator-only clear, a mixed incident left alone), and the ask-the-crowd
+limits (one answer per road per device, a prompt Road clear never resolves anything). Exit code 1 on any failure.
+**Do not run it during a live demo: it resets the scenario.** It was written without a database to test against; the first run
+on your server is its first run.
+
+## Optional segments (30 to 90 seconds each)
+
+| Segment | Steps | Talk track |
+| --- | --- | --- |
+| **Decision receipt** | After the 14:08 banner: console route card → **Create receipt** → show the QR (or paste the link) → a second laptop opens `/verify?r=…` | "Same rules, same recorded reports, same route. Anyone can re-run it. It proves the decision follows from the inputs; it does not prove the reports were true." |
+| **Why not this route?** | Phone or console: open the "Why not this route?" line on an alternative | "For every alternative, what would have to change for it to win, checked by re-running the engine with that change." |
+| **Audience reports** | Presenter mode (**P**) → the QR card → judges scan it, report a hazard on the underpass; watch the ladder (Unverified, then Corroborated when a second phone reports) | "One phone is Unverified. A second phone near it is Corroborated, which is a device heuristic. Only I, the operator, can set Verified." Then **Clear audience reports** (confirm) before the next run |
+| **Ask the crowd** | With the rain alert on, the phone shows "Is Andheri Subway flooded right now?" when stationary; answer Yes or No; or open `/report?scenario=andheri-monsoon&ask=19.12379,72.85037&road=Andheri%20Subway` | "A flood-prone road with no report in the last hour costs a penalty. Asking closes the gap, and a No is a report, never proof of clear." View → **Evidence coverage on the map** shows the road change pattern |
+| **After-action** | After the run: console nav → **After action** (`/after-action`) → Print | "Every decision rebuilt from the recorded history, with a receipt for each. Modelled minutes, simulated scenario." |
+| **Scoreboard slide** | docs/scoreboard.md (20 seeded scenarios) | "Simulated scenarios on real roads, seeds published. The usual route met a hard block in N of 20; the cost of avoiding it was a median of X modelled minutes; here are the cases where we were slower for nothing." |
+
 ## Fallbacks
 
 - **Network fails (hotspot drops):** the phone keeps routing on cached incidents with "Offline:
@@ -47,11 +73,29 @@ banners, same parity hash on /debug and the phone debug screen).
 - **Map fails (key or network):** both surfaces show "Map unavailable: check the Google Maps key or
   the network" and the schematic view; route cards and banners keep working.
 - **Phone crashes:** backup phone, same build, press Reset.
+- **Audience floods the demo with reports:** console → presenter card → **Clear audience reports** (confirm). Scripted and operator-verified incidents stay. If it is worse than that, **Reset**.
+- **QR code does not scan:** read the short address under it aloud; the report page also opens from the console's QR card.
+- **Receipt check fails on stage:** check that both laptops show the same scenario and run id on `/debug`; if the scenario was reset between creating and checking the receipt, the check says the inputs differ. That is the receipt doing its job. Create a new one.
 
 ## Reset procedure
 
 Console → **Reset** (clears incidents, reports and events, bumps seq, emits sim.reset). Phone:
 End trip → back on Navigate shows Via Andheri Subway. Check both parity hashes match.
+
+## Judge Q&A
+
+Short answers; each points to the document that backs it. None of them says a route is fit to drive.
+
+| Question | Answer | Backed by |
+| --- | --- | --- |
+| Why not Google Maps? | Google routes for speed and typical traffic. We route on incident evidence with stated rules: a Corroborated or Verified closure or flood is a hard block, and every change says what triggered it. Our routing is deterministic: the same reports give the same route on the phone, the console and a re-run from a receipt. | docs/scoring.md, docs/PRD.md |
+| How is a report judged true? | It is not judged. Every report shows its source and status: Unverified, Corroborated (two devices near each other, a heuristic), Verified (an operator action only). The app never says a road is confirmed flooded on its own. | docs/limitations.md, docs/CONTRACTS.md |
+| What happens when nobody reports? | "No reports" is not the same as clear. On a flood-prone road during a rain alert, no report in the last hour adds a ranking penalty and lowers confidence, and the app can ask a person nearby. | docs/scoring.md, docs/TASKS.md P1-4 |
+| What about privacy? | Reports carry a random device id kept on the device, not an account or a name. Free text is shown as plain text. The operator token never leaves the server side. | docs/limitations.md, AGENTS.md |
+| What is simulated? | The conditions: every flood, closure and jam in the demo, the rain alert, the operator in the script. The roads are real (OpenStreetMap). The scenario is labelled Simulated everywhere, including shared text. The Andheri Subway being flood-prone is a stated assumption. | docs/limitations.md, docs/demo-script.md |
+| Can I check a decision? | Yes: a receipt holds a hash of the inputs, the rules and the plan. `/verify` re-runs the engine on the recorded history. It proves the decision follows from the inputs, not that the inputs were true. | docs/CONTRACTS.md |
+| How good is it? | We do not claim a rate. docs/scoreboard.md replays 20 seeded simulated scenarios and publishes the usual route's exposure, the extra modelled minutes, and the cases where the detour was slower with nothing avoided. | docs/scoreboard.md |
+| Path to a pilot? | The control room as the operator; read-only alert feeds (SACHET or IMD) and TomTom traffic as inputs; a municipal flood-prone-spot list to replace our assumption; a native-speaker review of Hindi and Marathi; a phone run on real devices. The limits are in docs/limitations.md. | docs/ROADMAP.md, docs/limitations.md |
 
 ## Rehearsal log
 

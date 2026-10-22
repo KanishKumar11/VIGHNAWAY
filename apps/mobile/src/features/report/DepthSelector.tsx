@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
+import { humanSilhouette as SILHOUETTE } from '@vighnaway/tokens';
 import { AppText } from '@/components/AppText';
 import { MapField } from '@/components/MapField';
 import { t, type StringKey } from '@/i18n/en';
@@ -12,11 +13,11 @@ import type { ReportDraft } from './validation';
 
 export type DepthValue = NonNullable<ReportDraft['depth']>;
 
-/** Options top to bottom, as they read against the figure. `level` is the water height (0..1 of the figure). */
+/** Options top to bottom, as they read against the figure. `level` is the water height as a fraction of the figure's height, from its feet (ankle bone, knee and belt on a standing adult). */
 const OPTIONS: { value: DepthValue; label: StringKey; level: number }[] = [
   { value: 'waist', label: 'depthWaist', level: 0.56 },
-  { value: 'knee', label: 'depthKnee', level: 0.33 },
-  { value: 'ankle', label: 'depthAnkle', level: 0.14 },
+  { value: 'knee', label: 'depthKnee', level: 0.28 },
+  { value: 'ankle', label: 'depthAnkle', level: 0.07 },
   { value: 'not_sure', label: 'depthNotSure', level: 0 },
 ];
 
@@ -24,17 +25,18 @@ const FIG_W = spacing.xl * 3 + spacing.xs;
 const FIG_H = spacing.xl * 5 + spacing.xs;
 /** Feet sit this far above the tile's bottom edge. */
 const GROUND = spacing.sm;
+/** The silhouette stands this tall, its feet on the ground line and a little air above its head. */
+const FIGURE_H = FIG_H - GROUND - spacing.xs;
 
 /**
- * Flood depth as a water level on a standing figure (DESIGN.md 11.5): the water rises to the
- * ankle, knee or waist with a spring; "Not sure" drains it and marks the figure with a question.
+ * Flood depth as a water level on a standing human silhouette (DESIGN.md 11.5): the water rises to
+ * the ankle, knee or waist with a spring; "Not sure" drains it and marks the figure with a question.
  */
 export function DepthSelector({ value, onChange }: { value: ReportDraft['depth']; onChange: (v: DepthValue) => void }) {
   const styles = useStyles();
   const reduce = useReduceMotion();
   const level = OPTIONS.find((o) => o.value === value)?.level ?? 0;
-  const bodyH = FIG_H - GROUND;
-  const target = level > 0 ? FIG_H - (GROUND + bodyH * level) : FIG_H;
+  const target = level > 0 ? FIG_H - (GROUND + FIGURE_H * level) : FIG_H;
   const y = useSharedValue(FIG_H);
   const [unsure, setUnsure] = useState(value === 'not_sure');
   useEffect(() => {
@@ -92,26 +94,19 @@ export function DepthSelector({ value, onChange }: { value: ReportDraft['depth']
   );
 }
 
-/** A calm standing figure in the Lucide stroke style, feet on the ground line. */
+/** The supplied human silhouette, feet on the ground line, drawn in the shell ink. */
 function Figure({ w, h }: { w: number; h: number }) {
   const tc = useColors();
-  const cx = w / 2;
   const feet = h - GROUND;
-  const body = feet - spacing.sm;
-  const top = spacing.md;
-  const head = top + spacing.xs;
-  const neck = head + spacing.sm;
-  const hip = neck + (body - neck) * 0.45;
-  const knee = hip + (feet - hip) * 0.5;
-  const p = { stroke: tc.inkOnShell, strokeWidth: 3, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
+  const scale = FIGURE_H / SILHOUETTE.size;
+  const x = (w - SILHOUETTE.size * scale) / 2;
+  const y = feet - FIGURE_H;
   return (
     <>
       <Path d={`M${spacing.xs} ${feet} H${w - spacing.xs}`} stroke={tc.inkOnShellMuted} strokeWidth={1.5} strokeDasharray={[3, 4]} />
-      <Circle cx={cx} cy={head} r={spacing.xs} {...p} />
-      <Path d={`M${cx} ${neck} V${hip}`} {...p} />
-      <Path d={`M${cx - spacing.md} ${neck + spacing.md} L${cx} ${neck + spacing.xxs} L${cx + spacing.md} ${neck + spacing.md}`} {...p} />
-      <Path d={`M${cx} ${hip} L${cx - spacing.xs} ${knee} L${cx - spacing.xs} ${feet}`} {...p} />
-      <Path d={`M${cx} ${hip} L${cx + spacing.xs} ${knee} L${cx + spacing.xs} ${feet}`} {...p} />
+      <G transform={`translate(${x} ${y}) scale(${scale})`}>
+        <Path d={SILHOUETTE.d} fill={tc.inkOnShell} />
+      </G>
     </>
   );
 }

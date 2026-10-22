@@ -30,6 +30,21 @@ const EnvSchema = z.object({
   TRAFFIC_POLL_SECONDS: z.coerce.number().int().min(0).default(120),
   /** How far (m) a feed geometry may be from a graph edge to count as on it. */
   TRAFFIC_MATCH_DISTANCE_M: z.coerce.number().min(1).max(200).default(25),
+  NODE_ENV: z.string().default('development'),
+  /** Accounts. AUTH_SECRET keys the HMAC of every one-time code; change it outside local development. */
+  AUTH_SECRET: z.string().min(16).default('vighnaway-dev-auth-secret'),
+  /** Comma-separated emails that always sign in as admin (how the first admin is made). */
+  ADMIN_EMAILS: z.string().default(''),
+  /** SMTP connection URL for the one-time code email, e.g. smtps://user:pass@smtp.example.com. Empty = log the code (never in production). */
+  SMTP_URL: z.string().default(''),
+  MAIL_FROM: z.string().default('VIGHNAWAY <no-reply@localhost>'),
+  OTP_TTL_S: z.coerce.number().int().min(60).max(3600).default(600),
+  OTP_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
+  OTP_RESEND_S: z.coerce.number().int().min(0).max(600).default(60),
+  OTP_MAX_PER_EMAIL_PER_HOUR: z.coerce.number().int().min(1).default(5),
+  OTP_MAX_PER_IP_PER_HOUR: z.coerce.number().int().min(1).default(30),
+  SESSION_TTL_WEB_HOURS: z.coerce.number().int().min(1).max(720).default(12),
+  SESSION_TTL_MOBILE_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 });
 
 export interface AppConfig {
@@ -44,6 +59,20 @@ export interface AppConfig {
   reportIpLimitPerMin: number;
   reportDeviceLimitPerMin: number;
   simTickMs: number;
+  nodeEnv: string;
+  auth: {
+    secret: string;
+    adminEmails: string[];
+    smtpUrl: string;
+    mailFrom: string;
+    otpTtlS: number;
+    otpMaxAttempts: number;
+    otpResendS: number;
+    otpMaxPerEmailPerHour: number;
+    otpMaxPerIpPerHour: number;
+    sessionTtlWebS: number;
+    sessionTtlMobileS: number;
+  };
   traffic: {
     tomtomApiKey: string;
     tomtomBaseUrl: string;
@@ -76,6 +105,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     reportIpLimitPerMin: e.REPORT_IP_LIMIT_PER_MIN,
     reportDeviceLimitPerMin: e.REPORT_DEVICE_LIMIT_PER_MIN,
     simTickMs: e.SIM_TICK_MS,
+    nodeEnv: e.NODE_ENV,
+    auth: {
+      secret: e.AUTH_SECRET,
+      adminEmails: e.ADMIN_EMAILS.split(',')
+        .map((x) => x.trim().toLowerCase())
+        .filter(Boolean),
+      smtpUrl: e.SMTP_URL,
+      mailFrom: e.MAIL_FROM,
+      otpTtlS: e.OTP_TTL_S,
+      otpMaxAttempts: e.OTP_MAX_ATTEMPTS,
+      otpResendS: e.OTP_RESEND_S,
+      otpMaxPerEmailPerHour: e.OTP_MAX_PER_EMAIL_PER_HOUR,
+      otpMaxPerIpPerHour: e.OTP_MAX_PER_IP_PER_HOUR,
+      sessionTtlWebS: e.SESSION_TTL_WEB_HOURS * 3600,
+      sessionTtlMobileS: e.SESSION_TTL_MOBILE_DAYS * 86400,
+    },
     traffic: {
       tomtomApiKey: e.TOMTOM_API_KEY,
       tomtomBaseUrl: e.TOMTOM_BASE_URL,

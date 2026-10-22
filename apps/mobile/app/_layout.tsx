@@ -20,6 +20,7 @@ import { startLiveMode } from '@/features/live/mode';
 import { startLiveSync } from '@/features/live/liveSync';
 import { useTripEngine } from '@/features/trip/useTripEngine';
 import { configureNotifications } from '@/lib/notifications';
+import { startAuth } from '@/stores/auth';
 import { devanagari, fontFamily, useTheme } from '@/theme';
 import { useSettings } from '@/stores/settings';
 import { navThemeFor } from '@/theme/navTheme';
@@ -59,9 +60,11 @@ export default function RootLayout() {
     void configureNotifications();
     const stopSync = startLiveSync();
     const stopLive = startLiveMode();
+    const stopAuth = startAuth();
     return () => {
       stopSync();
       stopLive();
+      stopAuth();
     };
   }, []);
 

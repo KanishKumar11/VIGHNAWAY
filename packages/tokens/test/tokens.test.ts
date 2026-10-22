@@ -12,3 +12,27 @@ describe('tokens', () => {
     for (const c of reserved) expect(json).not.toContain(c);
   });
 });
+
+describe('incident icons', () => {
+  it('has a pictogram for every incident type and for road clear', async () => {
+    const { incidentIcons } = await import('../src');
+    expect(Object.keys(incidentIcons).sort()).toEqual(['accident', 'closure', 'congestion', 'debris', 'flood', 'road_clear']);
+  });
+  it('carries no colour: surfaces pass their own ink', async () => {
+    const { incidentIcons } = await import('../src');
+    const json = JSON.stringify(incidentIcons);
+    expect(json).not.toMatch(/#[0-9a-f]{3,8}/i);
+    expect(json).not.toMatch(/rgb|hsl/i);
+  });
+  it('keeps every path inside the 24-unit grid and every layer non-empty', async () => {
+    const { incidentIcons } = await import('../src');
+    for (const layers of Object.values(incidentIcons)) {
+      expect(layers.length).toBeGreaterThan(0);
+      for (const l of layers) {
+        expect(l.d.length).toBeGreaterThan(10);
+        // Absolute coordinates in the d strings stay within 0..24 (relative ones are small by construction).
+        for (const n of l.d.match(/(?<![a-z])[MLHVZ]\s*-?\d+(\.\d+)?/g) ?? []) expect(Math.abs(Number(n.replace(/[A-Z]/g, '')))).toBeLessThanOrEqual(24);
+      }
+    }
+  });
+});

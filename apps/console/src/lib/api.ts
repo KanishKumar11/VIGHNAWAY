@@ -1,6 +1,13 @@
 import {
   API_PATHS,
+  AdminUserResponseSchema,
+  AdminUsersResponseSchema,
   ApiErrorSchema,
+  AuthSessionResponseSchema,
+  MeResponseSchema,
+  MyStatsResponseSchema,
+  OtpRequestResponseSchema,
+  PhotoListResponseSchema,
   ClearAudienceResponseSchema,
   HealthResponseSchema,
   IncidentsResponseSchema,
@@ -11,7 +18,17 @@ import {
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
   SimResponseSchema,
+  type AdminCreateUserBody,
+  type AdminUpdateUserBody,
+  type AdminUserResponse,
+  type AdminUsersResponse,
+  type AuthSessionResponse,
   type ClearAudienceResponse,
+  type MeResponse,
+  type MyStatsResponse,
+  type OtpRequestResponse,
+  type OtpVerifyBody,
+  type PhotoListResponse,
   type FeedStatus,
   type HistoryResponse,
   type HealthResponse,
@@ -36,6 +53,7 @@ export type ApiErrorCode =
   | 'VALIDATION_FAILED'
   | 'NOT_ON_ROAD'
   | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'NOT_FOUND'
   | 'RATE_LIMITED'
   | 'CONFLICT'
@@ -59,6 +77,7 @@ export class ApiError extends Error {
 const STATUS_CODE: Record<number, ApiErrorCode> = {
   400: 'VALIDATION_FAILED',
   401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',
   413: 'PAYLOAD_TOO_LARGE',
@@ -75,9 +94,10 @@ export interface RequestOptions {
   fetchImpl?: typeof fetch;
 }
 
-export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+/** Sends the request and turns a network failure or a non-2xx answer into an ApiError. */
+async function send(path: string, accept: string, opts: RequestOptions): Promise<Response> {
   const base = opts.baseUrl ?? API_URL;
-  const headers: Record<string, string> = { accept: 'application/json' };
+  const headers: Record<string, string> = { accept };
   if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   let res: Response;
@@ -106,6 +126,21 @@ export async function request<T>(path: string, schema: Parser<T> | null, opts: R
     }
     throw new ApiError(STATUS_CODE[res.status] ?? 'INTERNAL', `HTTP ${res.status}`, res.status);
   }
+  return res;
+}
+
+/** GET raw bytes (an operator-only image). The caller turns the Blob into an object URL. */
+export async function requestBlob(path: string, opts: RequestOptions = {}): Promise<Blob> {
+  const res = await send(path, 'image/jpeg', opts);
+  try {
+    return await res.blob();
+  } catch {
+    throw new ApiError('BAD_RESPONSE', 'The server sent a response that is not an image', res.status);
+  }
+}
+
+export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+  const res = await send(path, 'application/json', opts);
   if (res.status === 204 || schema === null) return undefined as T;
   let json: unknown;
   try {
@@ -153,9 +188,30 @@ export const api = {
   /** Operator: dismisses every open incident that only demo-audience reports support. */
   clearAudience: (id: string, token: string, o?: RequestOptions): Promise<ClearAudienceResponse> =>
     request(API_PATHS.clearAudience(id), ClearAudienceResponseSchema, { ...o, method: 'POST', body: {}, token }),
+  /** Operator: the photos citizens attached to reports, newest first. The list never carries image bytes. */
+  photos: (id: string, token: string, o?: RequestOptions): Promise<PhotoListResponse> =>
+    request(API_PATHS.photos(id), PhotoListResponseSchema, { ...o, token }),
+  /** Operator: one report's photo (JPEG). An <img src> cannot send the header, so it is fetched as a Blob. */
+  photoBlob: (id: string, reportId: string, token: string, o?: RequestOptions): Promise<Blob> =>
+    requestBlob(API_PATHS.reportPhoto(id, reportId), { ...o, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),
+  /** Accounts: email one-time code. The same answer whether or not the email has an account. */
+  otpRequest: (email: string, o?: RequestOptions): Promise<OtpRequestResponse> =>
+    request(API_PATHS.authOtpRequest, OtpRequestResponseSchema, { ...o, method: 'POST', body: { email, client: 'web' } }),
+  otpVerify: (body: Omit<OtpVerifyBody, 'client'>, o?: RequestOptions): Promise<AuthSessionResponse> =>
+    request(API_PATHS.authOtpVerify, AuthSessionResponseSchema, { ...o, method: 'POST', body: { ...body, client: 'web' } }),
+  me: (token: string, o?: RequestOptions): Promise<MeResponse> => request(API_PATHS.authMe, MeResponseSchema, { ...o, token }),
+  logout: (token: string, o?: RequestOptions): Promise<void> =>
+    request<void>(API_PATHS.authLogout, null, { ...o, method: 'POST', body: {}, token }),
+  myStats: (token: string, o?: RequestOptions): Promise<MyStatsResponse> => request(API_PATHS.myStats, MyStatsResponseSchema, { ...o, token }),
+  adminUsers: (token: string, o?: RequestOptions): Promise<AdminUsersResponse> =>
+    request(API_PATHS.adminUsers, AdminUsersResponseSchema, { ...o, token }),
+  adminCreateUser: (token: string, body: AdminCreateUserBody, o?: RequestOptions): Promise<AdminUserResponse> =>
+    request(API_PATHS.adminUsers, AdminUserResponseSchema, { ...o, method: 'POST', body, token }),
+  adminUpdateUser: (token: string, id: string, body: AdminUpdateUserBody, o?: RequestOptions): Promise<AdminUserResponse> =>
+    request(API_PATHS.adminUser(id), AdminUserResponseSchema, { ...o, method: 'POST', body, token }),
   operatorCheck: (token: string, o?: RequestOptions): Promise<void> =>
     request<void>(API_PATHS.operatorCheck, null, { ...o, token }),
 };

@@ -12,8 +12,11 @@ geometries are SRID 4326 with a GiST index. All `*_s` columns are simulation sec
 | `places` | `id` PK, `scenario_id`, `name`, `kind`, `node_id`, `side`, `address`, `geom` Point | GiST(`geom`) |
 | `scenarios` | `id` PK, `name`, `graph_version`, `definition` jsonb (Scenario), `seq` int, `reset_seq` int, `reset_count` int, `run_id`, `sim_state`, `sim_time_s`, `next_event_index` | |
 | `incidents` | `id` PK, `scenario_id`, `type`, `status`, `source`, `depth`, `congestion`, `severity`, `impassable`, `conflicting`, `edge_ids` text[], `road_name`, `report_count`, `device_count`, `created_at_s`, `last_report_at_s`, `updated_at_s`, `verified_at_s`, `verified_by`, `closed_at_s`, `linked_incident_id`, `note`, `seq`, `geom` Point, `feed` jsonb (FeedRef for source live_feed) | GiST(`geom`), (`scenario_id`, `seq`), (`scenario_id`, `type`, `status`) |
-| `incident_reports` | `id` PK, `scenario_id`, `incident_id` (null for a Road clear with nothing nearby), `type`, `depth`, `congestion`, `severity`, `impassable`, `observed_personally`, `description`, `device_hash`, `ip_hash`, `source`, `origin` (app, web, audience or prompt; default app), `received_at_s`, `snapped_edge_id`, `distance_to_road_m`, `geom` Point | GiST(`geom`), (`scenario_id`, `device_hash`), (`incident_id`) |
+| `incident_reports` | `id` PK, `scenario_id`, `incident_id` (null for a Road clear with nothing nearby), `type`, `depth`, `congestion`, `severity`, `impassable`, `observed_personally`, `description`, `device_hash`, `ip_hash`, `source`, `origin` (app, web, audience or prompt; default app), `user_id` (signed-in reporter, null when anonymous; migration 0004), `received_at_s`, `snapped_edge_id`, `distance_to_road_m`, `geom` Point | GiST(`geom`), (`scenario_id`, `device_hash`), (`incident_id`) |
 | `incident_events` | `id` bigserial PK, `scenario_id`, `seq`, `incident_id`, `kind`, `actor`, `at_s`, `summary`, `payload` jsonb | unique(`scenario_id`, `seq`) |
+| `users` | `id` PK, `email` unique (lower-cased), `role` (citizen, operator or admin), `display_name`, `disabled`, `created_at`, `last_login_at` | unique(`email`) |
+| `auth_otps` | `id` PK, `email`, `code_hash` (HMAC of email + code), `client`, `ip_hash`, `attempts`, `created_at`, `expires_at`, `consumed_at` | (`email`, `created_at`), (`ip_hash`, `created_at`) |
+| `auth_sessions` | `id` PK, `user_id`, `token_hash` unique (sha256), `client`, `created_at`, `expires_at`, `revoked_at` | (`user_id`) |
 | `sim_runs` | `id` PK (run id), `scenario_id`, `status`, `started_wall`, `ended_wall`, `events_applied` | |
 
 Every incident change runs in one transaction: `UPDATE scenarios SET seq = seq + 1 … RETURNING
@@ -118,3 +121,17 @@ jsonb provenance, no `incident_reports` rows. Migration `0002_incident_feed.sql`
 true while every supporting report has origin `audience`: a new incident takes it from its first report, and an
 attached report from any other origin clears it. `POST /scenarios/:id/audience/clear` dismisses the open incidents with
 `audience_only` set. Neither column is read by the routing engine: origin labels and limits, it is never evidence.
+
+## report_photos
+
+| Column | Notes |
+| --- | --- |
+| `report_id` text PK | `incident_reports.id`; one photo per report |
+| `scenario_id` text | |
+| `incident_id` text null | copied from the report at upload, so the console can list photos by incident |
+| `content_type` text | `image/jpeg` |
+| `bytes` bytea | the JPEG, at most 350 kB |
+| `size_bytes` int | |
+| `created_at` timestamptz | server time |
+
+Index `(scenario_id, created_at)`. Migration `0005_report_photos`. Read only through the operator endpoints in CONTRACTS.md. There is no retention job yet (see docs/limitations.md): photos stay until the table is cleared.

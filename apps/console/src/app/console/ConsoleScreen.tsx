@@ -1,5 +1,6 @@
 'use client';
 
+import { evidenceCoverage, observationsFromIncidents } from '@vighnaway/engine';
 import { useEffect, useMemo, useState } from 'react';
 import { boundsOf, type Insets } from '@/lib/projection';
 import { recommendedRoute } from '@/lib/demoTrip';
@@ -129,9 +130,23 @@ export function ConsoleScreen() {
     [sync, optimistic, confirmed],
   );
   const incidents = replay?.incidents ?? liveIncidents;
+  // Coverage layer (View menu): latest report per flood-prone road. A replayed moment has no server observations.
+  const coverageOn = usePrefs((s) => s.coverage);
+  const serverObservations = useLiveStore((s) => s.observations);
+  const coverage = useMemo(
+    () =>
+      coverageOn
+        ? evidenceCoverage(
+            tripEnv(scenario.id).graph,
+            [...observationsFromIncidents(incidents), ...(replay ? [] : serverObservations)],
+            nowS,
+          )
+        : null,
+    [coverageOn, scenario.id, incidents, serverObservations, replay, nowS],
+  );
   const scene = useMemo(
-    () => buildScene(tripEnv(scenario.id), GRAPH_FILE, trip, motion, incidents),
-    [scenario.id, trip, motion, incidents],
+    () => buildScene(tripEnv(scenario.id), GRAPH_FILE, trip, motion, incidents, coverage),
+    [scenario.id, trip, motion, incidents, coverage],
   );
   // Camera: the trip's places and every candidate route, with a little air around them.
   const fit = useMemo(() => {
@@ -139,7 +154,12 @@ export function ConsoleScreen() {
       .filter((p) => p !== null)
       .map((p) => p.point);
     for (const l of scene.lines)
-      if (l.kind !== 'floodProne' && l.kind !== 'old' && l.kind !== 'blocking')
+      if (
+        l.kind !== 'floodProne' &&
+        l.kind !== 'coverage' &&
+        l.kind !== 'old' &&
+        l.kind !== 'blocking'
+      )
         for (const [lng, lat] of l.coords) pts.push({ lat, lng });
     return boundsOf(pts, 0.03);
   }, [scene]);

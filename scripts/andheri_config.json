@@ -2,14 +2,15 @@
   "_note": "Coordinates are approximate and MUST be checked on the map before a demo. bbox is [south, west, north, east].",
   "bbox": [19.100, 72.818, 19.145, 72.884],
   "places": [
+    { "id": "origin-ramesh-nagar", "name": "Ramesh Nagar, Andheri West", "kind": "origin", "lat": 19.1322, "lng": 72.8416, "side": "west", "address": "Near Four Bungalows, Andheri West" },
     { "id": "origin-marol", "name": "Marol Naka, Andheri East", "kind": "origin", "lat": 19.10856, "lng": 72.87864, "side": "east", "address": "Andheri-Kurla Road" },
     { "id": "hosp-kokilaben", "name": "Kokilaben Dhirubhai Ambani Hospital", "kind": "hospital", "lat": 19.1315, "lng": 72.8249, "side": "west", "address": "Four Bungalows, Andheri West" },
     { "id": "hosp-hbt", "name": "HBT Trauma Care Hospital", "kind": "hospital", "lat": 19.1380, "lng": 72.8580, "side": "east", "address": "Jogeshwari East" },
     { "id": "hosp-holy-spirit", "name": "Holy Spirit Hospital", "kind": "hospital", "lat": 19.1240, "lng": 72.8665, "side": "east", "address": "Mahakali Caves Road, Andheri East" }
   ],
   "crossings": [
-    { "label": "Andheri Subway (route A)", "match": "Subway", "lat": 19.1165, "lng": 72.8463 },
-    { "label": "Gokhale Bridge (route B)", "match": "Gokhale", "lat": 19.1190, "lng": 72.8462 },
-    { "label": "Jogeshwari crossing (route C)", "match": "Jogeshwari", "lat": 19.1372, "lng": 72.8495 }
+    { "label": "Andheri Subway (route A)", "match": "Subway", "lat": 19.12379, "lng": 72.85037 },
+    { "label": "G K Gokhale Flyover (route B)", "match": "Gokhale", "lat": 19.11463, "lng": 72.85175 },
+    { "label": "Balasaheb Thackeray Flyover (route C)", "match": "Balasaheb", "lat": 19.1395, "lng": 72.8441 }
   ]
 }

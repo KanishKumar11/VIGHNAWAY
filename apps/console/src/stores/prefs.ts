@@ -16,6 +16,8 @@ interface Prefs {
   queueHidden: boolean;
   /** Decision column folded away to give the map more room. */
   tripHidden: boolean;
+  /** Map shows flood-prone roads coloured by how recent their latest report is (P1-5). Per session. */
+  coverage: boolean;
 }
 
 interface PrefsStore extends Prefs {
@@ -31,8 +33,9 @@ const DEFAULTS: Prefs = {
   listView: false,
   queueHidden: false,
   tripHidden: false,
+  coverage: false,
 };
-/** Remembered on this device; presenter mode, the list view and folded columns are per session. */
+/** Remembered on this device; presenter mode, the list view, folded columns and coverage are per session. */
 const PERSISTED: (keyof Prefs)[] = ['largeText', 'speech'];
 
 function persist(p: Prefs) {
@@ -80,6 +83,7 @@ const pick = (s: PrefsStore): Prefs => ({
   listView: s.listView,
   queueHidden: s.queueHidden,
   tripHidden: s.tripHidden,
+  coverage: s.coverage,
 });
 
 /** P toggles presenter mode, Escape leaves it; ignored while typing. Pure, for tests. */

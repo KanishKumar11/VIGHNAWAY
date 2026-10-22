@@ -45,12 +45,15 @@ import { rt } from '@/i18n/engineText';
 import { CoverageChip } from '@/components/console/CoverageChip';
 import { displayIncidents, useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
+import { useOperatorAccess } from '@/lib/credential';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
 import { useIncidentAction } from '@/hooks/useOperatorActions';
 import { usePulse } from '@/hooks/usePulse';
 import { EvidenceChips, RingIcon } from '@/components/shared/EvidenceChips';
 import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
+import { IncidentPhotos } from '@/components/console/IncidentPhotos';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIncidentPhotos, type IncidentPhoto } from '@/hooks/useIncidentPhotos';
 
 const GROUP_RING: Record<QueueGroup, Incident['status']> = {
   corroborated: 'corroborated',
@@ -126,6 +129,7 @@ const groupOf = (incident: Incident): QueueGroup =>
         ? 'corroborated'
         : 'unverified';
 const secondaryBtn = 'vw-press ctl h-9 px-3 text-meta disabled:opacity-50';
+const NO_PHOTOS: readonly IncidentPhoto[] = [];
 
 function IncidentRow({
   incident,
@@ -133,6 +137,7 @@ function IncidentRow({
   pending,
   selected,
   readOnly,
+  photos,
   onSelect,
   onAction,
 }: {
@@ -141,6 +146,8 @@ function IncidentRow({
   pending: boolean;
   selected: boolean;
   readOnly: boolean;
+  /** Citizen photos for this incident; empty when the controls are locked. */
+  photos: readonly IncidentPhoto[];
   onSelect: (id: string) => void;
   onAction: (incident: Incident, action: OperatorAction) => void;
 }) {
@@ -200,6 +207,7 @@ function IncidentRow({
       </button>
       <div className="mt-3.5 flex flex-col gap-2.5">
         <EvidenceChips incident={incident} nowS={nowS} />
+        {photos.length > 0 && <IncidentPhotos photos={photos} nowS={nowS} />}
         <div className="divide-y divide-shell-hairline overflow-hidden rounded-card border border-shell-hairline bg-shell-raised/60 text-meta">
           {incident.feed ? (
             <>
@@ -499,9 +507,11 @@ export function IncidentQueue({
   const confirmed = useLiveStore((s) => s.confirmed);
   const liveNow = useLiveStore((s) => s.simTimeS);
   const reachable = useLiveStore((s) => s.apiReachable);
-  const token = useOperator((s) => s.token);
+  const token = useOperatorAccess();
   const openDialog = useOperator((s) => s.openDialog);
   const action = useIncidentAction();
+  // Photo reports belong to the live run: a replayed moment (incidents given) shows none.
+  const photos = useIncidentPhotos(!given);
   const liveIncidents = useMemo(
     () => displayIncidents({ sync, optimistic, confirmed }),
     [sync, optimistic, confirmed],
@@ -647,6 +657,7 @@ export function IncidentQueue({
                         pending={!!optimistic[inc.id]}
                         selected={selectedId === inc.id}
                         readOnly={readOnly}
+                        photos={photos.get(inc.id) ?? NO_PHOTOS}
                         onSelect={onSelect}
                         onAction={onAction}
                       />

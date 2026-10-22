@@ -1,16 +1,19 @@
 import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetTextInput, type BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
-import { forwardRef, useCallback, useDeferredValue, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { forwardRef, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, View, type TextInputInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Place } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
-import { Check, Hospital, LocateFixed, MapPin, Route, Search, X, type LucideIcon } from '@/components/icons';
+import { ArrowUpDown, Building, Check, CircleDot, House, Hospital, LocateFixed, MapPin, Route, X, type LucideIcon } from '@/components/icons';
 import { buildGazetteer, entryToPlace, searchEntries, type SearchEntry, type SearchKind } from '@/features/search/gazetteer';
 import { resolveMyLocation } from '@/features/search/myLocation';
-import { choosePlace, type ChooseResult, type PlaceRole } from '@/features/trip/planner';
+import { choosePlace, setTripPlaces, type ChooseResult, type PlaceRole } from '@/features/trip/planner';
 import { t, type StringKey } from '@/i18n/en';
+import { graphForRegion, northPlaces, regionOfPoint } from '@/regions';
 import { placeById, useScenario } from '@/stores/scenario';
+import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
+import { useUi } from '@/stores/ui';
 import { createStyles, fontFamily, hairline, layout, radius, spacing, text, useColors } from '@/theme';
 
 interface Props {
@@ -19,77 +22,175 @@ interface Props {
   onDismiss: () => void;
 }
 
-const KIND_ICON: Record<SearchKind, LucideIcon> = { hospital: Hospital, shelter: Hospital, landmark: MapPin, origin: MapPin, road: Route };
-const NOTICE: Record<Exclude<ChooseResult, 'ok'>, StringKey> = { same: 'sameStartEnd', en_route: 'startLockedEnRoute' };
+const KIND_ICON: Record<SearchKind, LucideIcon> = {
+  hospital: Hospital,
+  shelter: Hospital,
+  landmark: MapPin,
+  origin: MapPin,
+  road: Route,
+  city: Building,
+  town: MapPin,
+  village: House,
+};
+const KIND_LABEL: Partial<Record<SearchKind, StringKey>> = { city: 'placeCity', town: 'placeTown', village: 'placeVillage' };
+const NOTICE: Record<Exclude<ChooseResult, 'ok'>, StringKey> = {
+  same: 'sameStartEnd',
+  en_route: 'startLockedEnRoute',
+  outside: 'tripOutside',
+  different_regions: 'tripDifferentArea',
+  no_road: 'tripNoRoad',
+};
+
+/** The place for a field: undefined = still the trip's own, null = emptied or being typed over. */
+type DraftPlace = Place | null | undefined;
+interface Draft {
+  from: DraftPlace;
+  to: DraftPlace;
+}
+const FRESH: Draft = { from: undefined, to: undefined };
+const NO_TEXT: Record<PlaceRole, string | null> = { from: null, to: null };
+const other = (r: PlaceRole): PlaceRole => (r === 'from' ? 'to' : 'from');
 
 /**
- * Start and destination search, opened from the search card. Searches the scenario's places and the
- * named roads of the bundled map (offline); the start can also be the phone's position. Every pick
- * becomes a place that the engine snaps to its road graph; the sheet never routes anything itself.
+ * Trip search, opened from the search card: a From input above a To input. It searches offline over
+ * the Andheri places and roads and the cities and towns from Amritsar to Ambala; the start can also
+ * be the phone's position. Both ends must be on the same map (Andheri, or the corridor): picking a
+ * place on the other map empties the other field, so the pair is always routable. The sheet never
+ * routes anything itself: setTripPlaces hands the pair to the engine.
  */
 export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function DestinationSheet({ onChosen, onDismiss }, ref) {
   const tc = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const scenario = useScenario((s) => s.scenario);
-  const graphFile = useScenario((s) => s.graphFile);
   const originId = useTrip((s) => s.originId);
   const destinationId = useTrip((s) => s.destinationId);
   const canEditFrom = useTrip((s) => s.mode === 'planning');
   const [field, setField] = useState<PlaceRole>('to');
-  const [query, setQuery] = useState('');
+  const [draft, setDraft] = useState<Draft>(FRESH);
+  const [texts, setTexts] = useState(NO_TEXT);
   const [notice, setNotice] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
-  const deferred = useDeferredValue(query);
+  const fromRef = useRef<TextInputInstance>(null);
+  const toRef = useRef<TextInputInstance>(null);
 
-  const origin = placeById(scenario, originId);
-  const dest = placeById(scenario, destinationId);
-  const entries = useMemo(() => buildGazetteer(graphFile, scenario.places), [graphFile, scenario.places]);
-  const near = (field === 'from' ? dest : origin)?.point ?? null;
-  const results = useMemo(() => searchEntries(entries, deferred, near), [entries, deferred, near]);
-  const selectedId = field === 'from' ? originId : destinationId;
+  const fromPlace = draft.from === undefined ? placeById(scenario, originId) : draft.from;
+  const toPlace = draft.to === undefined ? placeById(scenario, destinationId) : draft.to;
+  const placeOf = (r: PlaceRole) => (r === 'from' ? fromPlace : toPlace);
+
+  const query = texts[field] ?? '';
+  const deferred = useDeferredValue(query);
   const searching = deferred.trim().length > 0;
+  // Andheri roads and places, plus the corridor's cities and towns: one list whatever map is showing.
+  const entries = useMemo(() => buildGazetteer(graphForRegion('andheri'), scenario.places, northPlaces()), [scenario.places]);
+  const near = placeOf(other(field))?.point ?? null;
+  const results = useMemo(() => searchEntries(entries, deferred, near), [entries, deferred, near]);
+  const selectedId = placeOf(field)?.id;
 
   const backdrop = useCallback(
     (p: BottomSheetBackdropProps) => <BottomSheetBackdrop {...p} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />,
     [],
   );
 
-  const apply = useCallback(
-    (role: PlaceRole, place: Place) => {
-      const result = choosePlace(role, place);
-      if (result === 'ok') {
-        setNotice(null);
-        onChosen();
-      } else {
-        setNotice(t(NOTICE[result]));
-      }
-    },
-    [onChosen],
-  );
+  const focus = (r: PlaceRole) => setTimeout(() => (r === 'from' ? fromRef : toRef).current?.focus(), 60);
 
-  const locateMe = useCallback(async () => {
+  const finish = (from: Place, to: Place) => {
+    // En route only the destination can change (the vehicle is the start).
+    const result = canEditFrom ? setTripPlaces(from, to) : choosePlace('to', to);
+    if (result === 'ok') {
+      setNotice(null);
+      onChosen();
+    } else {
+      setNotice(t(NOTICE[result]));
+    }
+  };
+
+  const pick = (role: PlaceRole, place: Place) => {
+    const region = regionOfPoint(place.point);
+    if (!region) {
+      setNotice(t(NOTICE.outside));
+      return;
+    }
+    const o = other(role);
+    const otherPlace = placeOf(o);
+    if (!canEditFrom) {
+      finish(placeById(scenario, originId) ?? place, place);
+      return;
+    }
+    const otherRegion = otherPlace ? regionOfPoint(otherPlace.point) : null;
+    if (otherPlace && otherRegion && otherRegion !== region) {
+      // The other end is on another map: it has to be chosen again, in this area.
+      setDraft((d) => ({ ...d, [role]: place, [o]: null }));
+      setTexts((x) => ({ ...x, [role]: null, [o]: '' }));
+      setNotice(t(o === 'from' ? 'tripPickOtherFrom' : 'tripPickOtherTo'));
+      setField(o);
+      focus(o);
+      return;
+    }
+    setDraft((d) => ({ ...d, [role]: place }));
+    setTexts((x) => ({ ...x, [role]: null }));
+    setNotice(null);
+    if (otherPlace) {
+      finish(role === 'from' ? place : otherPlace, role === 'to' ? place : otherPlace);
+    } else {
+      setField(o);
+      focus(o);
+    }
+  };
+
+  const locateMe = async () => {
     setLocating(true);
     setNotice(null);
     const r = await resolveMyLocation();
     setLocating(false);
-    if (r.ok) apply('from', r.place);
-    else setNotice(t(r.reason === 'denied' ? 'myLocationDenied' : r.reason === 'outside' ? 'myLocationOutside' : 'myLocationFailed'));
-  }, [apply]);
-
-  const pickField = (role: PlaceRole) => {
-    if (role === 'from' && !canEditFrom) {
-      setNotice(t('startLockedEnRoute'));
+    if (!r.ok) {
+      setNotice(t(r.reason === 'denied' ? 'myLocationDenied' : r.reason === 'outside' ? 'myLocationOutside' : 'myLocationFailed'));
       return;
     }
+    pick('from', r.place);
+    // An approximate start is still used: say so in a toast, as the sheet may close.
+    if (r.approximate) {
+      useToast.getState().show(
+        useUi.getState().locationPermission === 'approximate' ? t('myLocationApproximatePermission') : t('myLocationApproximate', { m: Math.round(r.accuracyM ?? 0) }),
+        'warn',
+      );
+    }
+  };
+
+  const onChangeText = (role: PlaceRole, value: string) => {
+    setTexts((x) => ({ ...x, [role]: value }));
+    setDraft((d) => ({ ...d, [role]: null }));
     setNotice(null);
-    setQuery('');
+  };
+
+  const clear = (role: PlaceRole) => {
+    onChangeText(role, '');
+    focus(role);
+  };
+
+  const focusField = (role: PlaceRole) => {
+    if (role === 'from' && !canEditFrom) {
+      setNotice(t('startLockedEnRoute'));
+      fromRef.current?.blur();
+      return;
+    }
     setField(role);
+  };
+
+  const swap = () => {
+    if (!canEditFrom) return;
+    const a = fromPlace;
+    const b = toPlace;
+    setDraft({ from: b, to: a });
+    setTexts(NO_TEXT);
+    setNotice(null);
+    if (a && b) finish(b, a);
   };
 
   const reset = () => {
     setField('to');
-    setQuery('');
+    setDraft(FRESH);
+    setTexts(NO_TEXT);
     setNotice(null);
     setLocating(false);
     onDismiss();
@@ -98,10 +199,11 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
   const renderItem = ({ item }: { item: SearchEntry }) => {
     const selected = item.id === selectedId;
     const Icon = KIND_ICON[item.kind];
-    const sub = item.subtitle || t('placeRoad');
+    const labelKey = KIND_LABEL[item.kind];
+    const sub = item.subtitle || t(labelKey ?? 'placeRoad');
     return (
       <Pressable
-        onPress={() => apply(field, entryToPlace(item, scenario.places))}
+        onPress={() => pick(field, entryToPlace(item, scenario.places))}
         accessibilityRole="button"
         accessibilityLabel={`${item.name}. ${sub}`}
         accessibilityState={{ selected }}
@@ -124,35 +226,71 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
     );
   };
 
+  const inputRow = (role: PlaceRole) => {
+    const place = placeOf(role);
+    const active = field === role;
+    const locked = role === 'from' && !canEditFrom;
+    const label = t(role === 'from' ? 'fromEyebrow' : 'destinationEyebrow');
+    const placeholder = t(role === 'from' ? 'searchFromPlaceholder' : 'searchToPlaceholder');
+    const value = texts[role] ?? place?.name ?? '';
+    const Icon = role === 'from' ? CircleDot : MapPin;
+    return (
+      <View style={[styles.inputRow, active && styles.inputRowActive, locked && styles.locked]} testID={`field-${role}`}>
+        <Icon size={18} color={role === 'from' ? tc.accentInk : tc.dangerInk} strokeWidth={2.4} />
+        <View style={styles.flex}>
+          <AppText variant="label" tone="muted">
+            {label}
+          </AppText>
+          <BottomSheetTextInput
+            ref={(role === 'from' ? fromRef : toRef) as never}
+            value={value}
+            onChangeText={(v: string) => onChangeText(role, v)}
+            onFocus={() => focusField(role)}
+            placeholder={placeholder}
+            placeholderTextColor={tc.inkMuted}
+            style={styles.input}
+            autoCorrect={false}
+            autoCapitalize="none"
+            selectTextOnFocus
+            // A field that is not being edited shows the start of its text, not wherever it was scrolled to.
+            selection={active ? undefined : { start: 0, end: 0 }}
+            returnKeyType="search"
+            maxLength={80}
+            editable={!locked}
+            accessibilityLabel={`${label}: ${placeholder}`}
+            testID={role === 'from' ? 'place-from-input' : 'place-search-input'}
+          />
+        </View>
+        {value && !locked ? (
+          <Pressable onPress={() => clear(role)} hitSlop={spacing.sm} accessibilityRole="button" accessibilityLabel={t('searchClear')}>
+            <X size={18} color={tc.inkMuted} />
+          </Pressable>
+        ) : null}
+      </View>
+    );
+  };
+
   const header = (
     <View style={styles.header}>
       <AppText variant="label" tone="muted" accessibilityRole="header" style={styles.title}>
         {t('planTripTitle')}
       </AppText>
-      <View style={styles.fields}>
-        <FieldRow role="from" active={field === 'from'} disabled={!canEditFrom} label={t('fromEyebrow')} name={origin?.name ?? t('searchFromPlaceholder')} onPress={pickField} />
-        <FieldRow role="to" active={field === 'to'} label={t('destinationEyebrow')} name={dest?.name ?? t('searchPlaceholder')} onPress={pickField} />
-      </View>
-      <View style={styles.inputWrap}>
-        <Search size={18} color={tc.inkMuted} />
-        <BottomSheetTextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t(field === 'from' ? 'searchFromPlaceholder' : 'searchToPlaceholder')}
-          placeholderTextColor={tc.inkMuted}
-          style={styles.input}
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-          maxLength={80}
-          accessibilityLabel={t(field === 'from' ? 'searchFromPlaceholder' : 'searchToPlaceholder')}
-          testID="place-search-input"
-        />
-        {query ? (
-          <Pressable onPress={() => setQuery('')} hitSlop={spacing.sm} accessibilityRole="button" accessibilityLabel={t('searchClear')}>
-            <X size={18} color={tc.inkMuted} />
-          </Pressable>
-        ) : null}
+      <View style={styles.fieldsRow}>
+        <View style={[styles.card, styles.flex]}>
+          {inputRow('from')}
+          <View style={styles.cardDivider} />
+          {inputRow('to')}
+        </View>
+        <Pressable
+          onPress={swap}
+          disabled={!canEditFrom}
+          accessibilityRole="button"
+          accessibilityLabel={t('swapPlaces')}
+          style={[styles.swap, !canEditFrom && styles.locked]}
+          testID="swap-places"
+        >
+          <ArrowUpDown size={18} color={tc.ink} strokeWidth={2.4} />
+        </Pressable>
       </View>
       {field === 'from' && !searching ? (
         <Pressable onPress={locateMe} disabled={locating} accessibilityRole="button" accessibilityLabel={t('myLocation')} style={styles.row} testID="use-my-location">
@@ -168,7 +306,7 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
         </Pressable>
       ) : null}
       {notice ? (
-        <AppText variant="meta" tone="muted" accessibilityLiveRegion="polite" style={styles.notice}>
+        <AppText variant="meta" tone="muted" accessibilityLiveRegion="polite" style={styles.notice} testID="search-notice">
           {notice}
         </AppText>
       ) : null}
@@ -187,6 +325,10 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
+      onChange={(index) => {
+        // Opens ready to type the destination.
+        if (index >= 0 && field === 'to') focus('to');
+      }}
       onDismiss={reset}
       backdropComponent={backdrop}
       topInset={insets.top}
@@ -220,59 +362,23 @@ function Separator() {
   return <View style={{ height: spacing.xs }} />;
 }
 
-function FieldRow({ role, active, disabled, label, name, onPress }: { role: PlaceRole; active: boolean; disabled?: boolean; label: string; name: string; onPress: (r: PlaceRole) => void }) {
-  const styles = useStyles();
-  return (
-    <Pressable
-      onPress={() => onPress(role)}
-      accessibilityRole="button"
-      accessibilityLabel={`${label}: ${name}`}
-      accessibilityState={{ selected: active, disabled: !!disabled }}
-      style={[styles.field, active && styles.fieldActive, disabled && styles.fieldDisabled]}
-      testID={`field-${role}`}
-    >
-      <AppText variant="label" tone="muted">
-        {label}
-      </AppText>
-      <AppText variant="body" style={styles.name} numberOfLines={1}>
-        {name}
-      </AppText>
-    </Pressable>
-  );
-}
-
 const useStyles = createStyles((tc) => ({
   bg: { backgroundColor: tc.panel, borderRadius: radius.sheet },
   handle: { backgroundColor: tc.panelLine },
   content: { paddingHorizontal: spacing.md },
   header: { gap: spacing.xs, paddingBottom: spacing.xs },
-  flex: { flex: 1 },
+  flex: { flex: 1, minWidth: 0 },
   title: { marginBottom: spacing.xxs },
   section: { marginTop: spacing.xs },
   name: { fontFamily: fontFamily.semibold },
-  fields: { flexDirection: 'row', gap: spacing.xs },
-  field: {
-    flex: 1,
-    minHeight: layout.minTouch + spacing.xs,
-    justifyContent: 'center',
-    padding: spacing.sm,
-    borderRadius: radius.card,
-    backgroundColor: tc.panelRaised,
-    borderWidth: hairline,
-    borderColor: tc.panelHairline,
-  },
-  fieldActive: { borderColor: tc.ink, borderWidth: 1.5 },
-  fieldDisabled: { opacity: 0.55 },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    minHeight: layout.minTouch,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.card,
-    backgroundColor: tc.panelSunken,
-  },
-  input: { ...text.body, flex: 1, color: tc.ink, paddingVertical: spacing.xs },
+  fieldsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  card: { borderRadius: radius.card, backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline, overflow: 'hidden' },
+  cardDivider: { height: hairline, backgroundColor: tc.panelHairline, marginLeft: spacing.xl + spacing.sm },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: layout.minTouch + spacing.md, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  inputRowActive: { backgroundColor: tc.panel, borderLeftWidth: 3, borderLeftColor: tc.accent, paddingLeft: spacing.sm - 3 },
+  locked: { opacity: 0.55 },
+  input: { ...text.body, color: tc.ink, paddingVertical: spacing.xxs, paddingHorizontal: 0, fontFamily: fontFamily.semibold },
+  swap: { width: layout.minTouch, height: layout.minTouch, borderRadius: radius.chip, alignItems: 'center', justifyContent: 'center', backgroundColor: tc.panelRaised, borderWidth: hairline, borderColor: tc.panelHairline },
   notice: { paddingHorizontal: spacing.xxs },
   empty: { paddingVertical: spacing.md, textAlign: 'center' },
   coverage: { paddingTop: spacing.md, textAlign: 'center' },
