@@ -12,8 +12,8 @@ import {
 } from '@vighnaway/contracts';
 import { ApiException } from '../common/errors';
 import { APP_CONFIG, type AppConfig } from '../config';
-import { saltedHash } from '../common/hash';
-import { constantTimeEqual } from '../common/hash';
+import { constantTimeEqual, saltedHash } from '../common/hash';
+import { plainText } from '../common/validation';
 import { generateOtpCode, generateSessionToken, hashOtp, hashSessionToken, newId } from './auth.crypto';
 import { AUTH_REPO, type AuthContext, type AuthRepo, MAILER, type Mailer, type UserEntity } from './auth.types';
 
@@ -112,7 +112,7 @@ export class AuthService {
         id: newId(),
         email: body.email,
         role: isBootstrapAdmin ? 'admin' : 'citizen',
-        displayName: body.displayName ?? null,
+        displayName: plainText(body.displayName),
         disabled: false,
         createdAt: now,
         lastLoginAt: null,

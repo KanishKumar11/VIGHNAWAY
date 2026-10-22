@@ -112,7 +112,7 @@ export const SCORING_RULES = {
   ),
   candidates: r(
     { k: 5, overlapLimit: 0.8, penaltyRounds: 4, penaltyFactor: 1.6, maxDisplayed: 4 },
-    'Candidates come from Yen k-shortest paths (k = 5) plus edge-penalty alternatives and the best path around current hazards. A candidate sharing more than 80% of its length with a better one is dropped. Up to 4 routes are shown.',
+    'Candidates come from Yen k-shortest paths (k = 5) plus edge-penalty alternatives and the best path around current hazards. A candidate sharing more than 80% of its length with a better one is dropped, and so is one whose title is the same as a route already shown. Up to 4 routes are shown.',
   ),
   reversal: r(
     'Turn back only where it is safe to do so',

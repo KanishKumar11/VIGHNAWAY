@@ -10,9 +10,9 @@ Last updated 2026-10-22 (evening). Details are in docs/TASKS.md; the plan is in 
 
 | | |
 | --- | --- |
-| **Just finished** | P0-2 structured, localisable engine text (a–d); P1-1 counterfactuals (a–c, screenshots pending); P1-2 decision receipts (a–c, Playwright check pending) |
+| **Just finished** | P0-4.d scenario on the real graph; P1-4.d web question page; P1-5.b map coverage layer; P1-6 scoreboard; P2-1 after-action report (all with vitest; screenshots in docs/design/p1 where captured) |
 | **In progress** | Verifying the API changes (written and typechecked, not run: no Postgres on the dev machine) |
-| **Next** | P1-4 ask the crowd, P1-5 evidence coverage map, then P0-6a Docker image, P0-5a–c runbook, drill and recording |
+| **Next** | Redeploy and run the API checks; P1-3.d two-browser end-to-end; P0-5b–c drill and recording (needs the API); P0-3 device run; P1-6.c slide |
 | **Gate in view** | G-P0 sandbox |
 
 ## Real graph landed (P0-4 data merged by the Data and sim workstream); scenario re-tuned (P0-4.d)
@@ -100,21 +100,22 @@ The real-graph hashes are listed above under "Real graph landed".
 
 Baseline run on 2026-10-22, `pnpm test`: **381 passing, 0 failing** (before the real graph merged).
 
-Latest per-package runs, evening of 2026-10-22: engine **72/72** (frozen fixture), contracts 11/11, console 91/91 and phone
-77/77 on the fixture data, phone engineText 7/7 on the real graph. On the real graph the demo-tuning tests fail as listed
-in "Real graph landed". `tsc` and `eslint` are clean for engine, contracts, console and phone.
+Latest per-package runs, night of 2026-10-22, on the real graph: engine **87/87** (the 200 ms perf test can flake when the
+machine is busy), contracts 16/16, scenario-data 11/11, console **143/143** (new: ask 9, afterAction 8, coverageLayer 4),
+phone 110/110 (jest timeout raised to 30 s for the 10 MB graph). API: tests updated to the real graph, **not run**
+(no Postgres here). `tsc` and `eslint` are clean for engine, scenario-data, console and phone; API `tsc` was clean when last run.
 
 | Package | Tests |
 | --- | --- |
 | tokens | 104 |
-| contracts | 11 |
-| scenario-data | 5 |
-| engine | 48 |
-| API | 45 |
-| console | 91 |
-| mobile | 77 |
+| contracts | 16 |
+| scenario-data | 11 |
+| engine | 87 |
+| API | not run (45 existed before the real graph) |
+| console | 143 |
+| mobile | 110 |
 
-`pnpm typecheck` and `pnpm lint` are clean.
+`pnpm typecheck` and `pnpm lint` were clean for the packages above; run them again after pulling teammates' changes (accounts are in flight).
 
 ## Remaining P0
 

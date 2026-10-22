@@ -77,7 +77,7 @@ function Route({ label, fig }: { label: string; fig: RouteFigure | null }) {
             {routeLabel(fig)} · {formatDuration(fig.etaS)}
           </p>
           <p className="text-meta text-ink-on-shell-muted">
-            {t.route.confidenceLabel(t.route.confidence[fig.confidence])} · {t.afterAction.hazards(fig.hazards)}
+            {fig.blocks > 0 ? t.map.legend.blocked : t.route.confidenceLabel(t.route.confidence[fig.confidence])} · {t.afterAction.hazards(fig.hazards)}
             {fig.blocks > 0 ? ` · ${t.afterAction.blocks(fig.blocks)}` : ''}
           </p>
         </>

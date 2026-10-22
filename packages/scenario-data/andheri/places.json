@@ -1,5 +1,17 @@
 [
  {
+  "id": "origin-ramesh-nagar",
+  "name": "Ramesh Nagar, Andheri West",
+  "kind": "origin",
+  "point": {
+   "lat": 19.1322,
+   "lng": 72.8416
+  },
+  "nodeId": "1936580491",
+  "side": "west",
+  "address": "Near Four Bungalows, Andheri West"
+ },
+ {
   "id": "origin-marol",
   "name": "Marol Naka, Andheri East",
   "kind": "origin",

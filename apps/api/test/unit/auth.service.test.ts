@@ -65,6 +65,11 @@ describe('email one-time code', () => {
     expect(stored.tokenHash).not.toContain(res.token);
   });
 
+  it('strips control characters from the display name', async () => {
+    const res = await signIn(s, 'asha@example.com', 'mobile', 'As\u0000ha\u0007');
+    expect(res.user.displayName).toBe('Asha');
+  });
+
   it('a code works once', async () => {
     await s.auth.requestOtp('asha@example.com', 'mobile', null);
     const { code } = s.mailer.last();

@@ -59,7 +59,6 @@ function load(): Persisted | null {
 
 const initial = load();
 const empty = { token: null, expiresAt: null, user: null, server: null } as const;
-let inflight: Promise<void> | null = null;
 
 export const useAuth = create<AuthState>()((set, get) => ({
   ...(initial ?? empty),
@@ -72,35 +71,30 @@ export const useAuth = create<AuthState>()((set, get) => ({
     storage.remove(KEYS.auth);
     set({ ...empty });
   },
-  hydrate: () => {
-    if (inflight) return inflight;
-    inflight = (async () => {
-      const { token, expiresAt, server } = get();
-      if (!token) return;
-      // Expired, or issued by another server than the one in Settings: the session is not usable here.
-      if (isExpired(expiresAt) || server !== apiUrl()) {
-        get().clearLocal();
+  // Concurrent calls are harmless: each one checks the token is still the same before it writes.
+  hydrate: async () => {
+    const { token, expiresAt, server } = get();
+    if (!token) return;
+    // Expired, or issued by another server than the one in Settings: the session is not usable here.
+    if (isExpired(expiresAt) || server !== apiUrl()) {
+      get().clearLocal();
+      return;
+    }
+    if (useConnection.getState().net === 'offline') return;
+    try {
+      const me = await api.authMe(server, token);
+      if (get().token !== token) return; // signed out or replaced while waiting
+      if (isStaffRole(me.user.role)) {
+        get().clearLocal(); // the phone app is for citizens
         return;
       }
-      if (useConnection.getState().net === 'offline') return;
-      try {
-        const me = await api.authMe(server, token);
-        if (get().token !== token) return; // signed out or replaced while waiting
-        if (isStaffRole(me.user.role)) {
-          get().clearLocal(); // the phone app is for citizens
-          return;
-        }
-        const next: Persisted = { token, expiresAt: expiresAt as string, user: me.user, server: server as string };
-        storage.setJSON(KEYS.auth, next);
-        set({ user: me.user });
-      } catch (e) {
-        // Only a 401 means the session is gone. A network failure or a 5xx never signs anyone out.
-        if (e instanceof ApiRequestError && e.status === 401 && get().token === token) get().clearLocal();
-      }
-    })().finally(() => {
-      inflight = null;
-    });
-    return inflight;
+      const next: Persisted = { token, expiresAt: expiresAt as string, user: me.user, server: server as string };
+      storage.setJSON(KEYS.auth, next);
+      set({ user: me.user });
+    } catch (e) {
+      // Only a 401 means the session is gone. A network failure or a 5xx never signs anyone out.
+      if (e instanceof ApiRequestError && e.status === 401 && get().token === token) get().clearLocal();
+    }
   },
   signOut: async () => {
     const { token, server } = get();
