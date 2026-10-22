@@ -21,7 +21,7 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
   app.enableCors({
     origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) =>
       cb(null, isOriginAllowed(config, origin)),
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     maxAge: 600,
   });
