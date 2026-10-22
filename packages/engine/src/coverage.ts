@@ -76,8 +76,6 @@ export function evidenceCoverage(graph: Graph, observations: readonly Observatio
   const out: RoadCoverage[] = [];
   for (const road of roads.values()) {
     const edgeIds = [...road.edges].sort();
-    // A report on either direction of a two-way road covers it: twins are listed under both ids by the API,
-    // but a client that holds only one id still sees the road as observed.
     const times = edgeIds.map((id) => latest.get(id)).filter((t): t is number => t !== undefined);
     const last = times.length ? Math.max(...times) : null;
     const oldest = times.length ? Math.min(...times) : null;
