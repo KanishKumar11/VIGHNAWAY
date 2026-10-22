@@ -10,10 +10,16 @@ import { TEST_DATABASE_URL, TEST_ORIGIN, TEST_TOKEN } from './env';
 export const SID = andheriScenario.id;
 export const AUTH = { Authorization: `Bearer ${TEST_TOKEN}` };
 
-/** Points on the fixture graph (from the scripted scenario). */
-export const SUBWAY = { lat: 19.116357, lng: 72.846569 };
-export const NAGARDAS = { lat: 19.1254, lng: 72.854127 };
-export const HOSPITAL_ROAD = { lat: 19.132138, lng: 72.825035 };
+/**
+ * Points on the real graph (from the scripted scenario). Names kept from the schematic fixture:
+ * SUBWAY is the Andheri Subway underpass, NAGARDAS the congested G K Gokhale Flyover, HOSPITAL_ROAD
+ * the single unnamed road into Holy Spirit Hospital.
+ */
+export const SUBWAY = { lat: 19.12379, lng: 72.85037 };
+export const NAGARDAS = { lat: 19.11463, lng: 72.85175 };
+export const HOSPITAL_ROAD = { lat: 19.1249081, lng: 72.8669246 };
+/** More than 100 m from any road. */
+export const OFF_ROAD = { lat: 19.105, lng: 72.8555 };
 
 export interface TestApp {
   app: NestExpressApplication;

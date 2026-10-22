@@ -7,7 +7,7 @@
  "timezone": "Asia/Kolkata",
  "clockStartsAt": "2026-01-01T00:00:00+05:30",
  "simSecondsPerRealSecond": 1,
- "graphVersion": "osm-8bb15d429936",
+ "graphVersion": "osm-7efdf89a8094",
  "alerts": [],
  "hasAlertInformation": false,
  "places": [

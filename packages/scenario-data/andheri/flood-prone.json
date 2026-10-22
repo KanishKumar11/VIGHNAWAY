@@ -1,7 +1,20 @@
 {
- "description": "Way ids treated as flood-prone in addition to tunnels and negative layers under the railway. wayIds: schematic fixture ways. osmWayIds: hand-maintained OSM way ids of named low-lying roads, read by scripts/extract_graph.py (fill in after checking the map).",
+ "description": "Way ids treated as flood-prone in addition to tunnels and negative layers under the railway. wayIds: schematic fixture ways. osmWayIds: hand-maintained OSM way ids, read by scripts/extract_graph.py and applied to the committed graph by scripts/apply_flood_prone.py. osmWayOverrides: hand-set fields for those ways. Assumption, not a measurement: the road under the Andheri railway line (OSM ways 1111987532 and 1111987533, unnamed in OSM) is the Andheri Subway, a well-known monsoon waterlogging spot, so it is named and marked as an underpass here. Confirm against a municipal flood-prone-spot list before any live use.",
  "wayIds": [
   "fx-way-101"
  ],
- "osmWayIds": []
+ "osmWayIds": [
+  "1111987532",
+  "1111987533"
+ ],
+ "osmWayOverrides": {
+  "1111987532": {
+   "name": "Andheri Subway",
+   "tunnel": true
+  },
+  "1111987533": {
+   "name": "Andheri Subway",
+   "tunnel": true
+  }
+ }
 }

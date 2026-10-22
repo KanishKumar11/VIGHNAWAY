@@ -250,6 +250,8 @@ function planCore(
     // Prefer routes through different crossings: two routes over the same crossing read as one.
     const sig = crossingSignature(ev);
     if (!force && sig && shown.some((s) => crossingSignature(s) === sig)) return;
+    // Two routes with the same title cannot be told apart in the list, so the later one is dropped.
+    if (!force && shown.some((s) => s.name === ev.name)) return;
     shown.push(ev);
   };
   pushShown(recommended, true);

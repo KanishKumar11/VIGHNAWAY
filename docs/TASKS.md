@@ -480,8 +480,9 @@ Priority P1 · Status done on the phone (jest test/ask.test.tsx, 8 tests: gating
 - **Device tests:** blocked (P0-3).
 
 ### P1-4.d Web question page for the stationary QR flow
-Priority P1 · Status todo · Effort 1 h · Depends P1-4.b
-- **Behaviour:** `/report?ask={road}` shows the same question on the public page. This is the live-demo path.
+Priority P1 · Status page built (console vitest 9: link parsing, report mapping, Yes, Not sure, 409, network error, Hindi); the coverage-layer Playwright check needs the API deployed and P1-5 map layer · Effort 1 h · Depends P1-4.b
+- **Behaviour:** `/report?scenario={id}&ask={lat},{lng}&road={name}` shows the same question on the public page (a point in the demo area is required; the road name is plain text, capped at 80 characters). Yes files an Unverified flood (no depth), No files Road clear, Not sure files nothing; all with origin `prompt`, never personally observed. A 409 (already answered this road) is thanked, not shown as an error. This is the live-demo path.
+- **Files:** apps/console/src/lib/ask.ts, components/report/AskForm.tsx, app/report/page.tsx.
 - **Acceptance:** A Playwright answer of Yes then No updates the coverage layer from "No reports" to "Fresh".
 
 ## P1-2 Verifiable decision receipt (decision D5)

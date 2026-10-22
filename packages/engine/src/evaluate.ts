@@ -61,6 +61,7 @@ export function evaluate(
   let positionM = 0;
   let floodProneEdgeCount = 0;
   const dataGaps: DataGap[] = [];
+  let gapRun: { covered: boolean; gap: DataGap | null } | null = null;
   const crossings: Crossing[] = [];
   const roadLength = new Map<string, number>();
   const roadOrder: string[] = [];
@@ -84,14 +85,28 @@ export function evaluate(
 
     if (e.floodProne) {
       floodProneEdgeCount++;
-      if (ctx.rainAlertActive && !edgeCovered(graph, e, index, ctx)) {
-        dataGaps.push({
-          edgeId: e.id,
-          roadName: e.name,
-          positionM: Math.round(positionM),
-          penaltyS: SCORING_RULES.dataGap.value.penaltyS,
-        });
+      if (ctx.rainAlertActive) {
+        // One gap per continuous stretch: real roads are split into many short edges, and a stretch
+        // counts as covered when any of its edges has a recent report.
+        if (!gapRun) gapRun = { covered: false, gap: null };
+        if (!gapRun.covered) {
+          if (edgeCovered(graph, e, index, ctx)) {
+            gapRun.covered = true;
+            if (gapRun.gap) dataGaps.splice(dataGaps.indexOf(gapRun.gap), 1);
+            gapRun.gap = null;
+          } else if (!gapRun.gap) {
+            gapRun.gap = {
+              edgeId: e.id,
+              roadName: e.name,
+              positionM: Math.round(positionM),
+              penaltyS: SCORING_RULES.dataGap.value.penaltyS,
+            };
+            dataGaps.push(gapRun.gap);
+          }
+        }
       }
+    } else {
+      gapRun = null;
     }
 
     const kind = crossingKind(e);
