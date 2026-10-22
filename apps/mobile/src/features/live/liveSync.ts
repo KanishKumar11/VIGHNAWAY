@@ -249,7 +249,7 @@ function emitTripPosition(): void {
   const trip = useTrip.getState();
   if (!trip.vehicle || trip.mode === 'planning') return;
   // The console only knows the scenario's own places; a searched start or destination stays on the phone.
-  if (isCustomPlaceId(trip.originId) || isCustomPlaceId(trip.destinationId)) return;
+  if (!trip.destinationId || isCustomPlaceId(trip.originId) || isCustomPlaceId(trip.destinationId)) return;
   const { graphFile, scenario } = useScenario.getState();
   const profile = useSettings.getState().profile;
   const graph = getGraph(graphFile, profile);

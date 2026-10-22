@@ -8,6 +8,7 @@ import { googleMapsConfigured, MAP_READY_TIMEOUT_MS } from '@/config/env';
 import { t } from '@/i18n/en';
 import { buildIncidentIndex } from '@vighnaway/engine';
 import { evalContext, getGraph, routeCoords, type MapCoord } from '@/lib/engine';
+import { lastKnownPosition } from '@/features/search/startHere';
 import { checkLocationPermission } from '@/lib/location';
 import { haptic } from '@/lib/feedback';
 import { isReduceMotion } from '@/lib/motion';
@@ -30,6 +31,9 @@ const NAV_PITCH = 50;
 const FOLLOW_FLY_MS = 900;
 const FOLLOW_GLIDE_MS = 900;
 const FOLLOW_MIN_MS = 1000;
+/** The map opens this wide (degrees, about 5 km) around the phone's last position. */
+const LAST_FIX_DELTA = 0.05;
+const CAMERA_FLY_MS = 700;
 
 interface Props {
   padding: EdgePadding;
@@ -142,6 +146,9 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   }, [failure, mapStatus]);
 
   const initialRegion = useMemo<Region>(() => {
+    // Live mode opens where the phone last was (like Google Maps), not on the demo area.
+    const here = liveMode ? lastKnownPosition() : null;
+    if (here) return { latitude: here.lat, longitude: here.lng, latitudeDelta: LAST_FIX_DELTA, longitudeDelta: LAST_FIX_DELTA };
     const b = graphFile.bbox;
     return {
       latitude: (b.north + b.south) / 2,
@@ -149,7 +156,19 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
       latitudeDelta: (b.north - b.south) * 1.3,
       longitudeDelta: (b.east - b.west) * 1.3,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graphFile]);
+
+  // Fly to a position the app asked for: where the phone is when it is found.
+  const cameraRequest = useUi((s) => s.cameraRequest);
+  useEffect(() => {
+    if (!cameraRequest || !mapRef.current || mapStatus !== 'ready') return;
+    mapRef.current.animateCamera(
+      { center: { latitude: cameraRequest.center.lat, longitude: cameraRequest.center.lng }, zoom: cameraRequest.zoom, heading: 0, pitch: 0 },
+      { duration: isReduceMotion() ? 0 : CAMERA_FLY_MS },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraRequest?.nonce, mapStatus]);
 
   useEffect(() => {
     if (liveMode) void checkLocationPermission();

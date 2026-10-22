@@ -1,13 +1,11 @@
 import type { GraphFile, LatLng, Place } from '@vighnaway/contracts';
 import { snapToNode } from '@vighnaway/engine';
-import { choosePlace } from '@/features/trip/planner';
 import { t } from '@/i18n/en';
 import { getGraph } from '@/lib/engine';
 import { accurateFix, checkLocationPermission, requestLocationPermission } from '@/lib/location';
 import { graphForRegion, regionOfPoint } from '@/regions';
-import { isCustomPlaceId, registerCustomPlace } from '@/stores/scenario';
+import { registerCustomPlace } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
-import { useTrip } from '@/stores/trip';
 
 /** A position this far outside the graph's bounding box (about 330 m) still counts as inside. */
 const BBOX_MARGIN_DEG = 0.003;
@@ -49,23 +47,4 @@ export async function resolveMyLocation({ ask = true }: { ask?: boolean } = {}):
   } catch {
     return { ok: false, reason: 'unavailable' };
   }
-}
-
-let autoTried = false;
-
-/**
- * Live mode starts from where the phone is: once per session, when location is already allowed
- * (never prompts), the trip is still planning from the scenario's own start, and the phone is
- * inside the map area with a usable fix.
- */
-export async function startFromPhoneIfLive(): Promise<void> {
-  if (autoTried || useSettings.getState().dataMode !== 'live') return;
-  autoTried = true;
-  const trip = useTrip.getState();
-  if (trip.mode !== 'planning' || isCustomPlaceId(trip.originId)) return;
-  const r = await resolveMyLocation({ ask: false });
-  if (!r.ok || r.approximate) return;
-  const now = useTrip.getState();
-  if (now.mode !== 'planning' || isCustomPlaceId(now.originId)) return;
-  choosePlace('from', r.place);
 }
