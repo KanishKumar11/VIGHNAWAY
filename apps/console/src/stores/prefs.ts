@@ -12,6 +12,10 @@ interface Prefs {
   presenter: boolean;
   /** Map stage shows the text list of routes and incidents instead of the map. */
   listView: boolean;
+  /** Incident queue column folded away to give the map more room. */
+  queueHidden: boolean;
+  /** Decision column folded away to give the map more room. */
+  tripHidden: boolean;
   /** Map shows flood-prone roads coloured by how recent their latest report is (P1-5). Per session. */
   coverage: boolean;
 }
@@ -22,8 +26,16 @@ interface PrefsStore extends Prefs {
   toggle(key: keyof Prefs): void;
 }
 
-const DEFAULTS: Prefs = { largeText: false, speech: false, presenter: false, listView: false, coverage: false };
-/** Remembered on this device; presenter mode and the list view are per session. */
+const DEFAULTS: Prefs = {
+  largeText: false,
+  speech: false,
+  presenter: false,
+  listView: false,
+  queueHidden: false,
+  tripHidden: false,
+  coverage: false,
+};
+/** Remembered on this device; presenter mode, the list view, folded columns and coverage are per session. */
 const PERSISTED: (keyof Prefs)[] = ['largeText', 'speech'];
 
 function persist(p: Prefs) {
@@ -64,14 +76,26 @@ export const usePrefs = create<PrefsStore>()((set, get) => ({
   },
 }));
 
-const pick = (s: PrefsStore): Prefs => ({ largeText: s.largeText, speech: s.speech, presenter: s.presenter, listView: s.listView, coverage: s.coverage });
+const pick = (s: PrefsStore): Prefs => ({
+  largeText: s.largeText,
+  speech: s.speech,
+  presenter: s.presenter,
+  listView: s.listView,
+  queueHidden: s.queueHidden,
+  tripHidden: s.tripHidden,
+  coverage: s.coverage,
+});
 
 /** P toggles presenter mode, Escape leaves it; ignored while typing. Pure, for tests. */
-export function presenterKey(e: { key: string; target?: unknown; metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean }, presenter: boolean): boolean | null {
+export function presenterKey(
+  e: { key: string; target?: unknown; metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean },
+  presenter: boolean,
+): boolean | null {
   if (e.metaKey || e.ctrlKey || e.altKey) return null;
   const el = e.target as { tagName?: string; isContentEditable?: boolean } | undefined;
   const tag = el?.tagName?.toUpperCase();
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return null;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable)
+    return null;
   if (e.key === 'p' || e.key === 'P') return !presenter;
   if (e.key === 'Escape' && presenter) return false;
   return null;

@@ -156,7 +156,9 @@ phone 110/110 (jest timeout raised to 30 s for the 10 MB graph). API: tests upda
 
 See docs/limitations.md. The main ones:
 - schematic road fixture;
-- place search covers only the roads and places inside the bundled Andheri map (no street numbers, no landmarks other than the scenario places; no hosted geocoder);
+- place search covers the roads and places inside the bundled Andheri map and the cities, towns and villages along the Amritsar to Ambala corridor (no street numbers, no landmarks other than the scenario places; no hosted geocoder);
+- the Amritsar to Ambala map is roads only (motorway, trunk, primary, secondary, plus tertiary and unclassified streets around each city and town, from OpenStreetMap): real distances, but no incidents, alerts, simulation or live feed, and ETAs use typical speeds per road class, not live traffic. A start or end more than 15 km from a mapped road is refused, and a trip cannot cross between the two maps;
+- bridges, tunnels and flyovers are not extracted for the corridor, so its route strip shows none;
 - no device run;
 - translations not reviewed by native speakers;
 - device-id corroboration is a heuristic;

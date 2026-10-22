@@ -72,6 +72,8 @@ export function SignInForm({ onSignedIn, autoFocus = true }: { onSignedIn?: () =
       } else if (err.code === 'NETWORK') setError(t.operator.unreachable(API_URL));
       else if (where === 'verify' && err.code === 'UNAUTHORIZED') setError(t.account.invalidCode);
       else if (err.code === 'VALIDATION_FAILED') setError(where === 'verify' ? t.account.codeFormat : t.account.invalidEmail);
+      // The route itself is missing: the API is an older build than this app.
+      else if (err.code === 'NOT_FOUND') setError(t.account.serverOutdated);
       else setError(t.account.generic(err.message));
     } else setError(t.account.generic(err instanceof Error ? err.message : String(err)));
   }

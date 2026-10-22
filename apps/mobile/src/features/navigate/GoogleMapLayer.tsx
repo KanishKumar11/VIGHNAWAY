@@ -3,12 +3,12 @@ import { Platform, StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type EdgePadding, type MapStyleElement, type Region } from 'react-native-maps';
 import type { Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
-import { Hospital, Navigation, X } from '@/components/icons';
+import { Hospital, MapPin as PinIcon, Navigation, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { StatusRing } from '@/components/StatusRing';
 import { t } from '@/i18n/en';
-import { createStyles, lineStyle, marker, radius, spacing, type, useColors, useTheme, zIndex } from '@/theme';
-import { sliceCoords, type MapIncident, type MapLine, type MapPin } from './mapModel';
+import { createStyles, fontFamily, lineStyle, marker, radius, spacing, type, useColors, useTheme, zIndex } from '@/theme';
+import { sliceCoords, type MapIncident, type MapLine, type MapPin, type MapRouteLabel } from './mapModel';
 
 
 interface Props {
@@ -19,11 +19,20 @@ interface Props {
   pins: MapPin[];
   vehiclePin: MapPin | null;
   markers: MapIncident[];
+  /** Time bubbles on the routes (see routeLabelsFor). */
+  routeLabels?: MapRouteLabel[];
+  /** The traveller tapped a route or its bubble. */
+  onSelectRoute?: (routeId: string) => void;
   /** Google traffic layer (display only; never used for routing). */
   showsTraffic?: boolean;
+  /** The phone's own position (Google's location dot with its accuracy circle); display only. */
+  showsUserLocation?: boolean;
+  onUserLocation?: (p: { lat: number; lng: number; accuracyM: number | null }) => void;
   onReady: () => void;
   onIncidentPress: (incident: Incident) => void;
   onMapPress: () => void;
+  /** The traveller dragged the map (not a camera move the app made). */
+  onUserPan?: () => void;
   onRegionChange: (r: Region) => void;
 }
 
@@ -39,7 +48,7 @@ function useTracksViewChanges(key: string): boolean {
 }
 
 /** Above this many markers the age labels step aside, so a busy live map stays readable (the age is in the incident sheet). */
-const AGE_LABELS_MAX = 24;
+const AGE_LABELS_MAX = 8;
 
 const IncidentMarker = memo(function IncidentMarker({ item, showAge, onPress }: { item: MapIncident; showAge: boolean; onPress: (i: Incident) => void }) {
   const tc = useColors();
@@ -75,6 +84,29 @@ const IncidentMarker = memo(function IncidentMarker({ item, showAge, onPress }: 
   );
 });
 
+/** A time bubble on a route (Google Maps style): the total on the chosen route, "+6 min" on an alternative. */
+const RouteBubble = memo(function RouteBubble({ label, onPress }: { label: MapRouteLabel; onPress?: (routeId: string) => void }) {
+  const styles = useStyles();
+  const tracks = useTracksViewChanges(`${label.text}|${label.primary}`);
+  return (
+    <Marker
+      coordinate={label.coordinate}
+      anchor={{ x: 0.5, y: 0.5 }}
+      zIndex={zIndex.blockingMarker}
+      tracksViewChanges={tracks}
+      onPress={() => onPress?.(label.routeId)}
+      accessibilityLabel={label.text}
+      testID={`route-bubble-${label.primary ? 'main' : 'alt'}`}
+    >
+      <View style={[styles.bubble, label.primary ? styles.bubbleMain : styles.bubbleAlt]}>
+        <AppText variant="label" maxFontSizeMultiplier={1} style={label.primary ? styles.bubbleMainText : styles.bubbleAltText}>
+          {label.text}
+        </AppText>
+      </View>
+    </Marker>
+  );
+});
+
 const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
   const tc = useColors();
   const styles = useStyles();
@@ -103,7 +135,7 @@ const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
         </View>
       ) : pin.kind === 'destination' ? (
         <View style={styles.destination}>
-          <Hospital size={18} color={tc.ink} strokeWidth={2} />
+          {pin.hospital === false ? <PinIcon size={18} color={tc.ink} strokeWidth={2} /> : <Hospital size={18} color={tc.ink} strokeWidth={2} />}
         </View>
       ) : (
         <View style={styles.blocking}>
@@ -124,7 +156,7 @@ const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
  * Settled: drawn as runs, interrupted where the engine marks an edge blocked, with congested runs
  * overlaid by a dashed warning centreline (a static speed cue that survives a screenshot).
  */
-function LineView({ line }: { line: MapLine }) {
+function LineView({ line, onSelect }: { line: MapLine; onSelect?: (routeId: string) => void }) {
   const tc = useColors();
   const s = lineStyle(tc, line.style);
   const dash = s.dash && Platform.OS === 'android' ? [...s.dash] : undefined;
@@ -138,7 +170,16 @@ function LineView({ line }: { line: MapLine }) {
       {runs.map((coords, i) => (
         <Fragment key={`r${i}`}>
           {line.casing && s.casing ? (
-            <Polyline coordinates={coords} strokeColor={s.casing} strokeWidth={s.casingWidth} zIndex={line.zIndex} lineCap="round" lineJoin="round" />
+            <Polyline
+              coordinates={coords}
+              strokeColor={s.casing}
+              strokeWidth={s.casingWidth}
+              zIndex={line.zIndex}
+              lineCap="round"
+              lineJoin="round"
+              tappable={!!line.routeId}
+              onPress={line.routeId ? () => onSelect?.(line.routeId!) : undefined}
+            />
           ) : null}
           <Polyline
             coordinates={coords}
@@ -148,6 +189,8 @@ function LineView({ line }: { line: MapLine }) {
             zIndex={line.zIndex}
             lineCap="round"
             lineJoin="round"
+            tappable={!!line.routeId}
+            onPress={line.routeId ? () => onSelect?.(line.routeId!) : undefined}
           />
         </Fragment>
       ))}
@@ -190,18 +233,32 @@ export const GoogleMapLayer = forwardRef<MapView, Props>(function GoogleMapLayer
       showsBuildings={false}
       showsCompass={false}
       showsMyLocationButton={false}
+      showsUserLocation={!!props.showsUserLocation}
+      userLocationPriority="high"
+      userLocationUpdateInterval={1000}
+      userLocationFastestInterval={1000}
+      onUserLocationChange={(e) => {
+        const c = e.nativeEvent.coordinate;
+        if (c) props.onUserLocation?.({ lat: c.latitude, lng: c.longitude, accuracyM: c.accuracy ?? null });
+      }}
       moveOnMarkerPress={false}
       onMapReady={props.onReady}
       onPress={props.onMapPress}
-      onPanDrag={props.onMapPress}
+      onPanDrag={() => {
+        props.onMapPress();
+        props.onUserPan?.();
+      }}
       onRegionChangeComplete={props.onRegionChange}
     >
       {props.lines.map((l) => (
-        <LineView key={l.key} line={l} />
+        <LineView key={l.key} line={l} onSelect={props.onSelectRoute} />
       ))}
       {props.travelled ? <LineView line={props.travelled} /> : null}
       {props.pins.map((p) => (
         <Pin key={p.key} pin={p} />
+      ))}
+      {(props.routeLabels ?? []).map((l) => (
+        <RouteBubble key={l.key} label={l} onPress={props.onSelectRoute} />
       ))}
       {props.markers.map((m) => (
         <IncidentMarker key={m.incident.id} item={m} showAge={props.markers.length <= AGE_LABELS_MAX} onPress={props.onIncidentPress} />
@@ -223,6 +280,11 @@ const useStyles = createStyles((tc) => ({
     justifyContent: 'center',
   },
   closed: { backgroundColor: tc.panelSunken },
+  bubble: { paddingHorizontal: spacing.xs + 2, paddingVertical: spacing.xxs, borderRadius: radius.chip, borderWidth: 1 },
+  bubbleMain: { backgroundColor: tc.routeRecommended, borderColor: tc.routeRecommendedCasing },
+  bubbleMainText: { color: tc.onAccent, fontFamily: fontFamily.bold },
+  bubbleAlt: { backgroundColor: tc.panelRaised, borderColor: tc.routeMuted },
+  bubbleAltText: { color: tc.ink, fontFamily: fontFamily.semibold },
   ageText: { fontSize: type.meta.size - 2, lineHeight: marker.mapAgePillHeight - 2 },
   agePill: {
     marginTop: spacing.xxs,

@@ -7,6 +7,7 @@ import {
   MeResponseSchema,
   MyStatsResponseSchema,
   OtpRequestResponseSchema,
+  PhotoListResponseSchema,
   ClearAudienceResponseSchema,
   ClosureResponseSchema,
   HealthResponseSchema,
@@ -31,6 +32,7 @@ import {
   type MyStatsResponse,
   type OtpRequestResponse,
   type OtpVerifyBody,
+  type PhotoListResponse,
   type FeedStatus,
   type HistoryResponse,
   type HospitalStatesResponse,
@@ -78,6 +80,25 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * A message for any error: the server's own wording, and for a rejected request the fields it
+ * refused ("The request is not valid (Unrecognized key(s) in object: 'origin')"), so a version
+ * mismatch between the app and the API is visible instead of a bare "not valid".
+ */
+export function describeApiError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  if (!(err instanceof ApiError) || err.code !== 'VALIDATION_FAILED' || !Array.isArray(err.details) || err.details.length === 0) return err.message;
+  const parts = err.details
+    .slice(0, 3)
+    .map((d) => {
+      const i = d as { path?: unknown; message?: unknown };
+      const path = Array.isArray(i.path) ? i.path.join('.') : '';
+      return [path, typeof i.message === 'string' ? i.message : ''].filter(Boolean).join(': ');
+    })
+    .filter(Boolean);
+  return parts.length ? `${err.message} (${parts.join('; ')})` : err.message;
+}
+
 const STATUS_CODE: Record<number, ApiErrorCode> = {
   400: 'VALIDATION_FAILED',
   401: 'UNAUTHORIZED',
@@ -98,9 +119,10 @@ export interface RequestOptions {
   fetchImpl?: typeof fetch;
 }
 
-export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+/** Sends the request and turns a network failure or a non-2xx answer into an ApiError. */
+async function send(path: string, accept: string, opts: RequestOptions): Promise<Response> {
   const base = opts.baseUrl ?? API_URL;
-  const headers: Record<string, string> = { accept: 'application/json' };
+  const headers: Record<string, string> = { accept };
   if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   let res: Response;
@@ -129,6 +151,21 @@ export async function request<T>(path: string, schema: Parser<T> | null, opts: R
     }
     throw new ApiError(STATUS_CODE[res.status] ?? 'INTERNAL', `HTTP ${res.status}`, res.status);
   }
+  return res;
+}
+
+/** GET raw bytes (an operator-only image). The caller turns the Blob into an object URL. */
+export async function requestBlob(path: string, opts: RequestOptions = {}): Promise<Blob> {
+  const res = await send(path, 'image/jpeg', opts);
+  try {
+    return await res.blob();
+  } catch {
+    throw new ApiError('BAD_RESPONSE', 'The server sent a response that is not an image', res.status);
+  }
+}
+
+export async function request<T>(path: string, schema: Parser<T> | null, opts: RequestOptions = {}): Promise<T> {
+  const res = await send(path, 'application/json', opts);
   if (res.status === 204 || schema === null) return undefined as T;
   let json: unknown;
   try {
@@ -183,6 +220,12 @@ export const api = {
   hospitals: (id: string, o?: RequestOptions): Promise<HospitalStatesResponse> => request(API_PATHS.hospitals(id), HospitalStatesResponseSchema, o),
   setHospital: (id: string, placeId: string, state: HospitalStateValue, token: string, o?: RequestOptions): Promise<HospitalStatesResponse> =>
     request(API_PATHS.hospital(id, placeId), HospitalStatesResponseSchema, { ...o, method: 'PUT', body: { state }, token }),
+  /** Operator: the photos citizens attached to reports, newest first. The list never carries image bytes. */
+  photos: (id: string, token: string, o?: RequestOptions): Promise<PhotoListResponse> =>
+    request(API_PATHS.photos(id), PhotoListResponseSchema, { ...o, token }),
+  /** Operator: one report's photo (JPEG). An <img src> cannot send the header, so it is fetched as a Blob. */
+  photoBlob: (id: string, reportId: string, token: string, o?: RequestOptions): Promise<Blob> =>
+    requestBlob(API_PATHS.reportPhoto(id, reportId), { ...o, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),

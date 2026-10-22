@@ -11,12 +11,14 @@ import {
   SimTickSchema,
   TripPositionSchema,
   type Incident,
+  type IncidentUpserted,
   type TripPosition,
 } from '@vighnaway/contracts';
 import { vehiclePosition } from '@vighnaway/engine';
 import { andheriScenario } from '@vighnaway/scenario-data';
 import { t } from '@/i18n/en';
 import { evidenceText } from '@/i18n/engineText';
+import { sendPhoto } from '@/features/report/submit';
 import { api, ApiRequestError } from '@/lib/api';
 import { getGraph } from '@/lib/engine';
 import { haptic } from '@/lib/feedback';
@@ -30,6 +32,7 @@ import { usePendingReports } from '@/stores/reports';
 import { isCustomPlaceId, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
+import { useToast } from '@/stores/toast';
 import { recommendedRoute, useTrip } from '@/stores/trip';
 
 /**
@@ -46,6 +49,28 @@ let lastPositionEmit = 0;
 
 const scenarioId = () => useScenario.getState().scenario.id;
 const apiUrl = () => useSettings.getState().apiUrl;
+
+/**
+ * A live feed refresh arrives as dozens of upserts at once. Each store update re-renders the map
+ * and the sheet, so a burst is applied together: one update, one re-render, one re-plan.
+ */
+const UPSERT_BATCH_MS = 250;
+let upsertQueue: IncidentUpserted[] = [];
+let upsertTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flushUpserts(): void {
+  upsertTimer = null;
+  const batch = upsertQueue;
+  upsertQueue = [];
+  if (!batch.length) return;
+  const byId = useIncidents.getState().byId;
+  const before = batch.map((e) => byId[e.incident.id] ?? null);
+  const results = useIncidents.getState().applyUpserts(batch, scenarioId());
+  results.forEach((r, i) => {
+    if (r.kind === 'applied') noteIncidentChange(before[i] ?? null, batch[i]!.incident, false, i > 0);
+  });
+  if (results.some((r) => r.kind === 'resync')) void resync();
+}
 
 export function getSocket(): Socket | null {
   return socket;
@@ -82,10 +107,8 @@ function createSocket(url: string): Socket {
   s.on(SOCKET_EVENTS.incidentUpserted, (raw: unknown) => {
     const parsed = IncidentUpsertedSchema.safeParse(raw);
     if (!parsed.success) return;
-    const before = useIncidents.getState().byId[parsed.data.incident.id] ?? null;
-    const r = useIncidents.getState().applyUpsert(parsed.data, scenarioId());
-    if (r.kind === 'resync') void resync();
-    else if (r.kind === 'applied') noteIncidentChange(before, parsed.data.incident);
+    upsertQueue.push(parsed.data);
+    upsertTimer ??= setTimeout(flushUpserts, UPSERT_BATCH_MS);
   });
   s.on(SOCKET_EVENTS.simState, (raw: unknown) => {
     const parsed = SimStateSchema.safeParse(raw);
@@ -108,6 +131,8 @@ function createSocket(url: string): Socket {
 }
 
 function handleReset(): void {
+  // Queued events belong to the old run.
+  upsertQueue = [];
   useIncidents.getState().reset();
   useTrip.getState().resetTrip();
   void resync();
@@ -162,9 +187,13 @@ export async function resync(): Promise<void> {
 }
 
 /** Activity entry and haptic for incidents on the current route (new ones and status upgrades). */
-function noteIncidentChange(before: Incident | null, inc: Incident, quiet = false): void {
+function noteIncidentChange(before: Incident | null, inc: Incident, quiet = false, inBurst = false): void {
   const rec = recommendedRoute(useTrip.getState().plan);
   const onRoute = rec ? inc.edgeIds.some((id) => rec.edgeIds.includes(id)) : false;
+  // A live feed refresh brings dozens of far-away incidents: only ones on the route tap, and a
+  // burst taps once.
+  if (useSettings.getState().dataMode === 'live' && !onRoute) quiet = true;
+  if (inBurst) quiet = true;
   // Evidence building up (DESIGN_VISION appendix A): a light tap when a second device corroborates,
   // a success tap when an operator verifies; one each, never repeated.
   if (!before && !quiet) haptic.light();
@@ -189,8 +218,12 @@ export async function flushPendingReports(): Promise<void> {
   for (const p of pending) {
     try {
       // Each report goes to the scenario it was made in (queues from before tagging: the demo).
-      await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input, authToken());
+      const res = await api.report(apiUrl(), p.scenarioId ?? andheriScenario.id, p.input, authToken());
       remove(p.localId);
+      // The photo of a queued report goes up once the report is in; if it cannot, say so (the report stands).
+      if (p.photo && (await sendPhoto(p.scenarioId ?? andheriScenario.id, res.receipt.reportId, p.input.deviceId, p.photo)) === 'failed') {
+        useToast.getState().show(t('toastPhotoFailed'), 'warn');
+      }
       const text = t('activityReportSent', { type: REPORT_TYPE_LABEL[p.input.type] });
       if (p.activityId) useActivity.getState().update(p.activityId, { kind: 'report_sent', text });
     } catch (e) {
@@ -198,6 +231,8 @@ export async function flushPendingReports(): Promise<void> {
         remove(p.localId);
         const text = t('activityReportFailed', { message: e.message });
         if (p.activityId) useActivity.getState().update(p.activityId, { kind: 'report_failed', text });
+        // The traveller was told it was queued: say clearly that it was not accepted.
+        useToast.getState().show(text, 'warn');
         continue;
       }
       return; // still offline or rate limited: keep the queue

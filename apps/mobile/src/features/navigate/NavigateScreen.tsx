@@ -9,7 +9,9 @@ import { buildIncidentIndex, remainingEtaS, travelledM } from '@vighnaway/engine
 import { graphAttribution } from '@vighnaway/scenario-data';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
-import { Flag, List, MapIcon } from '@/components/icons';
+import { Flag, LocateFixed, MapIcon, Navigation } from '@/components/icons';
+import { startFromPhoneIfLive } from '@/features/search/myLocation';
+import { accurateFix, requestLocationPermission } from '@/lib/location';
 import { PressScale } from '@/components/motion';
 import { ToastHost } from '@/components/Toast';
 import { WhyCard } from '@/components/WhyCard';
@@ -20,6 +22,7 @@ import { t } from '@/i18n/en';
 import { whatToDoNow } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { evalContext, getGraph } from '@/lib/engine';
+import { graphForRegion } from '@/regions';
 import { etaDeltaBars } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import { requestNotificationPermission } from '@/lib/notifications';
@@ -34,16 +37,18 @@ import { placeById, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
-import { recommendedRoute, useTrip } from '@/stores/trip';
+import { activeRoute, recommendedRoute, useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, spacing, useColors } from '@/theme';
 import { DestinationSheet } from './DestinationSheet';
 import { EvidenceSheet } from './EvidenceSheet';
+import { MapMenu } from './MapMenu';
 import { NavigateMap } from './NavigateMap';
 import {
   ActivityRows,
   ArrivedCard,
   ChangeBanner,
+  ChoiceNote,
   EmptyEvidence,
   EvaluatingCard,
   IncidentRow,
@@ -52,6 +57,7 @@ import {
   NoViableCard,
   PeekCard,
   PeekMore,
+  RoadsOnlyNote,
   RouteDetail,
   RouteRow,
   SectionLabel,
@@ -96,12 +102,19 @@ function SheetBody({
   const fixture = useSettings((s) => s.fixtureMode !== null);
   const liveMode = useSettings((s) => s.dataMode === 'live');
   const liveLocation = useTrip((s) => s.liveLocation);
+  const access = useTrip((s) => s.access);
+  // The Amritsar to Ambala map has roads only: no incidents, evidence or alerts exist for it.
+  const roadsOnly = useScenario((s) => s.region !== 'andheri');
   const incidents = useIncidentList();
   const byId = useIncidents((s) => s.byId);
   const activity = useActivity((s) => s.entries);
 
   const graph = useMemo(() => getGraph(graphFile, profile), [graphFile, profile]);
-  const rec = recommendedRoute(plan);
+  // The route the trip uses: the one the traveller tapped, else the recommended one.
+  const selectedRouteId = useTrip((s) => s.selectedRouteId);
+  const rec = activeRoute(plan, selectedRouteId);
+  const engineRec = recommendedRoute(plan);
+  const chosen = !!rec && !!engineRec && rec.routeId !== engineRec.routeId;
   const dest = placeById(scenario, destinationId);
   const enRoute = mode === 'en_route' && !!vehicle;
 
@@ -195,7 +208,7 @@ function SheetBody({
         ) : plan?.noViableRoute ? (
           <NoViableCard plan={plan} onGoTo={changeDestination} cause={noViableBanner ? banner?.message : undefined} onDetails={onDetails} />
         ) : rec ? (
-          <PeekCard route={rec} etaS={etaS} enRoute={enRoute} onStart={() => void beginTrip()} onEnd={endTrip} />
+          <PeekCard route={rec} etaS={etaS} enRoute={enRoute} chosen={chosen} onStart={() => void beginTrip()} onEnd={endTrip} />
         ) : enRoute ? (
           <AppText variant="eta">{t('etaLeft', { eta: fmtDuration(etaS) })}</AppText>
         ) : null}
@@ -211,6 +224,7 @@ function SheetBody({
               onDismiss={() => useTrip.getState().dismissBanner()}
             />
           ) : null}
+          {chosen && engineRec && !enRoute ? <ChoiceNote route={rec} recommended={engineRec} onReset={() => useTrip.getState().selectRoute(null)} /> : null}
           <PeekMore
             route={rec}
             arriveClock={arriveClock}
@@ -221,6 +235,7 @@ function SheetBody({
             onDrive={onDrive}
             hint={hint}
           />
+          {roadsOnly ? <RoadsOnlyNote access={access} /> : null}
         </View>
       ) : null}
       {plan && plan.routes.length > 0 && !showEvaluating ? (
@@ -232,26 +247,35 @@ function SheetBody({
             <SectionLabel count={plan.routes.length}>{t('compareTitle')}</SectionLabel>
             <View style={styles.rows}>
               {plan.routes.map((r, i) => (
-                <RouteRow key={r.routeId} route={r} bar={bars.find((b) => b.routeId === r.routeId)} index={i} />
+                <RouteRow
+                  key={r.routeId}
+                  route={r}
+                  bar={bars.find((b) => b.routeId === r.routeId)}
+                  index={i}
+                  selected={r.routeId === rec?.routeId}
+                  onSelect={r.role !== 'blocked' && mode === 'planning' ? () => useTrip.getState().selectRoute(r.routeId === plan.recommendedRouteId ? null : r.routeId) : undefined}
+                />
               ))}
             </View>
           </View>
         </View>
       ) : null}
-      {rec && !showEvaluating ? <WhyCard route={rec} /> : null}
-      {plan && rec && !showEvaluating && mode !== 'arrived' ? <AskCard plan={plan} graph={graph} /> : null}
-      <View style={styles.section}>
-        <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
-        {routeIncidents.length ? (
-          <View>
-            {routeIncidents.map((i, idx) => (
-              <IncidentRow key={i.id} incident={i} nowS={minuteS} onPress={onIncidentPress} index={idx} />
-            ))}
-          </View>
-        ) : (
-          <EmptyEvidence />
-        )}
-      </View>
+      {rec && !showEvaluating && !roadsOnly ? <WhyCard route={rec} /> : null}
+      {plan && rec && !showEvaluating && mode !== 'arrived' && !roadsOnly ? <AskCard plan={plan} graph={graph} /> : null}
+      {roadsOnly ? null : (
+        <View style={styles.section}>
+          <SectionLabel count={routeIncidents.length}>{t('evidenceTitle')}</SectionLabel>
+          {routeIncidents.length ? (
+            <View>
+              {routeIncidents.map((i, idx) => (
+                <IncidentRow key={i.id} incident={i} nowS={minuteS} onPress={onIncidentPress} index={idx} />
+              ))}
+            </View>
+          ) : (
+            <EmptyEvidence />
+          )}
+        </View>
+      )}
       <View style={styles.section}>
         <SectionLabel>{t('activityTitle')}</SectionLabel>
         <ActivityRows entries={activity.slice(0, 5)} clockStartsAt={scenario.clockStartsAt} />
@@ -286,6 +310,7 @@ export function NavigateScreen() {
   const [sheetIndex, setSheetIndex] = useState(0);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [destOpen, setDestOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [overlayH, setOverlayH] = useState(layout.minTouch * 2);
   const scenario = useScenario((s) => s.scenario);
   const graphFile = useScenario((s) => s.graphFile);
@@ -295,7 +320,34 @@ export function NavigateScreen() {
   const evidence = useIncidents((s) => (evidenceId ? s.byId[evidenceId] ?? null : null));
   const schematic = useUi((s) => s.mapStatus === 'unavailable');
   const mapReady = useUi((s) => s.mapStatus === 'ready');
-  const googleTraffic = useSettings((s) => s.googleTraffic);
+  const liveMode = useSettings((s) => s.dataMode === 'live');
+  // While a trip runs the camera follows the vehicle; dragging the map lets go, and this button takes it back.
+  const tripRunning = useTrip((s) => s.mode === 'en_route');
+  const followingCamera = useUi((s) => s.following);
+
+  // Live mode: start from the phone when location is already allowed (never prompts at launch).
+  useEffect(() => {
+    if (liveMode) void startFromPhoneIfLive();
+  }, [liveMode]);
+
+  // "Show my location": asks only now (the traveller tapped it), then centres on an accurate fix.
+  const locateMe = useCallback(async () => {
+    const perm = await requestLocationPermission();
+    if (perm === 'denied' || perm === 'unknown') {
+      useToast.getState().show(t('myLocationDenied'), 'warn');
+      return;
+    }
+    if (perm === 'approximate') useToast.getState().show(t('myLocationApproximatePermission'), 'warn');
+    if (!useUi.getState().devicePosition) {
+      try {
+        await accurateFix({ timeoutMs: 8000 });
+      } catch {
+        useToast.getState().show(t('myLocationFailed'), 'warn');
+        return;
+      }
+    }
+    useUi.getState().requestRecenter();
+  }, []);
 
   // The lowest stop is only as tall as the small decision, so the map stays open by default.
   const peek = Math.max(layout.sheetSnapMini, peekContent + HANDLE_HEIGHT + spacing.sm) + insets.bottom;
@@ -319,6 +371,16 @@ export function NavigateScreen() {
     }, 1500);
     return () => clearTimeout(id);
   }, [hasRoute, notificationsAsked, fixtureMode]);
+
+  // The Amritsar to Ambala map is large: read it in the background once the first route is on
+  // screen, so the first search that needs it does not stall the phone.
+  useEffect(() => {
+    if (!hasRoute) return;
+    const id = setTimeout(() => {
+      getGraph(graphForRegion('north'), useSettings.getState().profile);
+    }, 6000);
+    return () => clearTimeout(id);
+  }, [hasRoute]);
 
   // No viable route: expand the sheet to show the calm message over the dimmed map.
   useEffect(() => {
@@ -378,7 +440,9 @@ export function NavigateScreen() {
     setDestOpen(false);
   }, []);
   const collapseSheet = useCallback(() => sheetRef.current?.snapToIndex(0), []);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+  useBackToClose(menuOpen, closeMenu);
   useBackToClose(evidenceId !== null, closeEvidence);
   useBackToClose(destOpen && evidenceId === null, closeDest);
   useBackToClose(sheetIndex > 0 && evidenceId === null && !destOpen, collapseSheet);
@@ -425,41 +489,40 @@ export function NavigateScreen() {
                 {t('schematicLegend')}
               </AppText>
             </Animated.View>
-          ) : mapReady ? (
-            <PressScale
-              haptic="selection"
-              onPress={() => useSettings.getState().setGoogleTraffic(!googleTraffic)}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: googleTraffic }}
-              accessibilityLabel={t('googleTraffic')}
-              accessibilityHint={t('googleTrafficHint')}
-              style={[styles.legend, googleTraffic && styles.trafficOn]}
-              testID="google-traffic"
-            >
-              <View style={[styles.trafficDot, googleTraffic && styles.trafficDotOn]} />
-              <AppText variant="meta" tone={googleTraffic ? 'onShell' : 'onShellMuted'} numberOfLines={2} style={styles.legendText}>
-                {t('googleTraffic')}
-              </AppText>
-            </PressScale>
           ) : (
+            // Google's logo owns the bottom-left corner: nothing is drawn over it.
             <View />
           )}
           <View style={styles.fabs} pointerEvents="box-none">
-          <PressScale
-            onPress={() => openRoute('/map-list')}
-            style={[styles.fab, styles.fabSmall, shadow('md')]}
-            accessibilityRole="button"
-            accessibilityLabel={t('listOpenLabel')}
-            testID="open-list"
-          >
-            <List size={18} color={tc.ink} strokeWidth={2.25} />
-          </PressScale>
-          <PressScale onPress={openReport} style={[styles.fab, shadow('md')]} accessibilityRole="button" accessibilityLabel={t('reportButtonLabel')} testID="open-report">
-            <Flag size={18} color={tc.ink} strokeWidth={2.25} />
-            <AppText variant="body" style={styles.fabLabel}>
-              {t('reportButton')}
-            </AppText>
-          </PressScale>
+            {tripRunning && !followingCamera && mapReady ? (
+              <PressScale
+                onPress={() => useUi.getState().setFollowing(true)}
+                style={[styles.fab, styles.fabSmall, shadow('md')]}
+                accessibilityRole="button"
+                accessibilityLabel={t('recenterNav')}
+                testID="recenter-nav"
+              >
+                <Navigation size={20} color={tc.accentInk} strokeWidth={2.25} />
+              </PressScale>
+            ) : null}
+            {liveMode && mapReady ? (
+              <PressScale
+                onPress={() => void locateMe()}
+                style={[styles.fab, styles.fabSmall, shadow('md')]}
+                accessibilityRole="button"
+                accessibilityLabel={t('locateMe')}
+                accessibilityHint={t('locateMeHint')}
+                testID="locate-me"
+              >
+                <LocateFixed size={20} color={tc.accentInk} strokeWidth={2.25} />
+              </PressScale>
+            ) : null}
+            <PressScale onPress={openReport} style={[styles.fab, shadow('md')]} accessibilityRole="button" accessibilityLabel={t('reportButtonLabel')} testID="open-report">
+              <Flag size={18} color={tc.ink} strokeWidth={2.25} />
+              <AppText variant="body" style={styles.fabLabel}>
+                {t('reportButton')}
+              </AppText>
+            </PressScale>
           </View>
         </View>
         <AppText variant="meta" tone="onShellMuted" style={styles.attributionText} numberOfLines={2} pointerEvents="none">
@@ -473,6 +536,8 @@ export function NavigateScreen() {
           destRef.current?.present();
         }}
         onLayout={setHeaderBottom}
+        menuOpen={menuOpen}
+        onToggleMenu={() => setMenuOpen((v) => !v)}
       />
       <BottomSheet
         ref={sheetRef}
@@ -502,7 +567,18 @@ export function NavigateScreen() {
           />
         </BottomSheetScrollView>
       </BottomSheet>
-      <ToastHost top={headerBottom + spacing.xs} />
+      {menuOpen ? (
+        <MapMenu
+          top={headerBottom + layout.minTouch + spacing.sm}
+          onClose={closeMenu}
+          onReport={openReport}
+          onList={() => openRoute('/map-list')}
+          onLocate={liveMode ? () => void locateMe() : undefined}
+          onSettings={() => router.push('/settings')}
+        />
+      ) : null}
+      {/* Under the options button, which hangs below the header at the right. */}
+      <ToastHost top={headerBottom + layout.minTouch + spacing.sm} />
       <EvidenceSheet ref={evidenceRef} incident={evidence} plan={plan} nowS={simTimeS} clockStartsAt={scenario.clockStartsAt} onDismiss={closeEvidence} />
       <DestinationSheet
         ref={destRef}
@@ -531,9 +607,6 @@ const useStyles = createStyles((tc) => ({
     marginBottom: spacing.xxs,
   },
   legendText: { flexShrink: 1 },
-  trafficOn: { borderColor: tc.tealGlow },
-  trafficDot: { width: spacing.xs, height: spacing.xs, borderRadius: radius.chip, borderWidth: 1.5, borderColor: tc.inkOnShellMuted },
-  trafficDotOn: { backgroundColor: tc.routeRecommended, borderColor: tc.routeRecommended },
   fabLabel: { fontFamily: fontFamily.semibold },
   fab: {
     height: layout.minTouch,

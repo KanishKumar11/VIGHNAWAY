@@ -95,3 +95,52 @@ export const ReportResponseSchema = z.object({
   incident: IncidentSchema.nullable(),
 });
 export type ReportResponse = z.infer<typeof ReportResponseSchema>;
+
+/**
+ * A photo of the place, sent after the report as its own request (so an API that does not know
+ * photos still accepts the report). The phone re-encodes it as a small JPEG, which also drops its
+ * EXIF data (no location or device metadata). Only operators can see photos.
+ */
+export const PHOTO_MAX_BYTES = 350_000;
+/** Base64 grows the bytes by 4/3. */
+const PHOTO_MAX_BASE64 = Math.ceil((PHOTO_MAX_BYTES * 4) / 3) + 4;
+/** Request body limit for the photo route (the JSON envelope adds a little to the base64). */
+export const PHOTO_BODY_LIMIT_BYTES = PHOTO_MAX_BASE64 + 1024;
+
+export const ReportPhotoInputSchema = z
+  .object({
+    /** The same device id the report was sent with: only that device can attach a photo to it. */
+    deviceId: z
+      .string()
+      .min(8)
+      .max(64)
+      .regex(/^[A-Za-z0-9_-]+$/),
+    contentType: z.literal('image/jpeg'),
+    /** The JPEG bytes, base64 (no data: prefix). */
+    data: z
+      .string()
+      .min(100)
+      .max(PHOTO_MAX_BASE64)
+      .regex(/^[A-Za-z0-9+/]+={0,2}$/),
+  })
+  .strict();
+export type ReportPhotoInput = z.infer<typeof ReportPhotoInputSchema>;
+
+export const ReportPhotoResponseSchema = z.object({
+  reportId: z.string(),
+  sizeBytes: z.number().int().positive(),
+});
+export type ReportPhotoResponse = z.infer<typeof ReportPhotoResponseSchema>;
+
+/** Operator list of the photos in a scenario, newest first. `atS` is the report's server time. */
+export const PhotoListResponseSchema = z.object({
+  photos: z.array(
+    z.object({
+      reportId: z.string(),
+      incidentId: z.string().nullable(),
+      atS: z.number().int().nonnegative(),
+      sizeBytes: z.number().int().positive(),
+    }),
+  ),
+});
+export type PhotoListResponse = z.infer<typeof PhotoListResponseSchema>;

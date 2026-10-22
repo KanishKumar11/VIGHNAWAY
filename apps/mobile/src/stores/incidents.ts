@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import type { Incident, IncidentsResponse, IncidentUpserted } from '@vighnaway/contracts';
 import { KEYS, storage } from '@/lib/storage';
+import { useScenario } from './scenario';
 import {
   applyIncidentsResponse,
   applyReset,
@@ -23,6 +24,8 @@ interface IncidentsState extends Persisted {
   fixture: boolean;
   applyResponse: (res: IncidentsResponse) => void;
   applyUpsert: (evt: IncidentUpserted, scenarioId: string) => UpsertResult;
+  /** Applies a burst of events in order with one store update (one re-render, one re-plan). */
+  applyUpserts: (evts: IncidentUpserted[], scenarioId: string) => UpsertResult[];
   reset: () => void;
   clearCache: () => void;
   loadFixture: (incidents: Incident[]) => void;
@@ -63,6 +66,29 @@ export const useIncidents = create<IncidentsState>()((set, get) => {
       }
       return r;
     },
+    applyUpserts: (evts, scenarioId) => {
+      if (get().fixture) return evts.map(() => ({ kind: 'ignored' }) as const);
+      let state: IncidentSyncState = get();
+      let cachedAtSimS = get().cachedAtSimS ?? 0;
+      let applied = false;
+      let resync = false;
+      const results = evts.map((evt): UpsertResult => {
+        // After a gap the rest waits for the resync fetch, which returns them anyway.
+        if (resync) return { kind: 'ignored' };
+        const r = applyUpsert(state, evt, scenarioId);
+        if (r.kind === 'applied') {
+          state = r.state;
+          applied = true;
+          cachedAtSimS = Math.max(cachedAtSimS, evt.incident.updatedAtS);
+        } else if (r.kind === 'resync') resync = true;
+        return r;
+      });
+      if (applied) {
+        set({ byId: state.byId, lastSeq: state.lastSeq, runId: state.runId, cachedAtSimS, cachedAtWallMs: Date.now() });
+        persistSoon();
+      }
+      return results;
+    },
     reset: () => {
       set({ ...applyReset() });
       persistSoon();
@@ -86,5 +112,9 @@ export const useIncidents = create<IncidentsState>()((set, get) => {
 /** Incident list, recomputed only when the incident map changes. */
 export function useIncidentList(): Incident[] {
   const byId = useIncidents((s) => s.byId);
-  return useMemo(() => Object.values(byId).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)), [byId]);
+  // The corridor map has no incident data: the scenario's incidents belong to Andheri only.
+  const roadsOnly = useScenario((s) => s.region !== 'andheri');
+  return useMemo(() => (roadsOnly ? NONE : Object.values(byId).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))), [byId, roadsOnly]);
 }
+
+const NONE: Incident[] = [];

@@ -11,7 +11,7 @@ import Animated, {
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import type { GraphFile, Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
-import { Hospital, X } from '@/components/icons';
+import { Hospital, MapPin as PinIcon, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { MapFieldLayer } from '@/components/MapField';
 import { springEntry } from '@/components/motion';
@@ -37,9 +37,12 @@ import { getLanguage } from '@/i18n/lang';
 import type { MapCoord } from '@/lib/engine';
 import { useReduceMotion } from '@/lib/motion';
 import { createStyles, devanagari, fontFamily, lineStyle, marker, motion, radius, routeStyles, shadow, spacing, type, useColors, useTheme } from '@/theme';
-import type { MapIncident, MapLine, MapPin } from './mapModel';
+import type { MapIncident, MapLine, MapPin, MapRouteLabel } from './mapModel';
 
 interface Props {
+  /** Time bubbles on the routes, and the tap that chooses one (as on the Google map). */
+  routeLabels?: MapRouteLabel[];
+  onSelectRoute?: (routeId: string) => void;
   graphFile: GraphFile;
   /** Visible map area (under the header, above the sheet at peek). */
   padding: { top: number; bottom: number; left: number; right: number };
@@ -116,6 +119,9 @@ export const SchematicMap = memo(function SchematicMap(props: Props) {
           </Svg>
           {props.pins.map((pin) => (
             <PinView key={pin.key} pin={pin} project={project} />
+          ))}
+          {(props.routeLabels ?? []).map((l) => (
+            <RouteBubble key={l.key} label={l} project={project} onPress={props.onSelectRoute} />
           ))}
           {props.markers.map((m) => (
             <IncidentMarker key={m.incident.id} item={m} project={project} showAge={props.markers.length <= AGE_LABELS_MAX} onPress={props.onIncidentPress} />
@@ -371,6 +377,7 @@ const RouteLine = memo(function RouteLine({ line, project }: { line: MapLine; pr
   if (line.style !== 'recommended' && line.style !== 'travelled') {
     return (
       <G opacity={line.opacity ?? s.opacity}>
+        {line.casing && s.casing ? <Path d={runsD} stroke={s.casing} strokeWidth={s.casingWidth} strokeLinecap="round" strokeLinejoin="round" fill="none" /> : null}
         <Path d={runsD} stroke={color} strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" fill="none" />
         {slow}
       </G>
@@ -413,6 +420,28 @@ const FloodContour = memo(function FloodContour({ item, project }: { item: MapIn
 const PIN = spacing.lg;
 const BLOCK_W = spacing.xl * 3 + spacing.sm;
 
+/** A time bubble on a route: the total on the chosen one, "+6 min" on an alternative. Tap to choose it. */
+function RouteBubble({ label, project, onPress }: { label: MapRouteLabel; project: Project; onPress?: (routeId: string) => void }) {
+  const styles = useStyles();
+  const p = project(label.coordinate);
+  return (
+    <Pressable
+      onPress={() => onPress?.(label.routeId)}
+      accessibilityRole="button"
+      accessibilityLabel={label.text}
+      hitSlop={spacing.xs}
+      testID={`route-bubble-${label.primary ? 'main' : 'alt'}`}
+      style={[styles.bubble, label.primary ? styles.bubbleMain : styles.bubbleAlt, { left: p.x, top: p.y, transform: [{ translateX: -BUBBLE_HALF_W }, { translateY: -BUBBLE_HALF_H }] }]}
+    >
+      <AppText variant="label" maxFontSizeMultiplier={1} style={label.primary ? styles.bubbleMainText : styles.bubbleAltText}>
+        {label.text}
+      </AppText>
+    </Pressable>
+  );
+}
+const BUBBLE_HALF_W = spacing.lg + spacing.xs;
+const BUBBLE_HALF_H = spacing.sm;
+
 function PinView({ pin, project }: { pin: MapPin; project: Project }) {
   const tc = useColors();
   const styles = useStyles();
@@ -431,7 +460,7 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
     return (
       <View pointerEvents="none" style={[styles.anchor, { left: p.x - s / 2, top: p.y - s - spacing.xs, width: s, height: s + spacing.xs }]}>
         <View style={[styles.destination, { width: s, height: s }, shadow('sm')]}>
-          <Hospital size={18} color={tc.ink} strokeWidth={2} />
+          {pin.hospital === false ? <PinIcon size={18} color={tc.ink} strokeWidth={2} /> : <Hospital size={18} color={tc.ink} strokeWidth={2} />}
         </View>
         <View style={styles.destinationStem} />
       </View>
@@ -539,6 +568,11 @@ const Vehicle = memo(function Vehicle({ pin, project }: { pin: MapPin; project: 
 const useStyles = createStyles((tc) => ({
   root: { ...StyleSheet.absoluteFill, backgroundColor: tc.shellDeep },
   anchor: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  bubble: { position: 'absolute', paddingHorizontal: spacing.xs + 2, paddingVertical: spacing.xxs, borderRadius: radius.chip, borderWidth: 1 },
+  bubbleMain: { backgroundColor: tc.routeRecommended, borderColor: tc.routeRecommendedCasing },
+  bubbleMainText: { color: tc.onAccent, fontFamily: fontFamily.bold },
+  bubbleAlt: { backgroundColor: tc.panelRaised, borderColor: tc.routeMuted },
+  bubbleAltText: { color: tc.ink, fontFamily: fontFamily.semibold },
   originOuter: {
     width: spacing.md + 2,
     height: spacing.md + 2,

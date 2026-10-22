@@ -11,6 +11,9 @@ export const API_PATHS = {
   scenario: (id: string) => `/scenarios/${encodeURIComponent(id)}`,
   incidents: (id: string) => `/scenarios/${encodeURIComponent(id)}/incidents`,
   reports: (id: string) => `/scenarios/${encodeURIComponent(id)}/reports`,
+  reportPhoto: (id: string, reportId: string) =>
+    `/scenarios/${encodeURIComponent(id)}/reports/${encodeURIComponent(reportId)}/photo`,
+  photos: (id: string) => `/scenarios/${encodeURIComponent(id)}/photos`,
   incidentAction: (id: string, incidentId: string, action: OperatorAction) =>
     `/scenarios/${encodeURIComponent(id)}/incidents/${encodeURIComponent(incidentId)}/${action}`,
   sim: (id: string) => `/scenarios/${encodeURIComponent(id)}/sim`,

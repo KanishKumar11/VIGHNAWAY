@@ -3,7 +3,17 @@
 import type { SimAction } from '@vighnaway/contracts';
 import { formatSimClock } from '@vighnaway/contracts';
 import { motion as motionTokens } from '@vighnaway/tokens';
-import { History, Lock, Pause, Play, RotateCcw, ShieldCheck, StepForward, TrafficCone } from 'lucide-react';
+import {
+  Activity,
+  History,
+  Lock,
+  Pause,
+  Play,
+  RotateCcw,
+  ShieldCheck,
+  StepForward,
+  TrafficCone,
+} from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useMemo, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { t } from '@/i18n';
@@ -12,7 +22,14 @@ import { cn } from '@/lib/cn';
 import { isLiveScenario } from '@/lib/scenario';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
 import { feedLine, useFeedStatus } from '@/hooks/useFeedStatus';
-import { clusterTicks, pctAt, timelineSpan, timelineTicks, type TimelineSpan, type TimelineTick } from '@/lib/timeline';
+import {
+  clusterTicks,
+  pctAt,
+  timelineSpan,
+  timelineTicks,
+  type TimelineSpan,
+  type TimelineTick,
+} from '@/lib/timeline';
 import { useLiveStore } from '@/stores/live';
 import { useOperator } from '@/stores/operator';
 import { useOperatorAccess } from '@/lib/credential';
@@ -28,7 +45,9 @@ export const SNAP_TO_LIVE = 0.015;
 
 /** Where a drag lands: clamped to what has happened, or null to go back to live. */
 export function scrubTarget(fraction: number, span: TimelineSpan, liveS: number): number | null {
-  const atS = Math.round(span.startS + Math.max(0, Math.min(1, fraction)) * (span.endS - span.startS));
+  const atS = Math.round(
+    span.startS + Math.max(0, Math.min(1, fraction)) * (span.endS - span.startS),
+  );
   if (atS >= liveS - SNAP_TO_LIVE * (span.endS - span.startS)) return null;
   return Math.max(0, Math.min(liveS, atS));
 }
@@ -37,11 +56,17 @@ function TickGlyph({ tick, passed }: { tick: TimelineTick; passed: boolean }) {
   return (
     <span
       className={cn(
-        'flex size-6 items-center justify-center rounded-chip border transition-colors duration-300',
-        passed ? 'border-control-border bg-panel text-ink-on-shell' : 'border-shell-line bg-shell text-ink-on-shell-muted',
+        'flex size-7 items-center justify-center rounded-chip border shadow-sm transition-colors duration-300',
+        passed
+          ? 'border-brand-from/30 bg-brand-from/10 text-brand-from'
+          : 'border-shell-line bg-shell-raised text-ink-on-shell-muted',
       )}
     >
-      {tick.kind === 'report' && tick.type && tick.type !== 'road_clear' ? <IncidentGlyph type={tick.type} className="size-3.5" /> : <ShieldCheck aria-hidden className="size-3.5" />}
+      {tick.kind === 'report' && tick.type && tick.type !== 'road_clear' ? (
+        <IncidentGlyph type={tick.type} className="size-3.5" />
+      ) : (
+        <ShieldCheck aria-hidden className="size-3.5" />
+      )}
     </span>
   );
 }
@@ -72,7 +97,10 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
   const liveS = useLiveStore((s) => s.simTimeS);
   const scenario = useActiveScenario();
   const span = useMemo(() => timelineSpan(scenario.events), [scenario]);
-  const clusters = useMemo(() => clusterTicks(timelineTicks(scenario.events, span), 3.5), [scenario, span]);
+  const clusters = useMemo(
+    () => clusterTicks(timelineTicks(scenario.events, span), 3.5),
+    [scenario, span],
+  );
   const shownS = replayAtS ?? liveS;
   const pct = pctAt(shownS, span);
   const livePct = pctAt(liveS, span);
@@ -123,7 +151,11 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
         {clusters.map((c, i) => {
           const passed = c.ticks.every((tick) => tick.atS <= shownS);
           return (
-            <li key={c.key} className="absolute top-0 flex -translate-x-3 flex-col items-start" style={{ left: `${c.pct}%` }}>
+            <li
+              key={c.key}
+              className="absolute -top-0.5 flex -translate-x-3.5 flex-col items-start"
+              style={{ left: `${c.pct}%` }}
+            >
               <span className="flex gap-0.5">
                 {c.ticks.map((tick) => (
                   <span key={tick.id} title={tick.label}>
@@ -132,7 +164,14 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
                   </span>
                 ))}
               </span>
-              <span aria-hidden className={cn('tech mt-6 -ml-1.5', passed ? 'text-ink-on-shell' : 'text-ink-on-shell-muted', i > 0 && i < clusters.length - 1 && 'max-[1599px]:hidden')}>
+              <span
+                aria-hidden
+                className={cn(
+                  'tech mt-5.5 -ml-1.5 rounded-chip px-1.5 py-0.5',
+                  passed ? 'bg-panel-sunken text-ink-on-shell' : 'text-ink-on-shell-muted',
+                  i > 0 && i < clusters.length - 1 && 'max-[1599px]:hidden',
+                )}
+              >
                 {clock(c.atS)}
               </span>
             </li>
@@ -140,9 +179,21 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
         })}
       </ol>
       {/* Track: what has happened is solid; a replayed moment shows how far back it is. */}
-      <div ref={track} aria-hidden className="absolute inset-x-0 top-9 h-1 rounded-chip bg-shell-line">
-        <div className="vw-playhead vw-brand-fill absolute inset-y-0 left-0 w-full origin-left rounded-chip" style={{ transform: `scaleX(${livePct / 100})` }} />
-        {replayAtS !== null && <span className="absolute -top-1.5 h-4 w-0.5 rounded-chip bg-ink-on-shell-muted" style={{ left: `${livePct}%` }} />}
+      <div
+        ref={track}
+        aria-hidden
+        className="absolute inset-x-0 top-9 h-1.5 rounded-chip bg-shell-line"
+      >
+        <div
+          className="vw-playhead absolute inset-y-0 left-0 w-full origin-left rounded-chip bg-linear-to-r from-brand-from via-brand-via to-brand-to"
+          style={{ transform: `scaleX(${livePct / 100})` }}
+        />
+        {replayAtS !== null && (
+          <span
+            className="absolute -top-1.5 h-4 w-0.5 rounded-chip bg-ink-on-shell-muted"
+            style={{ left: `${livePct}%` }}
+          />
+        )}
       </div>
       <div
         role="slider"
@@ -160,12 +211,20 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
         onKeyDown={onKey}
         className="absolute inset-x-0 top-6 h-7 cursor-ew-resize touch-none rounded-chip"
       />
-      <div aria-hidden className={cn('pointer-events-none absolute inset-y-0 left-0 w-full', replayAtS === null && 'vw-playhead')} style={{ transform: `translateX(${pct}%)` }}>
-        <span className={cn('absolute top-7 -left-px h-5 w-0.5', replayAtS === null ? 'bg-route-recommended' : 'bg-ink-on-shell')} />
+      <div
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-y-0 left-0 w-full',
+          replayAtS === null && 'vw-playhead',
+        )}
+        style={{ transform: `translateX(${pct}%)` }}
+      >
         <span
           className={cn(
-            'absolute top-[calc(var(--spacing)*8.5)] -left-2 size-4 rounded-chip border-2 border-panel',
-            replayAtS === null ? 'bg-route-recommended' : 'bg-ink-on-shell',
+            'absolute top-[calc(var(--spacing)*7.75)] -left-2.5 size-5 rounded-chip border-4 bg-shell-raised shadow-md',
+            replayAtS === null
+              ? 'border-route-recommended shadow-glow-teal'
+              : 'border-ink-on-shell',
           )}
         />
       </div>
@@ -176,8 +235,11 @@ function Scrubber({ replayAtS }: { replayAtS: number | null }) {
 function Ticker() {
   const items = useLiveStore((s) => s.ticker);
   return (
-    <div className="flex min-w-0 items-baseline gap-4" aria-label={t.ticker.title}>
-      <span className="shrink-0 text-meta font-semibold text-ink-on-shell-muted">{t.ticker.title}</span>
+    <div className="flex min-w-0 items-center gap-4" aria-label={t.ticker.title}>
+      <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-chip border border-shell-line bg-panel-sunken px-2.5 text-meta font-semibold text-ink-on-shell">
+        <Activity aria-hidden className="size-3.5 text-brand-from" />
+        {t.ticker.title}
+      </span>
       {items.length === 0 ? (
         <span className="truncate text-meta text-ink-on-shell-muted">{t.ticker.empty}</span>
       ) : (
@@ -190,9 +252,21 @@ function Ticker() {
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0 }}
-                className={cn('flex min-w-0 items-baseline gap-2 text-meta', i === 0 ? 'max-w-[48%] shrink-0 text-ink-on-shell' : 'flex-1 text-ink-on-shell-muted')}
+                className={cn(
+                  'flex min-w-0 items-center gap-2 text-meta',
+                  i === 0
+                    ? 'max-w-[48%] shrink-0 text-ink-on-shell'
+                    : 'flex-1 text-ink-on-shell-muted',
+                )}
               >
-                <span className="tech">{clock(item.atS)}</span>
+                <span
+                  className={cn(
+                    'tech shrink-0 rounded-chip px-1.5 py-0.5',
+                    i === 0 ? 'bg-brand-from/10 text-brand-from' : 'bg-panel-sunken',
+                  )}
+                >
+                  {clock(item.atS)}
+                </span>
                 <span className="truncate">{item.text}</span>
               </motion.li>
             ))}
@@ -203,7 +277,8 @@ function Ticker() {
   );
 }
 
-const ghost = 'vw-press ctl h-11 px-4 text-body whitespace-nowrap disabled:opacity-40 max-[1599px]:w-11 max-[1599px]:px-0';
+const ghost =
+  'vw-press ctl-quiet h-full justify-center px-3.5 text-body font-semibold whitespace-nowrap disabled:opacity-40 max-[1599px]:w-10 max-[1599px]:px-0';
 /** Transport labels collapse to icons on narrow screens so the scrubber keeps its room. */
 const LABEL = 'max-[1599px]:sr-only';
 
@@ -214,18 +289,40 @@ function LiveBar() {
   const feed = useFeedStatus(scenario.id, true);
   const line = feedLine(feed.data ?? null, nowS);
   return (
-    <footer className="panel-card grid shrink-0 grid-cols-[minmax(0,22rem)_1fr] items-center gap-x-8 px-6 py-4" aria-label={t.feed.title}>
+    <footer
+      className="panel-card grid shrink-0 grid-cols-[minmax(0,22rem)_1fr] items-center gap-x-8 px-6 py-4"
+      aria-label={t.feed.title}
+    >
       <div className="flex items-start gap-3">
-        <span className={cn('mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-button', line.tone === 'error' ? 'bg-warn-surface text-warn-ink' : 'bg-panel-sunken text-ink-on-shell')}>
+        <span
+          className={cn(
+            'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-button',
+            line.tone === 'error'
+              ? 'bg-warn-surface text-warn-ink'
+              : 'bg-panel-sunken text-ink-on-shell',
+          )}
+        >
           <TrafficCone aria-hidden className="size-5" />
         </span>
         <div className="min-w-0" role="status">
           <p className="flex items-center gap-2 text-body font-semibold text-ink-on-shell">
-            <span aria-hidden className={cn('size-2 shrink-0 rounded-chip', line.tone === 'ok' ? 'bg-live' : line.tone === 'error' ? 'bg-warn' : 'bg-ink-on-shell-muted')} />
+            <span
+              aria-hidden
+              className={cn(
+                'size-2 shrink-0 rounded-chip',
+                line.tone === 'ok'
+                  ? 'bg-live'
+                  : line.tone === 'error'
+                    ? 'bg-warn'
+                    : 'bg-ink-on-shell-muted',
+              )}
+            />
             {line.text}
           </p>
           <p className="mt-0.5 text-meta text-ink-on-shell-muted">
-            {feed.data?.enabled ? `${t.feed.active(feed.data.activeIncidents)} · ${feed.data.attribution}` : t.feed.noControls}
+            {feed.data?.enabled
+              ? `${t.feed.active(feed.data.activeIncidents)} · ${feed.data.attribution}`
+              : t.feed.noControls}
           </p>
           <p className="text-meta text-ink-on-shell-muted">{t.feed.reportsNote}</p>
         </div>
@@ -255,9 +352,28 @@ function SimTimeline({ replayAtS }: { replayAtS: number | null }) {
   const showTransport = !presenter;
 
   const status = (
-    <p id="sim-title" className="flex w-0 min-w-full items-center gap-2 text-meta text-ink-on-shell-muted">
+    <p
+      id="sim-title"
+      className="flex w-0 min-w-full items-center gap-2 text-meta text-ink-on-shell-muted"
+    >
       <span className="sr-only">{t.sim.title}: </span>
-      {replaying ? <History aria-hidden className="size-3.5 shrink-0" /> : !token && <Lock aria-hidden className="size-3.5 shrink-0" />}
+      {replaying ? (
+        <History aria-hidden className="size-3.5 shrink-0" />
+      ) : !token ? (
+        <Lock aria-hidden className="size-3.5 shrink-0" />
+      ) : (
+        <span
+          aria-hidden
+          className={cn(
+            'size-2 shrink-0 rounded-chip ring-3',
+            sim?.state === 'playing'
+              ? 'bg-positive ring-positive/20'
+              : sim?.state === 'finished'
+                ? 'bg-resolved ring-resolved/20'
+                : 'bg-warn ring-warn/20',
+          )}
+        />
+      )}
       <span className="line-clamp-2">
         {replaying
           ? t.replay.readOnly
@@ -277,7 +393,10 @@ function SimTimeline({ replayAtS }: { replayAtS: number | null }) {
    */
   return (
     <footer
-      className={cn('panel-card grid shrink-0 items-center gap-x-8 gap-y-1 px-5 py-4', showTransport ? 'grid-cols-[minmax(14rem,auto)_minmax(0,1fr)]' : 'grid-cols-1')}
+      className={cn(
+        'panel-card grid shrink-0 items-center gap-x-8 gap-y-1 px-5 py-4',
+        showTransport ? 'grid-cols-[minmax(14rem,auto)_minmax(0,1fr)]' : 'grid-cols-1',
+      )}
       aria-labelledby="sim-title"
     >
       {showTransport && (
@@ -290,17 +409,35 @@ function SimTimeline({ replayAtS }: { replayAtS: number | null }) {
             aria-label={playing ? t.sim.pause : t.sim.play}
             className="ctl-primary h-11 px-5 text-body whitespace-nowrap disabled:opacity-40 max-[1599px]:w-11 max-[1599px]:px-0"
           >
-            {playing ? <Pause aria-hidden className="size-4.5 fill-current" /> : <Play aria-hidden className="size-4.5 fill-current" />}
+            {playing ? (
+              <Pause aria-hidden className="size-4.5 fill-current" />
+            ) : (
+              <Play aria-hidden className="size-4.5 fill-current" />
+            )}
             <span className={LABEL}>{playing ? t.sim.pause : t.sim.play}</span>
           </motion.button>
-          <button type="button" onClick={() => run('step')} disabled={busy || playing || finished} aria-label={t.sim.step} className={ghost}>
-            <StepForward aria-hidden className="size-4.5" />
-            <span className={LABEL}>{t.sim.step}</span>
-          </button>
-          <button type="button" onClick={() => run('reset')} disabled={busy} aria-label={t.sim.reset} className={ghost}>
-            <RotateCcw aria-hidden className="size-4.5" />
-            <span className={LABEL}>{t.sim.reset}</span>
-          </button>
+          <div className="flex h-11 items-center gap-0.5 rounded-button border border-shell-line bg-shell-raised p-0.5 shadow-sm">
+            <button
+              type="button"
+              onClick={() => run('step')}
+              disabled={busy || playing || finished}
+              aria-label={t.sim.step}
+              className={ghost}
+            >
+              <StepForward aria-hidden className="size-4.5" />
+              <span className={LABEL}>{t.sim.step}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => run('reset')}
+              disabled={busy}
+              aria-label={t.sim.reset}
+              className={ghost}
+            >
+              <RotateCcw aria-hidden className="size-4.5" />
+              <span className={LABEL}>{t.sim.reset}</span>
+            </button>
+          </div>
         </div>
       )}
       <div className="min-w-0">

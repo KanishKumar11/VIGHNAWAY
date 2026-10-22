@@ -279,8 +279,55 @@ const consoleLight: ThemeColors = {
   scrim: 'rgba(16, 24, 48, 0.4)',
 };
 
-/** Themes for the web control room: Porcelain light, and the shared dark. */
-export const consoleThemes = { dark: dark as ThemeColors, light: consoleLight } as const;
+/**
+ * Console dark theme ("Midnight indigo"): the control room's own dark palette. The shared dark is
+ * a flat slate navy whose panels barely separate from the canvas and whose teal accent clashes with
+ * the indigo brand. This one tints every neutral toward the brand indigo, steps the canvas, panel
+ * and overlay surfaces apart so the three floating panels read as layers, and softens the status
+ * surfaces from muddy brown/maroon to deep amber/rose. Status hues and routes are unchanged.
+ */
+const consoleDark: ThemeColors = {
+  ...dark,
+  shell: '#121316',
+  shellDeep: '#141518',
+  shellRaised: '#1B1C20',
+  shellOverlay: '#232529',
+  shellLine: '#2F3137',
+  shellHairline: 'rgba(255, 255, 255, 0.08)',
+  shellHairlineStrong: 'rgba(161, 161, 170, 0.45)',
+  shellHighlight: 'rgba(255, 255, 255, 0.04)',
+  panel: '#1B1C20',
+  panelRaised: '#232529',
+  panelDark: '#1B1C20',
+  panelLine: '#2F3137',
+  panelSunken: '#16171A',
+  panelHairline: 'rgba(255, 255, 255, 0.08)',
+  ink: '#F4F4F5',
+  inkMuted: '#C6C7CC',
+  inkSubtle: '#9B9CA4',
+  inkOnShell: '#F4F4F5',
+  inkOnShellMuted: '#C6C7CC',
+  controlBorder: '#75767E',
+  routeRecommendedCasing: '#121316',
+  routeMuted: '#9B9CA4',
+  tealSoft: '#12292A',
+  recommendedSurface: '#12292A',
+  warnSurface: '#32270F',
+  corroboratedSurface: '#32270F',
+  dangerSurface: '#38181A',
+  positiveSoft: '#12291C',
+  live: '#C6C7CC',
+  liveInk: '#F4F4F5',
+  liveSurface: '#232529',
+  resolved: '#9B9CA4',
+  roadMajor: '#2F3137',
+  roadMinor: '#232529',
+  railway: '#C6C7CC',
+  scrim: 'rgba(0, 0, 0, 0.6)',
+};
+
+/** Themes for the web control room: Porcelain light, and Midnight indigo dark. */
+export const consoleThemes = { dark: consoleDark, light: consoleLight } as const;
 
 /**
  * Control-room chrome: the deep-navy command bar and hero card, identical in light and dark so the

@@ -78,7 +78,7 @@ export function ViewMenu({ console: inConsole = true, compact = false, bare = fa
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.16 }}
-            className="absolute top-full right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-card border border-panel-line bg-panel-raised p-2 text-ink shadow-lg"
+            className="vw-unchrome absolute top-full right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-card border border-panel-line bg-panel-raised p-2 text-ink shadow-lg"
           >
             <p className="px-3 pt-2 pb-1 text-meta font-semibold text-ink-muted">{t.view.language}</p>
             <div role="radiogroup" aria-label={t.view.language} className="grid grid-cols-3 gap-1 px-2 pb-2">

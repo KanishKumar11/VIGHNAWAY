@@ -29,7 +29,12 @@ import { ViewMenu } from '@/components/shared/ViewMenu';
  * shows the clock's context (simulation label and rain alert) and the nav labels.
  */
 
-/** Connection state: a still dot and, from 1440px, a word. Never a pulse. */
+/** Thin vertical rule between groups in the bar. */
+function BarDivider() {
+  return <span aria-hidden className="h-5 w-px shrink-0 bg-shell-line" />;
+}
+
+/** Connection state: a still dot and, from 1440px, a word. Never a pulse; only a lost connection gets a surface. */
 export function ConnectionPill() {
   const connection = useLiveStore((s) => s.connection);
   const live = connection === 'live';
@@ -40,11 +45,11 @@ export function ConnectionPill() {
       role="status"
       title={label}
       className={cn(
-        'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-chip border text-meta font-semibold whitespace-nowrap max-[1439px]:w-10 min-[1440px]:px-4',
-        lost ? 'border-warn bg-warn-surface text-warn-ink' : 'border-shell-line bg-shell-raised text-ink-on-shell shadow-sm',
+        'inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-button text-meta font-medium whitespace-nowrap max-[1439px]:w-9 min-[1440px]:px-2.5',
+        lost ? 'bg-warn-surface text-warn-ink' : 'text-ink-on-shell-muted',
       )}
     >
-      <span aria-hidden className={cn('size-2 rounded-chip', live ? 'bg-route-recommended shadow-[0_0_0_3px_var(--vw-teal-glow)]' : lost ? 'bg-warn' : 'bg-ink-subtle')} />
+      <span aria-hidden className={cn('size-2 rounded-chip ring-3', live ? 'bg-positive ring-positive/20' : lost ? 'bg-warn ring-warn/20' : 'bg-ink-subtle ring-ink-subtle/20')} />
       <span className="max-[1439px]:sr-only">{label}</span>
     </span>
   );
@@ -69,7 +74,7 @@ function ScenarioSwitch() {
   if (options.length < 2) return null;
   return (
     <LayoutGroup id="scenario-switch">
-      <div role="radiogroup" aria-label={t.app.scenarioSwitch} className="flex h-10 shrink-0 rounded-button border border-shell-hairline bg-panel-sunken p-0.5">
+      <div role="radiogroup" aria-label={t.app.scenarioSwitch} className="flex h-9 shrink-0 rounded-button bg-panel-sunken p-0.5">
         {options.map((o) => {
           const on = o.id === id;
           return (
@@ -79,12 +84,12 @@ function ScenarioSwitch() {
               role="radio"
               aria-checked={on}
               onClick={() => setId(o.id)}
-              className={cn('relative h-full rounded-[calc(var(--vw-radius-button)-3px)] px-4 text-meta font-semibold whitespace-nowrap transition-colors', on ? 'text-ink' : 'text-ink-muted hover:text-ink')}
+              className={cn('relative h-full rounded-[calc(var(--vw-radius-button)-2px)] px-3.5 text-meta font-medium whitespace-nowrap transition-colors', on ? 'text-ink' : 'text-ink-muted hover:text-ink')}
             >
               {on && (
                 <motion.span
                   layoutId="scenario-pill"
-                  className="absolute inset-0 rounded-[calc(var(--vw-radius-button)-3px)] border border-panel-line bg-panel-raised shadow-sm"
+                  className="absolute inset-0 rounded-[calc(var(--vw-radius-button)-2px)] border border-panel-line bg-panel-raised shadow-sm"
                   transition={{ type: 'spring', ...motionTokens.springSnappy }}
                 />
               )}
@@ -106,37 +111,41 @@ function SimClock({ replayAtS }: { replayAtS: number | null }) {
   const rain = alertContext(scenario.alerts, scenario.hasAlertInformation, simTimeS).rainAlertActive;
   const alert = scenario.alerts.find((a) => a.kind === 'rain');
   return (
-    <div className="flex h-12 items-center gap-3 rounded-chip border border-shell-line bg-shell-raised pr-6 pl-1.5 whitespace-nowrap shadow-md">
-      <span aria-hidden className="vw-brand-fill flex size-9 shrink-0 items-center justify-center rounded-chip shadow-sm">
-        {replayAtS !== null ? <History className="size-5" /> : <Clock className="size-5" />}
-      </span>
-      <div className="flex items-baseline gap-2">
+    <div className="vw-clock flex h-11 items-center gap-3 rounded-button px-4 whitespace-nowrap">
+      {replayAtS !== null ? <History aria-hidden className="size-4 shrink-0 text-ink-on-shell-muted" /> : <Clock aria-hidden className="size-4 shrink-0 text-ink-on-shell-muted" />}
+      <div className="flex items-baseline gap-1.5">
         <p className="font-mono text-console-title font-semibold text-ink-on-shell tabular" aria-label={t.sim.clockLabel}>
           <RollingText text={formatSimClock(scenario.clockStartsAt, simTimeS, true)} />
         </p>
         <span className="tech text-ink-on-shell-muted">{timezoneLabel(scenario.timezone, t.sim.tz)}</span>
       </div>
-      <div className="hidden items-center gap-3.5 min-[1900px]:flex">
-        <span aria-hidden className="h-8 w-px bg-shell-line" />
-        <div className="flex flex-col justify-center leading-tight">
-          <span className="text-meta font-semibold text-ink-on-shell-muted">{replayAtS !== null ? t.replay.replaying('') : live ? t.sim.wallClock : t.sim.eyebrow}</span>
-          {!live &&
-            (scenario.hasAlertInformation && alert ? (
-              <span title={`${alert.label} · ${alert.source}`} className={cn('inline-flex items-center gap-1.5 text-meta font-medium', rain ? 'text-ink-on-shell' : 'text-ink-on-shell-muted')}>
-                <CloudRain aria-hidden className="size-4 text-flood-prone-solid" />
+      <div className="hidden items-center gap-3 min-[1900px]:flex">
+        <span aria-hidden className="h-5 w-px bg-shell-line" />
+        <span className="text-meta font-medium text-ink-on-shell-muted">{replayAtS !== null ? t.replay.replaying('') : live ? t.sim.wallClock : t.sim.eyebrow}</span>
+        {!live &&
+          (scenario.hasAlertInformation && alert ? (
+            <span title={`${alert.label} · ${alert.source} · ${t.app.simulated}`} className="inline-flex items-center gap-2 text-meta">
+              <span
+                className={cn(
+                  'inline-flex h-6 items-center gap-1.5 rounded-chip px-2 font-semibold',
+                  rain ? 'bg-warn-surface text-warn-ink' : 'border border-shell-line text-ink-on-shell-muted',
+                )}
+              >
+                <CloudRain aria-hidden className="size-3.5" />
                 {rain ? t.sim.rainAlert : `${t.sim.rainAlert} (${t.sim.alertInactive})`}
-                <span className="text-ink-on-shell-muted">· {t.app.simulated}</span>
               </span>
-            ) : (
-              <span className="text-meta text-ink-on-shell-muted">{t.sim.noAlertInfo}</span>
-            ))}
-        </div>
+              <span className="text-ink-subtle">{t.app.simulated}</span>
+            </span>
+          ) : (
+            <span className="text-meta text-ink-on-shell-muted">{t.sim.noAlertInfo}</span>
+          ))}
       </div>
     </div>
   );
 }
 
-const NAV_LINK = 'ctl-quiet h-10 shrink-0 justify-center px-3 whitespace-nowrap max-[1899px]:w-10 max-[1899px]:px-0';
+const NAV_LINK = 'ctl-quiet h-full shrink-0 justify-center gap-2 px-3 text-meta font-medium whitespace-nowrap max-[1899px]:w-9 max-[1899px]:px-0';
+const BAR_GROUP = 'flex h-9 shrink-0 items-center gap-0.5';
 
 /** Command bar (DESIGN_VISION section 10): identity, scenario, scenario time, status, view, operator. */
 export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
@@ -152,16 +161,16 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
   const speech = usePrefs((s) => s.speech);
   const setPref = usePrefs((s) => s.set);
   return (
-    <header className="vw-header relative z-30 grid h-18 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 px-4">
+    <header className="vw-header vw-chrome relative z-30 grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 px-5">
       <div className="flex min-w-0 items-center gap-4">
-        <Link href="/console" className="flex shrink-0 items-center gap-3" aria-label={t.app.name}>
-          <BrandMark className="size-10 shrink-0 drop-shadow-sm" />
+        <Link href="/console" className="flex shrink-0 items-center gap-2.5" aria-label={t.app.name}>
+          <BrandMark className="size-8 shrink-0" />
           <span className="flex flex-col leading-tight max-[1439px]:hidden">
-            <span className="vw-brand-text text-body font-extrabold tracking-wordmark">{t.app.name}</span>
+            <span className="text-body font-bold tracking-wordmark text-ink-on-shell">{t.app.name}</span>
             <span className="text-meta text-ink-on-shell-muted">{t.app.controlRoom}</span>
           </span>
         </Link>
-        <span aria-hidden className="h-6 w-px shrink-0 bg-shell-line" />
+        <BarDivider />
         {ready && (
           <>
             <ScenarioSwitch />
@@ -178,26 +187,26 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
 
       <SimClock replayAtS={replayAtS} />
 
-      <div className="flex min-w-0 items-center justify-end gap-2.5">
+      <div className="flex min-w-0 items-center justify-end gap-2">
         {presenter ? (
           <>
             {!speech && (
-              <button type="button" onClick={() => setPref('speech', true)} className="vw-press ctl-quiet h-10 px-3 text-meta whitespace-nowrap">
+              <button type="button" onClick={() => setPref('speech', true)} className="vw-press ctl-quiet h-9 px-3 text-meta whitespace-nowrap">
                 <Volume2 aria-hidden className="size-4" />
                 {t.view.suggestSpeech}
               </button>
             )}
-            <button type="button" onClick={() => setPref('presenter', false)} className="vw-press ctl h-10 shrink-0 px-4 text-body whitespace-nowrap">
+            <button type="button" onClick={() => setPref('presenter', false)} className="vw-press ctl h-9 shrink-0 px-3.5 text-meta whitespace-nowrap">
               <X aria-hidden className="size-4" />
               {t.view.exitPresenter}
             </button>
-            <ThemeToggle />
+            <ThemeToggle className="size-9" />
           </>
         ) : (
           <>
-            <nav className="flex shrink-0 items-center gap-0.5 text-body">
+            <nav className={BAR_GROUP}>
               <Link href="/rules" className={NAV_LINK} aria-label={t.nav.rules} title={t.nav.rules}>
-                <BookOpen aria-hidden className="size-4.5 min-[1900px]:hidden" />
+                <BookOpen aria-hidden className="size-4" />
                 <span className="max-[1899px]:hidden">{t.nav.rules}</span>
               </Link>
               {role === 'admin' && (
@@ -207,25 +216,27 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
                 </Link>
               )}
               <Link href="/debug" className={NAV_LINK} aria-label={t.nav.debug} title={t.nav.debug}>
-                <Bug aria-hidden className="size-4.5 min-[1900px]:hidden" />
+                <Bug aria-hidden className="size-4" />
                 <span className="max-[1899px]:hidden">{t.nav.debug}</span>
               </Link>
             </nav>
+            <BarDivider />
             <ConnectionPill />
-            <div className="flex h-10 shrink-0 items-center gap-0.5 rounded-button border border-shell-line bg-shell-raised p-0.5 shadow-sm">
+            <BarDivider />
+            <div className={BAR_GROUP}>
               <button type="button" onClick={() => setPref('presenter', true)} aria-label={t.view.presenter} title={t.view.presenterHint} className="vw-press ctl-quiet h-full w-9 justify-center">
-                <Presentation aria-hidden className="size-4.5" />
+                <Presentation aria-hidden className="size-4" />
               </button>
               <ViewMenu compact bare />
               <ThemeToggle bare />
             </div>
             {access === 'token' ? (
-              <button type="button" onClick={() => setToken(null)} aria-label={t.operator.lock} className="vw-press ctl h-10 shrink-0 px-4 text-body whitespace-nowrap">
-                <LockOpen aria-hidden className="size-4" />
+              <button type="button" onClick={() => setToken(null)} aria-label={t.operator.lock} title={t.operator.lock} className="vw-press ctl ml-2 h-9 shrink-0 px-3.5 text-meta whitespace-nowrap">
+                <LockOpen aria-hidden className="size-4 text-positive-ink" />
                 {t.operator.unlocked}
               </button>
             ) : access === null ? (
-              <button type="button" onClick={openDialog} className="vw-press ctl-primary h-10 shrink-0 px-4 text-body whitespace-nowrap">
+              <button type="button" onClick={openDialog} className="vw-press ctl-primary ml-2 h-9 shrink-0 px-3.5 text-meta whitespace-nowrap">
                 <Lock aria-hidden className="size-4" />
                 {t.operator.locked}
               </button>

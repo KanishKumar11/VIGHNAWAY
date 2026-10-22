@@ -13,7 +13,11 @@ export interface RecordedOverlay {
 export const recorded: RecordedOverlay[] = [];
 export const resetRecorded = () => {
   recorded.length = 0;
+  cameraCalls.length = 0;
 };
+
+/** Every animateCamera call, so tests can assert where the camera went. */
+export const cameraCalls: { camera: Record<string, unknown>; opts: Record<string, unknown> | undefined }[] = [];
 
 interface AnyProps {
   children?: ReactNode;
@@ -24,10 +28,17 @@ interface AnyProps {
 const MapView = forwardRef<unknown, AnyProps>(function MapView(props, ref) {
   useImperativeHandle(ref, () => ({
     fitToCoordinates: jest.fn(),
-    animateCamera: jest.fn(),
+    animateCamera: (camera: Record<string, unknown>, opts?: Record<string, unknown>) => {
+      cameraCalls.push({ camera, opts });
+    },
     animateToRegion: jest.fn(),
   }));
-  return <View testID={typeof props.testID === 'string' ? props.testID : 'map-view'}>{props.children as ReactNode}</View>;
+  // onPanDrag is passed through so a test can fire a drag with fireEvent(map, 'panDrag').
+  return (
+    <View testID={typeof props.testID === 'string' ? props.testID : 'map-view'} {...({ onPanDrag: props.onPanDrag } as object)}>
+      {props.children as ReactNode}
+    </View>
+  );
 });
 
 export function Polyline(props: AnyProps) {

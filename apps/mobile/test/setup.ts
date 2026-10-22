@@ -32,6 +32,15 @@ jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn(async () => 'id'),
   AndroidImportance: { HIGH: 4, DEFAULT: 3 },
 }));
+// The camera and the image encoder are native: tests drive them through these stand-ins.
+jest.mock('expo-image-picker', () => ({
+  requestCameraPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
+  launchCameraAsync: jest.fn(async () => ({ canceled: false, assets: [{ uri: 'file:///camera/shot.jpg', width: 4000, height: 3000 }] })),
+}));
+jest.mock('expo-image-manipulator', () => ({
+  SaveFormat: { JPEG: 'jpeg' },
+  manipulateAsync: jest.fn(async () => ({ uri: 'file:///cache/small.jpg', width: 1280, height: 960, base64: 'QUJD'.repeat(2000) })),
+}));
 // lottie-react-native renders a native view; under Jest a plain View stands in for it.
 jest.mock('lottie-react-native', () => {
   const React = require('react');

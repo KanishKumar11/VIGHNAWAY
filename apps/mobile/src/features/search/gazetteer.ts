@@ -1,15 +1,16 @@
 import type { GraphFile, LatLng, Place } from '@vighnaway/contracts';
 import { haversineM } from '@vighnaway/engine';
+import type { NorthPlace } from '@/regions';
 
 /**
  * Offline place search over what the app already ships: the scenario's places (hospitals, the demo
  * start) and every named road of the bundled OpenStreetMap graph. Nothing here is a router and no
  * network is used; a result is only a point that the engine later snaps to a graph node.
  */
-export type SearchKind = 'hospital' | 'shelter' | 'landmark' | 'origin' | 'road';
+export type SearchKind = 'hospital' | 'shelter' | 'landmark' | 'origin' | 'road' | 'city' | 'town' | 'village' | 'station' | 'airport' | 'shop' | 'school' | 'poi';
 
 export interface SearchEntry {
-  /** Scenario place id, or `road:{edgeId}` for a road. */
+  /** Scenario place id, `road:{edgeId}` for a road, or `place:{lat}:{lng}` for a corridor town. */
   id: string;
   name: string;
   /** Address of a place; empty for roads (the sheet labels them "Road"). */
@@ -96,12 +97,30 @@ export function placeEntries(places: readonly Place[]): SearchEntry[] {
   });
 }
 
-/** Scenario places first, then roads (the order also breaks ranking ties). */
-export function buildGazetteer(file: GraphFile, places: readonly Place[]): SearchEntry[] {
-  return [...placeEntries(places), ...roadEntries(file)];
+/** Cities, towns and villages along the Amritsar to Ambala corridor; reached through the road graph. */
+export function townEntries(towns: readonly NorthPlace[]): SearchEntry[] {
+  return towns.map((p) => {
+    const key = normalise(p.name);
+    return {
+      id: `place:${p.lat.toFixed(5)}:${p.lng.toFixed(5)}`,
+      name: p.name,
+      subtitle: '',
+      kind: p.kind,
+      point: { lat: p.lat, lng: p.lng },
+      // Snapped to the corridor graph when the trip is set: the entry is only a point.
+      nodeId: '',
+      haystack: key,
+      nameKey: key,
+    };
+  });
 }
 
-const KIND_ORDER: Record<SearchKind, number> = { hospital: 0, shelter: 1, landmark: 2, origin: 3, road: 4 };
+/** Scenario places first, then roads, then corridor towns (the order also breaks ranking ties). */
+export function buildGazetteer(file: GraphFile, places: readonly Place[], towns: readonly NorthPlace[] = []): SearchEntry[] {
+  return [...placeEntries(places), ...roadEntries(file), ...townEntries(towns)];
+}
+
+const KIND_ORDER: Record<SearchKind, number> = { city: 0, hospital: 1, shelter: 2, town: 3, station: 4, airport: 5, landmark: 6, origin: 7, school: 8, shop: 9, poi: 10, village: 11, road: 12 };
 
 /** Rank of a match: 0 name starts with the query, 1 every word starts a word, 2 contained; null = no match. */
 function matchRank(entry: SearchEntry, query: string, tokens: string[]): number | null {
@@ -118,7 +137,8 @@ function matchRank(entry: SearchEntry, query: string, tokens: string[]): number 
  */
 export function searchEntries(entries: readonly SearchEntry[], rawQuery: string, near?: LatLng | null, limit = 40): SearchEntry[] {
   const query = normalise(rawQuery.slice(0, 80));
-  if (query === '') return entries.filter((e) => e.kind !== 'road').sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
+  // Suggestions: the scenario's places, then the larger places of the corridor (not every village or road).
+  if (query === '') return entries.filter((e) => e.kind !== 'road' && e.kind !== 'village').sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]).slice(0, limit);
   const tokens = query.split(' ');
   const hits: { entry: SearchEntry; rank: number; d: number }[] = [];
   for (const entry of entries) {
@@ -140,4 +160,9 @@ export function entryToPlace(entry: SearchEntry, scenarioPlaces: readonly Place[
   const known = scenarioPlaces.find((p) => p.id === entry.id);
   if (known) return known;
   return { id: entry.id, name: entry.name, kind: 'landmark', point: entry.point, nodeId: entry.nodeId, side: null, address: null };
+}
+
+/** True for a search result that is a town of the corridor map rather than an Andheri place or road. */
+export function isCorridorEntry(entry: SearchEntry): boolean {
+  return entry.id.startsWith('place:');
 }

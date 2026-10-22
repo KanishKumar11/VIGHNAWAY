@@ -58,22 +58,30 @@ sky-blue underlay before any incident arrives. The console uses the same style.
 | Role | Line |
 | --- | --- |
 | Recommended | 6 px teal over a 9 px dark casing |
-| Usual fastest | 4 px slate |
-| Alternative | 3 px slate at 60% |
+| Usual fastest | 5 px slate over an 8 px casing |
+| Alternative | 5 px slate at 90% over an 8 px casing, drawn under the recommended route like Google Maps; tap it, or its time bubble, to choose it |
 | Not viable | 4 px red, dashed where supported (Android), plus a cross marker on the blocking segment and the words "Not viable" |
 | Travelled | 6 px darker teal |
 
 Z-order bottom to top: flood-prone underlay, alternatives, usual fastest, blocked, recommended,
 travelled, blocking marker, incident markers, vehicle.
 
-**Incident marker:** a Lucide-grid glyph (24 units, 2-unit stroke) in a 36 px circle. Glyphs:
-flood (droplet over waves), closure (barrier), congestion (stacked cars), debris, accident
-(triangle). Ring by status: dashed = Unverified, double = Corroborated, solid = Verified, grey with a
+**Incident marker:** a filled two-tone pictogram (24-unit grid) in a 36 px circle. Pictograms:
+flood (droplet over two waves), closure (a no-entry disc with a bar), congestion (a car in a
+queue), debris (a pile of boulders), accident (a warning triangle with an exclamation mark), and a
+tick disc for "road clear". They are filled, not outlined, so they stay legible at 14 px on a map
+marker; the second tone is the same ink at 38%. Ring by status: dashed = Unverified, double = Corroborated, solid = Verified, grey with a
 strike = Resolved or Dismissed. A small age pill underneath ("12 min"). Selected: scale 1.15 with a
 soft shadow. Origin: pulsing teal dot. Destination: hospital pin with a cross. Vehicle: teal arrow
 with heading.
 
-Icons: Lucide only (`lucide-react-native`, `lucide-react`).
+Icons: Lucide (`lucide-react-native`, `lucide-react`) for interface icons. Incident pictograms are the
+one exception: the shared set in `packages/tokens/src/incidentIcons.ts` (`incidentIcons`), drawn by
+the phone (`apps/mobile/src/components/IncidentGlyph.tsx`) and the console
+(`apps/console/src/components/shared/IncidentGlyph.tsx`) from the same paths, in the ink of the
+surface they sit on. The paths carry no colour. They are drawn for VIGHNAWAY and are not copies of a
+third-party set; ISO 7010 has no flood, congestion or road-closed sign, so a swap to ISO symbols
+would still need those three drawn in the same style.
 
 ## 5. Signature elements
 

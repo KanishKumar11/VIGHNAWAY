@@ -41,6 +41,13 @@ interface TripState {
   destinationId: string;
   mode: TripMode;
   plan: PlanResult | null;
+  /**
+   * The route the traveller tapped (on the map or in the list) instead of the recommended one; null
+   * means the recommended route. The engine still labels and explains every route; this only says
+   * which one the trip will follow. Cleared when the trip or the plan's context changes.
+   */
+  selectedRouteId: string | null;
+  selectRoute: (routeId: string | null) => void;
   /** profile|destination|origin the current plan was made for. */
   planContext: string | null;
   evaluating: boolean;
@@ -53,6 +60,9 @@ interface TripState {
   /** Live mode only: whether the trip follows the device location, or location was refused. */
   liveLocation: 'idle' | 'following' | 'denied';
   setLiveLocation: (v: 'idle' | 'following' | 'denied') => void;
+  /** How far the chosen start and destination are from the road network the route uses (metres). */
+  access: { fromM: number; toM: number } | null;
+  setAccess: (a: { fromM: number; toM: number } | null) => void;
   setOrigin: (id: string) => void;
   setDestination: (id: string) => void;
   setEvaluating: (v: boolean) => void;
@@ -81,6 +91,8 @@ export const useTrip = create<TripState>()((set, get) => ({
   destinationId: demoTrip().destinationId,
   mode: 'planning',
   plan: savedPlan?.plan ?? null,
+  selectedRouteId: null,
+  selectRoute: (selectedRouteId) => set({ selectedRouteId }),
   planContext: savedPlan?.context ?? null,
   evaluating: false,
   vehicle: null,
@@ -90,14 +102,20 @@ export const useTrip = create<TripState>()((set, get) => ({
   transition: null,
   liveLocation: 'idle',
   setLiveLocation: (liveLocation) => set({ liveLocation }),
+  access: null,
+  setAccess: (access) => set({ access }),
   setOrigin: (originId) => set({ originId }),
   setDestination: (destinationId) => set({ destinationId }),
   setEvaluating: (evaluating) => set({ evaluating }),
   setPlan: (plan, planContext, vehicle) => {
-    set(vehicle === undefined ? { plan, planContext } : { plan, planContext, vehicle });
-    storage.setJSON(KEYS.lastPlan, { plan, context: planContext });
+    // A choice survives a re-plan of the same trip while that route still exists; a new trip clears it.
+    const keep = get().planContext === planContext && plan.routes.some((r) => r.routeId === get().selectedRouteId);
+    const selectedRouteId = keep ? get().selectedRouteId : null;
+    set(vehicle === undefined ? { plan, planContext, selectedRouteId } : { plan, planContext, vehicle, selectedRouteId });
+    // The saved plan is only restored at launch on the Andheri map, so a corridor plan is not kept.
+    if (useScenario.getState().region === 'andheri') storage.setJSON(KEYS.lastPlan, { plan, context: planContext });
   },
-  startTrip: (vehicle, atS) => set({ mode: 'en_route', vehicle, vehicleAtS: atS }),
+  startTrip: (vehicle, atS) => set({ mode: 'en_route', vehicle, vehicleAtS: atS, selectedRouteId: null }),
   setVehicle: (vehicle, vehicleAtS) => set({ vehicle, vehicleAtS }),
   arrive: () => set({ mode: 'arrived' }),
   endTrip: () => set({ mode: 'planning', vehicle: null, vehicleAtS: null, banner: null, transition: null, liveLocation: 'idle' }),
@@ -113,7 +131,9 @@ export const useTrip = create<TripState>()((set, get) => ({
       originId: demoTrip().originId,
       destinationId: demoTrip().destinationId,
       plan: null,
+      selectedRouteId: null,
       planContext: null,
+      access: null,
     }),
   pushHistory: (h) => set({ history: [...get().history, h].slice(-50) }),
   showBanner: (b) => set({ banner: { ...b, id: bannerId++ } }),
@@ -127,3 +147,7 @@ export const useTrip = create<TripState>()((set, get) => ({
 
 export const recommendedRoute = (plan: PlanResult | null): RouteEvaluation | null =>
   plan?.routes.find((r) => r.routeId === plan.recommendedRouteId) ?? null;
+
+/** The route the trip uses: the one the traveller chose, else the recommended one. */
+export const activeRoute = (plan: PlanResult | null, selectedRouteId: string | null): RouteEvaluation | null =>
+  (selectedRouteId ? plan?.routes.find((r) => r.routeId === selectedRouteId && r.role !== 'blocked') : null) ?? recommendedRoute(plan);

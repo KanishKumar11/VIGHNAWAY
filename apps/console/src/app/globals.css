@@ -174,8 +174,8 @@
     background: var(--vw-teal-glow);
   }
   /* Theme switches cross-fade surfaces instead of snapping. */
-  html.vw-theme-anim,
-  html.vw-theme-anim * {
+  html.vw-theme-anim:not(.vw-theme-wave),
+  html.vw-theme-anim:not(.vw-theme-wave) * {
     transition: background-color 240ms var(--vw-ease-out), border-color 240ms var(--vw-ease-out), color 240ms var(--vw-ease-out), fill 240ms var(--vw-ease-out), stroke 240ms var(--vw-ease-out) !important;
   }
 }
@@ -291,15 +291,130 @@
     color: var(--vw-ink-on-shell);
   }
 }
-/* Page canvas: a faint accent wash at the top that settles into the shell colour. */
+/* Page canvas: the flat shell colour. */
 .vw-canvas {
   background: var(--vw-shell);
 }
+/* ---------- Colour pass: brand colour on panels and the header ---------- */
+.vw-panel-head {
+  background: var(--vw-shell-raised);
+}
+.vw-title-bar {
+  width: calc(var(--vw-space-xxs) * 1.5);
+  height: var(--vw-space-lg);
+  background: linear-gradient(180deg, var(--vw-brand-from), var(--vw-brand-to));
+}
+
+/* Content pages: a faint indigo and teal wash behind the title, fading into the canvas. */
+.vw-page-glow {
+  background:
+    radial-gradient(45% 70% at 0% 0%, color-mix(in srgb, var(--vw-brand-from) 12%, transparent), transparent 70%),
+    radial-gradient(40% 60% at 100% 0%, color-mix(in srgb, var(--vw-accent) 10%, transparent), transparent 70%);
+}
+
+/*
+ * Tinted card for content pages. `--tone` (a --vw-* colour set by the component) washes in from
+ * the top corner and colours the edge; hover lifts the card and strengthens the tone.
+ */
+.vw-tone-card {
+  --tone: var(--vw-accent);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--vw-radius-sheet);
+  background:
+    radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--tone) 10%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 4%, var(--vw-shell-raised)), var(--vw-shell-raised));
+  border: 1px solid color-mix(in srgb, var(--tone) 16%, var(--vw-shell-hairline));
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 220ms var(--vw-ease-out),
+    box-shadow 220ms var(--vw-ease-out),
+    border-color 220ms var(--vw-ease-out);
+}
+.vw-tone-card:hover {
+  transform: translateY(calc(var(--vw-space-xxs) * -1));
+  border-color: color-mix(in srgb, var(--tone) 45%, transparent);
+  box-shadow: var(--shadow-md), 0 var(--vw-space-sm) var(--vw-space-xl) calc(var(--vw-space-sm) * -1) color-mix(in srgb, var(--tone) 35%, transparent);
+}
+/* The index badge in the card corner. */
+.vw-tone-badge {
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  color: var(--tone);
+}
+/* Reading progress under the content-page bar. */
+.vw-progress {
+  background: linear-gradient(90deg, var(--vw-brand-from), var(--vw-accent));
+}
+
+/* Dark hero: charcoal with a faint teal glow, so the only colour is the route accent. */
+:root[data-theme='dark'] .vw-hero {
+  background:
+    radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--vw-chrome-accent) 10%, transparent), transparent 70%),
+    var(--vw-shell-overlay);
+  border-color: var(--vw-shell-hairline);
+  box-shadow: var(--shadow-md);
+}
+
+/* Theme switch: the new theme washes over the old one as a wave (see stores/theme.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; clip-path: var(--vw-wave, inset(0)); }
 .vw-header {
   background: color-mix(in srgb, var(--vw-shell-raised) 88%, transparent);
   backdrop-filter: blur(var(--vw-space-md)) saturate(1.4);
   border-bottom: 1px solid var(--vw-shell-hairline);
   box-shadow: inset 0 1px 0 var(--vw-shell-highlight), 0 var(--vw-space-xs) var(--vw-space-lg) calc(var(--vw-space-sm) * -1) var(--vw-shadow-2);
+}
+
+/*
+ * Console command bar. `.vw-unchrome` (menus that drop out of the bar) restores the page theme's
+ * surface and ink values if a bar style ever re-points them.
+ */
+:root {
+  --vw-page-shell-raised: var(--vw-shell-raised);
+  --vw-page-shell-line: var(--vw-shell-line);
+  --vw-page-shell-hairline: var(--vw-shell-hairline);
+  --vw-page-shell-hairline-strong: var(--vw-shell-hairline-strong);
+  --vw-page-shell-highlight: var(--vw-shell-highlight);
+  --vw-page-panel-sunken: var(--vw-panel-sunken);
+  --vw-page-panel-raised: var(--vw-panel-raised);
+  --vw-page-panel-line: var(--vw-panel-line);
+  --vw-page-ink: var(--vw-ink);
+  --vw-page-ink-muted: var(--vw-ink-muted);
+  --vw-page-ink-subtle: var(--vw-ink-subtle);
+  --vw-page-ink-on-shell: var(--vw-ink-on-shell);
+  --vw-page-ink-on-shell-muted: var(--vw-ink-on-shell-muted);
+}
+/* The bar: one flat raised surface with a hairline edge; colour is left to the mark and the primary action. */
+.vw-chrome {
+  background: var(--vw-shell-raised);
+  border-bottom: 1px solid var(--vw-shell-hairline);
+  box-shadow: 0 1px 2px var(--vw-shadow-1);
+}
+/* The clock: an inset readout, recessed rather than raised. */
+.vw-clock {
+  background: var(--vw-panel-sunken);
+  border: 1px solid var(--vw-shell-hairline);
+  box-shadow: inset 0 1px 2px var(--vw-shadow-1);
+}
+.vw-unchrome {
+  --vw-shell-raised: var(--vw-page-shell-raised);
+  --vw-shell-line: var(--vw-page-shell-line);
+  --vw-shell-hairline: var(--vw-page-shell-hairline);
+  --vw-shell-hairline-strong: var(--vw-page-shell-hairline-strong);
+  --vw-shell-highlight: var(--vw-page-shell-highlight);
+  --vw-panel-sunken: var(--vw-page-panel-sunken);
+  --vw-panel-raised: var(--vw-page-panel-raised);
+  --vw-panel-line: var(--vw-page-panel-line);
+  --vw-ink: var(--vw-page-ink);
+  --vw-ink-muted: var(--vw-page-ink-muted);
+  --vw-ink-subtle: var(--vw-page-ink-subtle);
+  --vw-ink-on-shell: var(--vw-page-ink-on-shell);
+  --vw-ink-on-shell-muted: var(--vw-page-ink-on-shell-muted);
 }
 /* Brand surfaces and text: solid brand indigo. Brand moments only (logo, wordmark, progress). */
 .vw-brand-fill {
@@ -317,12 +432,14 @@
   border-radius: var(--vw-radius-chip);
   background: var(--vw-brand-from);
 }
-/* Hero card on the decision panel: solid deep indigo. */
+/* Hero card on the decision panel: deep indigo with a violet sweep and a teal glow in the corner. */
 .vw-hero {
   position: relative;
   overflow: hidden;
   border-radius: var(--vw-radius-sheet);
-  background: var(--vw-chrome-indigo);
+  background:
+    radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--vw-chrome-accent) 22%, transparent), transparent 70%),
+    linear-gradient(135deg, var(--vw-chrome-indigo) 0%, color-mix(in srgb, var(--vw-brand-via) 45%, var(--vw-chrome-indigo)) 100%);
   border: 1px solid var(--vw-chrome-line);
   box-shadow: 0 var(--vw-space-md) var(--vw-space-xl) calc(var(--vw-space-sm) * -1) var(--vw-brand-glow), inset 0 1px 0 var(--vw-chrome-fill-strong);
   color: var(--vw-chrome-ink);

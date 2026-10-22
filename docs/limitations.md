@@ -64,3 +64,5 @@ Shown (summarised) on the app's How it decides screen and the console's /rules p
 
 - Android first; iOS is Stretch and untested.
 - Nothing in this repository has run on a physical phone yet (see docs/TASKS.md).
+- Report photos have no retention or deletion job, no operator "delete photo" action, no face or number-plate blurring and no virus or content scan beyond a JPEG sanity check. They are operator-only, but they are stored in Postgres until the table is cleared. Decide a retention rule before real use.
+- Live place search sends the typed text and a rough area (about 10 km) to a third-party Photon server (photon.komoot.io by default). It is a free public instance with fair-use limits and no uptime promise; the built-in places and recent picks keep working without it. Places outside Andheri and the Amritsar to Ambala corridor can be found but not routed.

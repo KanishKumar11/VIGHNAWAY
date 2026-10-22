@@ -45,6 +45,12 @@ export const GraphFileSchema = z.object({
   attribution: z.string(),
   generatedBy: z.string(),
   bbox: z.object({ south: z.number(), west: z.number(), north: z.number(), east: z.number() }),
+  /**
+   * Optional typical speeds (km/h) per profile and road class, for a region where the engine's
+   * default table (an illustrative Mumbai monsoon table) does not apply. Absent = the engine table.
+   * A road class missing here falls back to the engine table.
+   */
+  speedsKmh: z.record(z.string(), z.record(z.string(), z.number().positive())).optional(),
   nodes: z.array(RoadNodeSchema),
   edges: z.array(RoadEdgeSchema),
 });

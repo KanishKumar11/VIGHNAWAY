@@ -40,8 +40,15 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1792830000000,
-      "tag": "0005_hospital_states",
+      "when": 1792833600000,
+      "tag": "0005_report_photos",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792837200000,
+      "tag": "0006_hospital_states",
       "breakpoints": true
     }
   ]

@@ -1,10 +1,12 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { json } from 'express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter, bodyParserErrorHandler } from './common/errors';
+import { PHOTO_BODY_LIMIT_BYTES } from '@vighnaway/contracts';
 import { type AppConfig, BODY_LIMIT, isOriginAllowed } from './config';
 import { LiveIoAdapter } from './live/live-io.adapter';
 
@@ -25,6 +27,9 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
     allowedHeaders: ['Content-Type', 'Authorization'],
     maxAge: 600,
   });
+  // One route takes a bigger body: a photo (base64 JPEG, at most a few hundred kB). Registered before
+  // the 16 kB parser, which then skips a body that is already parsed.
+  app.use(/^\/scenarios\/[^/]+\/reports\/[^/]+\/photo$/, json({ limit: PHOTO_BODY_LIMIT_BYTES }));
   app.useBodyParser('json', { limit: BODY_LIMIT });
   app.use(bodyParserErrorHandler);
   app.useGlobalFilters(new ApiExceptionFilter());

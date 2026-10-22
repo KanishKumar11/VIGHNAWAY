@@ -14,7 +14,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { lineStringGeom, pointGeom } from './geometry';
+import { bytea, lineStringGeom, pointGeom } from './geometry';
 
 export const roadEdges = pgTable(
   'road_edges',
@@ -216,7 +216,28 @@ export const authSessions = pgTable(
   (t) => [index('auth_sessions_user_idx').on(t.userId)],
 );
 
+/**
+ * A photo of the place, attached to one report by the device that sent it. Operators only: no public
+ * endpoint returns it. The phone re-encodes it as a small JPEG (no EXIF); nothing reads it for routing.
+ */
+export const reportPhotos = pgTable(
+  'report_photos',
+  {
+    /** incident_reports.id: one photo per report. */
+    reportId: text('report_id').primaryKey(),
+    scenarioId: text('scenario_id').notNull(),
+    /** The incident the report belongs to, copied at upload so the console can list by incident. */
+    incidentId: text('incident_id'),
+    contentType: text('content_type').notNull(),
+    bytes: bytea('bytes').notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('report_photos_scenario_created_idx').on(t.scenarioId, t.createdAt)],
+);
+
 export type UserRow = typeof users.$inferSelect;
+export type ReportPhotoRow = typeof reportPhotos.$inferSelect;
 export type IncidentRow = typeof incidents.$inferSelect;
 export type IncidentReportRow = typeof incidentReports.$inferSelect;
 export type ScenarioRow = typeof scenarios.$inferSelect;
