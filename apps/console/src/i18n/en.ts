@@ -578,6 +578,7 @@ export const en = {
     codeFormat: 'Enter the 6-digit code',
     rateLimited: (s: number) => `Too many tries. Try again in ${s} s.`,
     generic: (message: string) => `Could not sign in: ${message}`,
+    serverOutdated: 'This server is older than the app and does not support sign-in yet. Ask whoever runs the API to update it, then try again.',
     signedInTitle: 'You are signed in',
     openConsole: 'Open the control room',
     openAdmin: 'Manage accounts',

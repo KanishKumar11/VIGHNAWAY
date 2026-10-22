@@ -15,6 +15,8 @@ export function requestNotice(e: unknown, apiUrl: string): Notice {
   if (e instanceof ApiRequestError) {
     if (e.status === 0) return { text: t('accountNetworkError', { url: apiUrl }), tone: 'danger' };
     if (e.status === 429 || e.code === 'RATE_LIMITED') return { text: t('accountTooMany'), tone: 'warn' };
+    // The route is missing: the API is an older build than the app.
+    if (e.status === 404) return { text: t('accountServerOutdated'), tone: 'danger' };
     if (e.status === 400 || e.code === 'VALIDATION_FAILED') return { text: t('accountEmailInvalid'), tone: 'danger' };
     return { text: t('accountGenericError', { message: e.message }), tone: 'danger' };
   }
@@ -30,6 +32,8 @@ export function verifyNotice(e: unknown, apiUrl: string): Notice {
   if (e instanceof ApiRequestError) {
     if (e.status === 0) return { text: t('accountNetworkError', { url: apiUrl }), tone: 'danger' };
     if (e.status === 401) return { text: t('accountCodeInvalid'), tone: 'danger' };
+    // The route is missing: the API is an older build than the app.
+    if (e.status === 404) return { text: t('accountServerOutdated'), tone: 'danger' };
     if (e.status === 403 || e.code === 'FORBIDDEN') {
       if (/staff|web console/i.test(e.message)) return { text: t('accountStaff'), tone: 'warn' };
       if (/disabled/i.test(e.message)) return { text: t('accountDisabled'), tone: 'warn' };
