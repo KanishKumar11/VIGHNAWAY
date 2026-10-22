@@ -11,7 +11,7 @@ export type LatLng = z.infer<typeof LatLngSchema>;
 export const LngLatTupleSchema = z.tuple([z.number(), z.number()]);
 export type LngLatTuple = z.infer<typeof LngLatTupleSchema>;
 
-export const PROFILES = ['car', 'two_wheeler', 'foot'] as const;
+export const PROFILES = ['car', 'two_wheeler', 'foot', 'step_free'] as const;
 export const ProfileSchema = z.enum(PROFILES);
 export type Profile = z.infer<typeof ProfileSchema>;
 

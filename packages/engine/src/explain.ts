@@ -92,6 +92,7 @@ export function confidenceFor(
     medium.push(road ? tx('conf.gap.road', { road }) : tx('conf.gap.unnamed'));
   }
   if (!ctx.hasAlertInformation && ev.floodProneEdgeCount > 0) medium.push(tx('conf.noAlert'));
+  if (ev.stepFreeUnknownCount) medium.push(tx('conf.stepFreeUnknown', { n: ev.stepFreeUnknownCount }));
   if (gap !== null && gap > lowGapS && gap <= mediumGapS) medium.push(tx('conf.close'));
   if (medium.length) return result('medium', medium);
 

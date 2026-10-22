@@ -60,6 +60,8 @@ export function evaluate(
   let timeS = 0;
   let positionM = 0;
   let floodProneEdgeCount = 0;
+  let stepFreeUnknownCount = 0;
+  const stepFreeUnknown: readonly string[] | null = graph.profile === 'step_free' ? SCORING_RULES.stepFree.value.unknownHighways : null;
   const dataGaps: DataGap[] = [];
   let gapRun: { covered: boolean; gap: DataGap | null } | null = null;
   const crossings: Crossing[] = [];
@@ -68,6 +70,7 @@ export function evaluate(
 
   for (const ei of edgeIdx) {
     const e = graph.edges[ei]!;
+    if (stepFreeUnknown?.includes(e.highway)) stepFreeUnknownCount++;
     let multiplier = 1;
     for (const inc of incidentsOnEdge(e, index)) {
       let eff = effects.get(inc.id);
@@ -204,6 +207,7 @@ export function evaluate(
     crossings,
     roadNames: roadNames.slice(0, 4),
     usesStaleBlock,
+    ...(stepFreeUnknown ? { stepFreeUnknownCount } : {}),
   };
 }
 

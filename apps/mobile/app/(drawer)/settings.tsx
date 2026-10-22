@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
-import { Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
+import { Accessibility, Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { GUTTER, Radio as RadioMark, Row, ScreenHeader, Section } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
@@ -25,8 +25,8 @@ import { useSettings, type Appearance, type DataMode } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { createStyles, layout, radius, spacing, text, useColors } from '@/theme';
 
-const PROFILE_LABEL = { car: 'profileCar', two_wheeler: 'profileTwoWheeler', foot: 'profileFoot' } as const;
-const PROFILE_ICON = { car: Car, two_wheeler: Bike, foot: Footprints } as const;
+const PROFILE_LABEL = { car: 'profileCar', two_wheeler: 'profileTwoWheeler', foot: 'profileFoot', step_free: 'profileStepFree' } as const;
+const PROFILE_ICON = { car: Car, two_wheeler: Bike, foot: Footprints, step_free: Accessibility } as const;
 
 const LANG_NATIVE: Record<Language, StringKey> = { en: 'langEn', hi: 'langHi', mr: 'langMr' };
 const LANG_ENGLISH: Record<Language, StringKey> = { en: 'languageEnglish', hi: 'languageHindi', mr: 'languageMarathi' };

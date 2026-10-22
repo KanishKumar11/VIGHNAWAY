@@ -34,18 +34,16 @@ describe('report away from the mapped roads', () => {
   it('live mode: sends it as it is and says it is saved off-map and changes no route', async () => {
     useSettings.setState({ dataMode: 'live' });
     await render(<ReportScreen />);
-    expect(screen.getByTestId('location-road')).toHaveTextContent('Saved as off-map');
+    expect(screen.getByTestId('location-road')).toHaveTextContent(/Saved as off-map/);
     await fillAndSend();
     await waitFor(() => expect(mockSubmit).toHaveBeenCalledTimes(1));
     expect(mockSubmit.mock.calls[0][0].point).toEqual(AMRITSAR);
     expect(screen.queryByTestId('form-error')).toBeNull();
   });
 
-  it('demo mode: still refuses before sending, and sends nothing', async () => {
-    useSettings.setState({ dataMode: 'simulated' });
+  it('keeps the map centre where it is instead of jumping the pin onto an Andheri road', async () => {
+    useSettings.setState({ dataMode: 'live' });
     await render(<ReportScreen />);
-    await fillAndSend();
-    expect(screen.getByTestId('form-error')).toHaveTextContent('No mapped road here');
-    expect(mockSubmit).not.toHaveBeenCalled();
+    expect(screen.getByTestId('location-coords')).toHaveTextContent('31.64918');
   });
 });

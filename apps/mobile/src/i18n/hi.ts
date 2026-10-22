@@ -118,6 +118,7 @@ export const hi: Dictionary = {
   profileCar: "कार",
   profileTwoWheeler: "दोपहिया",
   profileFoot: "पैदल",
+  profileStepFree: "सीढ़ी-रहित",
   profileGroupLabel: "यात्रा का तरीका",
   reportButton: "रिपोर्ट",
   reportButtonLabel: "खतरे की रिपोर्ट करें",

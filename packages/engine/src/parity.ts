@@ -1,5 +1,5 @@
 import type { GraphFile, Incident, PlanResult, Profile, Scenario } from '@vighnaway/contracts';
-import { PROFILES } from '@vighnaway/contracts';
+
 import type { Graph } from './graph';
 import { loadGraph, snapToEdge } from './graph';
 import { hashValue, stripText } from './hash';
@@ -13,8 +13,11 @@ import { planTrip } from './plan';
  * the edge it snaps to, in three evidence states, and each state is planned for every profile at
  * several simulation times.
  */
+/** The parity fixtures cover these profiles; adding one changes the pinned hash, so step-free is covered by its own tests. */
+const PARITY_PROFILES: readonly Profile[] = ['car', 'two_wheeler', 'foot'];
+
 export function parityPlans(graphFile: GraphFile, scenario: Scenario): { label: string; plan: PlanResult }[] {
-  const graphs = new Map<Profile, Graph>(PROFILES.map((p) => [p, loadGraph(graphFile, p)] as const));
+  const graphs = new Map<Profile, Graph>(PARITY_PROFILES.map((p) => [p, loadGraph(graphFile, p)] as const));
   const snapGraph = graphs.get('foot')!;
   const origin = scenario.places.find((p) => p.id === scenario.demoTrip.originId)!;
   const dest = scenario.places.find((p) => p.id === scenario.demoTrip.destinationId)!;
@@ -57,7 +60,7 @@ export function parityPlans(graphFile: GraphFile, scenario: Scenario): { label: 
     });
 
   const cases: { label: string; plan: PlanResult }[] = [];
-  for (const profile of PROFILES) {
+  for (const profile of PARITY_PROFILES) {
     const graph = graphs.get(profile)!;
     for (const status of ['unverified', 'corroborated', 'verified'] as const) {
       for (let upTo = 0; upTo <= reports.length; upTo++) {

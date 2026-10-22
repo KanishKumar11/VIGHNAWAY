@@ -119,7 +119,7 @@ KeyboardStickyView.
 | Validation | "Choose what you saw" / "Choose a congestion level" / "Note is too long" |
 | Sending | Button "Sending…" |
 | Sent | Button morphs to a check; toast "Sent. Shown as Unverified until confirmed." |
-| Not on a road | Before sending, the point is snapped to the nearest mapped road (within 120 m) and the form shows "On {road}". With no road in range the send is refused up front, in a message pinned above the button: "No mapped road here. Reports work inside the Andheri area: move the map onto a road there." Nothing is queued. |
+| Not on a road | Before sending, the point is snapped to the nearest mapped road (within 120 m) and the form shows "On {road}". In live mode a report from anywhere is accepted: with no mapped road in range the form says "No mapped road here. Saved as off-map: it will not change any route." and the toast after sending says the same; the map centre is kept wherever it is. In the simulated demo, with no road in range the send is refused up front, in a message pinned above the button: "No mapped road here. Reports work inside the Andheri area: move the map onto a road there." Nothing is queued. |
 | Not on a road (422) | "That point is not on a known road. Move the pin onto a road." A queued report the API rejects later raises a toast and an Activity entry ("Report not accepted: …"); it is never dropped silently. |
 | Rate limited (429) | "Too many reports from this device. Try again in a minute." |
 | Offline | Toast "Saved. Pending send when you are back online."; activity shows "Pending send" |

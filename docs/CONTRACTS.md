@@ -14,6 +14,7 @@ seconds** (`…S` fields) assigned by the server.
 | `GET /scenarios/:id` | none | | `ScenarioResponse { scenario: Scenario, sim: SimState }` |
 | `GET /scenarios/:id/incidents` | none | `?sinceSeq=n` (optional) | `IncidentsResponse { scenarioId, seq, full, runId, simTimeS, incidents, observations? }` |
 | `POST /scenarios/:id/reports` | none (throttled); an optional session links the report to the account | `ReportInput` | `201 ReportResponse { receipt, incident \| null }` |
+| `POST /scenarios/:id/reports` (offline relay fields) | none | `ReportInput` plus optional `clientReportId` (UUID made on the device) and `observedAtS` (the device's claim, simulation seconds, not in the future and at most 2 h back, else 400) | A repeat `clientReportId` in a scenario returns 201 with the original receipt and the incident as it is now and stores nothing new. The server's own `receivedAtS` is still the only time used for ordering and age; `observedAtS` is a label. Offline QR text: `VW1:` + JSON `{ v: 1, s: scenarioId, r: ReportInput with clientReportId }` (packages/contracts/src/relay.ts); signed by nobody, a relayer adds no weight |
 | `GET /scenarios/:id/hospitals` | none | | `HospitalStatesResponse { scenarioId, simulated, hospitals[{ placeId, name, state: accepting|busy|diverting, setAtS, setBy }] }`, every hospital of the scenario in id order; a hospital never set is `accepting` with `setAtS` and `setBy` null |
 | `PUT /scenarios/:id/hospitals/:placeId` | Bearer (operator) | `{ state }` | The updated `HospitalStatesResponse`. 400 for an unknown state or extra fields, 404 for an unknown place or one that is not a hospital. Setting `accepting` clears it. A simulation reset clears every state. The state only ranks which hospital a trip is assigned to (engine `assignHospitals`); it never closes a road |
 | `POST /scenarios/:id/audience/clear` | Bearer | `{}` | `ClearAudienceResponse { cleared, incidentIds }`: dismisses every open incident supported only by audience reports (one logged change each, broadcast like any change); scripted and mixed-origin incidents stay |
@@ -74,7 +75,12 @@ Road clear included (a Road clear with nothing nearby creates no incident), as `
 
 `ReportReceipt { reportId, scenarioId, outcome, receivedAtS, snappedEdgeId, roadName,
 distanceToRoadM }`, outcome ∈ `created_incident | attached | updated_duplicate | corroborated |
-marked_conflicting | resolved_by_clear_reports | clear_noted | linked_new_incident`.
+marked_conflicting | resolved_by_clear_reports | clear_noted | linked_new_incident | off_map`.
+
+**`off_map` (live mode only).** A live-mode app or web report with no road edge within 30 m is saved, not refused:
+201 with `outcome: 'off_map'`, `snappedEdgeId`, `distanceToRoadM` and `roadName` all `null`, and `incident: null`.
+`snappedEdgeId` and `distanceToRoadM` are therefore nullable in the receipt. An off-map report never creates or
+changes an incident, so it cannot affect routing. The simulated demo, `audience` and `prompt` reports keep the 422.
 
 ### Incident (`IncidentSchema`)
 
@@ -96,7 +102,7 @@ note, seq`.
 | `NOT_FOUND` | 404 | Unknown scenario or incident |
 | `CONFLICT` | 409 | Operator action on a closed incident, or a second `prompt` answer for the same road from one device within 30 simulated minutes |
 | `PAYLOAD_TOO_LARGE` | 413 | Body over 16 kB |
-| `NOT_ON_ROAD` | 422 | Report point more than 30 m from any road edge ("Not on a known road") |
+| `NOT_ON_ROAD` | 422 | Report point more than 30 m from any road edge ("Not on a known road"). Not returned for live-mode app and web reports, which are saved as `off_map` |
 | `RATE_LIMITED` | 429 | `POST /reports` only: more than 10 requests/min per IP or 5 reports/min per device |
 | `INTERNAL` | 500 | Anything else (logged, never leaks internals) |
 

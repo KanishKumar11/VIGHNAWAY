@@ -127,6 +127,7 @@ export const en = {
   profileCar: 'Car',
   profileTwoWheeler: 'Two-wheeler',
   profileFoot: 'On foot',
+  profileStepFree: 'Step-free',
   profileGroupLabel: 'Travel profile',
   reportButton: 'Report',
   reportButtonLabel: 'Report a hazard',

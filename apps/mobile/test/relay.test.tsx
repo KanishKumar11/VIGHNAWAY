@@ -71,25 +71,25 @@ describe('the code', () => {
 });
 
 describe('Show report as a code', () => {
-  it('shows a code for each waiting report of this scenario and none for another scenario', () => {
+  it('shows a code for each waiting report of this scenario and none for another scenario', async () => {
     usePendingReports.setState({
       pending: [pendingReport(), pendingReport({ localId: 'pending-b', input: stampReport({ ...base, type: 'congestion', congestion: 'heavy', depth: undefined }) }), pendingReport({ localId: 'pending-other', scenarioId: 'andheri-live' })],
     });
-    render(<RelayScreen />);
+    await render(<RelayScreen />);
     expect(screen.getByTestId('relay-qr-pending-a')).toBeTruthy();
     expect(screen.getByTestId('relay-qr-pending-b')).toBeTruthy();
     expect(screen.queryByTestId('relay-qr-pending-other')).toBeNull();
     expect(screen.getAllByText('Pending send')).toHaveLength(2);
   });
 
-  it('says nothing is waiting when the queue is empty', () => {
-    render(<RelayScreen />);
+  it('says nothing is waiting when the queue is empty', async () => {
+    await render(<RelayScreen />);
     expect(screen.getByTestId('relay-empty')).toBeTruthy();
   });
 
-  it('gives a report queued before codes existed its id, so it can be shown too', () => {
+  it('gives a report queued before codes existed its id, so it can be shown too', async () => {
     usePendingReports.setState({ pending: [pendingReport({ input: base })] });
-    render(<RelayScreen />);
+    await render(<RelayScreen />);
     expect(usePendingReports.getState().pending[0]!.input.clientReportId).toMatch(UUID);
     expect(screen.getByTestId('relay-qr-pending-a')).toBeTruthy();
   });

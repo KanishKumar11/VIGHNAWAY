@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FEED_PROVIDER_LABEL, PROFILES, type Profile } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, SlidersHorizontal, WifiOff, type LucideIcon } from '@/components/icons';
+import { Accessibility, Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, SlidersHorizontal, WifiOff, type LucideIcon } from '@/components/icons';
 import { easing, PressScale } from '@/components/motion';
 import { Segmented } from '@/components/Segmented';
 import { t, type StringKey } from '@/i18n/en';
@@ -25,6 +25,7 @@ const PROFILE_META: Record<Profile, { label: StringKey; icon: LucideIcon }> = {
   car: { label: 'profileCar', icon: Car },
   two_wheeler: { label: 'profileTwoWheeler', icon: Bike },
   foot: { label: 'profileFoot', icon: Footprints },
+  step_free: { label: 'profileStepFree', icon: Accessibility },
 };
 
 const STATUS_ICON: Partial<Record<StatusKind, LucideIcon>> = {

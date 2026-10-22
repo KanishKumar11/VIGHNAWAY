@@ -131,6 +131,11 @@ export const RouteEvaluationSchema = z.object({
   crossings: z.array(CrossingSchema),
   roadNames: z.array(z.string()),
   usesStaleBlock: z.boolean(),
+  /**
+   * Step-free profile only (P2-3): segments of this route where step-free access is not recorded (footpaths, paths,
+   * pedestrian streets, corridors). Mapped steps are never used. Absent for the other profiles.
+   */
+  stepFreeUnknownCount: z.number().int().min(0).optional(),
   role: RouteRoleSchema,
   explanation: ExplanationSchema,
   counterfactual: CounterfactualSchema.optional(),

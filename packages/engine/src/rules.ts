@@ -123,16 +123,21 @@ export const SCORING_RULES = {
       car: CAR_SPEEDS,
       two_wheeler: TWO_WHEELER_SPEEDS,
       foot: { default: 4.5, steps: 3.0 },
+      step_free: { default: 4.5 },
     },
     'Illustrative monsoon-traffic speeds per road class, in km/h. Not measurements.',
   ),
   defaultSpeedKmh: r<Record<Profile, number>>(
-    { car: 15, two_wheeler: 18, foot: 4.5 },
+    { car: 15, two_wheeler: 18, foot: 4.5, step_free: 4.5 },
     'Speed for road classes not listed above.',
   ),
   hospitalLoad: r(
     { busyS: 300, divertingS: 1800, perAssignedS: 120 },
     'When several trips head for the nearest hospital, each hospital costs its arrival time plus a state penalty (accepting 0, busy 300 s, diverting 1,800 s) plus 120 s for each trip already assigned to it in the same batch. The lowest cost wins and ties go to the lower hospital id. Ranking only: the arrival time shown is unchanged. A hospital that is not reachable is never assigned.',
+  ),
+  stepFree: r(
+    { avoidedHighways: ['steps'], unknownHighways: ['footway', 'path', 'pedestrian', 'corridor', 'track'] },
+    'The step-free profile walks like the foot profile but never uses a way mapped as steps. A way is known to have steps only where the map says so: footpaths, paths, pedestrian streets and corridors may still have steps or kerbs the map does not record, so the route says on how many segments step-free access is unknown, and confidence is Medium when there are any. Ordinary roads are treated as passable.',
   ),
   access: r(
     {

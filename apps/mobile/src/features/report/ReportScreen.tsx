@@ -178,12 +178,14 @@ export function ReportScreen() {
 
   // Default point: the map centre when it is on a mapped road, else the vehicle, else the trip
   // start, so the form opens on a spot that can be sent (the map may be showing somewhere else).
+  // Live mode takes a report from anywhere, so it keeps the map centre wherever it is.
   const fallbackPoint = useMemo<LatLng | null>(() => {
     const { graphFile, scenario } = useScenario.getState();
     const trip = useTrip.getState();
     const candidates: LatLng[] = [];
     const centre = useUi.getState().mapCenter;
     if (centre) candidates.push(centre);
+    if (centre && useSettings.getState().dataMode === 'live') return centre;
     if (trip.vehicle) {
       const pos = vehiclePosition(getGraph(graphFile, useSettings.getState().profile), trip.vehicle);
       if (pos) candidates.push(pos.point);

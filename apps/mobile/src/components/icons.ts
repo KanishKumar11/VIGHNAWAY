@@ -17,6 +17,7 @@ export { default as RefreshCw } from 'lucide-react-native/icons/refresh-cw';
 export { default as WifiOff } from 'lucide-react-native/icons/wifi-off';
 export { default as ServerOff } from 'lucide-react-native/icons/server-off';
 export { default as Footprints } from 'lucide-react-native/icons/footprints';
+export { default as Accessibility } from 'lucide-react-native/icons/accessibility';
 export { default as Bike } from 'lucide-react-native/icons/bike';
 export { default as Car } from 'lucide-react-native/icons/car';
 export { default as Hospital } from 'lucide-react-native/icons/hospital';

@@ -58,7 +58,9 @@ SELECT id, name FROM places WHERE scenario_id = $s ORDER BY geom <-> $pt LIMIT 5
 
 ## Report rules (server)
 
-1. Validate (`ReportInputSchema`), throttle (per IP and per device), snap within 30 m or 422.
+1. Validate (`ReportInputSchema`), throttle (per IP and per device), snap within 30 m or 422. In live mode (scenario
+   `simulated: false`) an app or web report that does not snap is saved to `offmap_reports` (migration 0008) and
+   answered `off_map`; steps 2 onward do not run for it.
 2. **Road clear:** open incidents (any type) with a report within 150 m are marked `conflicting`.
    If clear reports from two different devices now exist for one, it is resolved
    (`resolved_by_clear_reports`). A clear report counts for an incident when it was received at or
@@ -121,6 +123,14 @@ jsonb provenance, no `incident_reports` rows. Migration `0002_incident_feed.sql`
 true while every supporting report has origin `audience`: a new incident takes it from its first report, and an
 attached report from any other origin clears it. `POST /scenarios/:id/audience/clear` dismisses the open incidents with
 `audience_only` set. Neither column is read by the routing engine: origin labels and limits, it is never evidence.
+
+## offmap_reports (migration 0008)
+
+Live-mode reports with no road edge within 30 m. Same fields as `incident_reports` minus the edge, distance and incident
+link, plus the point (`geom`), `received_at_s` and the device's `client_report_id` (unique per scenario, so a relayed
+repeat gets the original receipt). Kept apart so every `incident_reports` row still has a snapped edge. Nothing reads
+these rows for routing, corroboration or incidents; they exist so an operator can see where reports come from outside
+the map, and so they can be re-snapped if a graph is ever added for that area.
 
 ## report_photos
 

@@ -46,11 +46,15 @@ export interface Graph {
 
 const byString = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
+/** Walking profiles: foot, and step-free (foot without mapped steps). */
+export const isWalking = (profile: Profile): boolean => profile === 'foot' || profile === 'step_free';
+
 export function isEdgeAllowed(e: RoadEdge, profile: Profile): boolean {
   const rules = SCORING_RULES.access.value;
   const yes = (v: string | null) => v === 'yes' || v === 'designated' || v === 'permissive';
   const noAccess = e.access === 'no' || e.access === 'private';
-  if (profile === 'foot') {
+  if (profile === 'step_free' && (SCORING_RULES.stepFree.value.avoidedHighways as readonly string[]).includes(e.highway)) return false;
+  if (isWalking(profile)) {
     if (e.foot === 'no') return false;
     if (yes(e.foot)) return true;
     if ((rules.footExcludedHighways as readonly string[]).includes(e.highway)) return false;
@@ -64,7 +68,7 @@ export function isEdgeAllowed(e: RoadEdge, profile: Profile): boolean {
 
 export function speedKmh(highway: string, profile: Profile): number {
   const table = SCORING_RULES.speedsKmh.value[profile] as Record<string, number>;
-  if (profile === 'foot') return table[highway] ?? table.default ?? SCORING_RULES.defaultSpeedKmh.value.foot;
+  if (isWalking(profile)) return table[highway] ?? table.default ?? SCORING_RULES.defaultSpeedKmh.value[profile];
   return table[highway] ?? SCORING_RULES.defaultSpeedKmh.value[profile];
 }
 
@@ -93,8 +97,8 @@ export function loadGraph(json: GraphFile, profile: Profile): Graph {
     const to = nodeIndex.get(e.to);
     if (from === undefined || to === undefined) continue;
     // A region may carry its own typical speeds (GraphFile.speedsKmh); otherwise the engine table applies.
-    const regional = json.speedsKmh?.[profile];
-    const kmh = regional?.[e.highway] ?? (profile === 'foot' ? regional?.default : undefined) ?? speedKmh(e.highway, profile);
+    const regional = json.speedsKmh?.[profile] ?? (profile === 'step_free' ? json.speedsKmh?.foot : undefined);
+    const kmh = regional?.[e.highway] ?? (isWalking(profile) ? regional?.default : undefined) ?? speedKmh(e.highway, profile);
     const timeS = e.lengthM / (kmh / 3.6);
     const common = {
       baseId: e.id,
@@ -110,7 +114,7 @@ export function loadGraph(json: GraphFile, profile: Profile): Graph {
     drafts.push({ ...common, id: e.id, from, to, geometry: e.geometry, virtual: false, reverseId: e.reverseId });
     // On foot, one-way streets can be walked in both directions.
     const twinExists = e.reverseId !== null && baseIds.has(e.reverseId);
-    if (profile === 'foot' && !twinExists) {
+    if (isWalking(profile) && !twinExists) {
       drafts.push({
         ...common,
         id: `${e.id}~r`,
