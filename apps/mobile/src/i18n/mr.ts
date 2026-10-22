@@ -115,6 +115,7 @@ export const mr: Dictionary = {
   whyAvoids: "कारण",
   whyTradeOff: "तडजोड",
   whyRecheck: "पुन्हा तपासा जर",
+  whyNot: "हा मार्ग का नाही?",
   evidenceTitle: "या मार्गावरील पुरावे",
   noHazardsOnRoute: "या मार्गावर कोणताही धोका नोंदवलेला नाही",
   activityTitle: "अलीकडील घडामोडी",

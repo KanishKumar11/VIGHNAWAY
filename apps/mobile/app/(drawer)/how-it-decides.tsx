@@ -8,6 +8,7 @@ import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Mark } from '@/components/Mark';
 import { enterUp } from '@/components/motion';
 import { strings, t } from '@/i18n/en';
+import { ruleText } from '@/i18n/engineText';
 import { getLanguage } from '@/i18n/lang';
 import { useReduceMotion } from '@/lib/motion';
 import { useScenario } from '@/stores/scenario';
@@ -33,7 +34,7 @@ export default function HowItDecides() {
             </AppText>
           </View>
           <AppText variant="mono" style={styles.formula}>
-            {SCORING_RULES.formula}
+            {ruleText('formula', SCORING_RULES.formula)}
           </AppText>
         </Animated.View>
         <Animated.View entering={enterUp(1, reduce)} style={styles.intro}>
@@ -56,7 +57,7 @@ export default function HowItDecides() {
               <AppText variant="mono" tone="muted">
                 {r.key}
               </AppText>
-              <AppText variant="meta">{r.description}</AppText>
+              <AppText variant="meta">{ruleText(r.key, r.description)}</AppText>
               <View style={styles.value}>
                 <AppText variant="mono">{r.value}</AppText>
               </View>

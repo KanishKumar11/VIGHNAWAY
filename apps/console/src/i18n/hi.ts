@@ -214,6 +214,7 @@ export const hi: Strings = {
     tradeOff: 'समझौता',
     recheckIf: 'फिर जाँचें अगर',
     noTradeOff: 'कोई नहीं',
+    whyNot: 'यह रास्ता क्यों नहीं?',
     confidence: { high: 'उच्च', medium: 'मध्यम', low: 'कम' },
     confidenceLabel: (word: string) => `${word} भरोसा`,
     distance: 'दूरी',

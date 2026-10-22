@@ -121,3 +121,45 @@ variable or committed file.
 carry `feed: FeedRef { provider: 'tomtom', externalId, delayS, magnitude, probability,
 description, from, to, lastSeenAtS }`; label them with `statusLabel`/`sourceLabel` ("Reported by
 TomTom live traffic" / "TomTom live traffic"). Details: docs/live-traffic.md.
+
+## Structured engine text (`Text`)
+
+The engine's result shapes (`PlanResult` and its parts, produced on the client, never sent by the
+server) carry every sentence twice: as the English string they always had, and as structured
+`Text = { key, params? }` in an optional companion field. `params` values are numbers, proper nouns
+(road and place names, never translated) or nested `Text`. Clients render a `Text` in the user's
+language with `renderText(text, 'en' | 'hi' | 'mr')` from `@vighnaway/engine`; the catalogs are
+`packages/engine/src/text/{en,hi,mr}.ts` and the English string stays the source of truth.
+
+| Shape | English field | Text companion |
+| --- | --- | --- |
+| `RouteEvaluation` | `name` | `nameText` |
+| `Explanation` | `reason`, `tradeOff`, `recheckIf`, `confidenceReasons[]` | `reasonText`, `tradeOffText` (absent when `tradeOff` is empty), `recheckIfText`, `confidenceReasonTexts[]` |
+| `RouteChange` | `message`, `tradeOff` | `messageText`, `tradeOffText` (absent when `tradeOff` is empty) |
+| `PlanNotice` | `message` | `messageText` |
+| `RouteEvaluation` (not recommended) | (none: structured only, see below) | `counterfactualText` |
+
+`nextActionText(plan, destinationName?)` gives the "what to do now" sentence the same way, and
+`ruleDescription(key, lang)` gives scoring-rule descriptions. Case modifiers in a template
+(`{hazard|lower}`) apply to English only.
+
+The companions are not part of the decision: `planHash` and the parity hash ignore them
+(`stripText`), so the parity hash is unchanged by this contract. They are optional so older
+payloads still parse; a client without a `Text` shows the English string.
+
+
+### Counterfactual (`RouteEvaluation.counterfactual`)
+
+Every shown route that is not recommended carries `counterfactual`, the answer to "why not that
+route?", and `counterfactualText` (its sentence). The recommended route has neither. Kinds:
+
+| `kind` | Fields | Meaning |
+| --- | --- | --- |
+| `blocked` | `blockerIds`, `wouldBeRecommended` | Not viable while these incidents stand; a faster ETA never changes that. `wouldBeRecommended`: clearing all of them would make it the recommendation. |
+| `hazards` | `incidentIds`, `smallest` | Clearing these incidents would make it the recommendation. `smallest` is true only for a single incident. |
+| `time` | `cutS` | It would be the recommendation if its ranking cost were `cutS` seconds lower (switching rule included). |
+| `none_sufficient` | `reason` (`hazards` or `time`) | Clearing its hazards, or saving any time, would not be enough. |
+
+Each claim is verified by re-ranking all candidates (docs/scoring.md, "How counterfactuals are
+computed"). `counterfactual` is part of the plan hash and the parity hash, so the parity hash
+changed when it was added (see docs/ROADMAP_STATUS.md for the values); `counterfactualText` is not.

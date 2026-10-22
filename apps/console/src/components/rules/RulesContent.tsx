@@ -1,8 +1,9 @@
 'use client';
 
-import { SCORING_RULES, scoringRulesTable } from '@vighnaway/engine';
+import { RULE_KEYS, ruleDescription, SCORING_RULES, scoringRulesTable } from '@vighnaway/engine';
+import type { RuleKey } from '@vighnaway/engine';
 import { Info, Languages } from 'lucide-react';
-import { t } from '@/i18n';
+import { currentLang, t } from '@/i18n';
 import { ATTRIBUTION } from '@/lib/scenario';
 import { PageShell } from '@/components/shared/PageShell';
 
@@ -23,14 +24,14 @@ export function RulesContent() {
     >
       <section className="mt-10 border-y border-shell-line py-6">
         <h2 className="text-meta font-semibold text-accent-ink">{t.rules.formula}</h2>
-        <p className="mt-2 font-mono text-title leading-relaxed font-medium text-ink-on-shell">{SCORING_RULES.formula}</p>
+        <p className="mt-2 font-mono text-title leading-relaxed font-medium text-ink-on-shell">{ruleDescription('formula', currentLang())}</p>
       </section>
 
       <dl className="mt-2">
         {rows.map((r) => (
           <div key={r.key} className="grid gap-x-10 gap-y-1.5 border-b border-shell-line py-5 md:grid-cols-[16rem_1fr_minmax(0,18rem)]">
             <dt className="text-title font-semibold text-ink-on-shell">{t.rules.titles[r.key] ?? r.key}</dt>
-            <dd className="text-body text-ink-on-shell-muted">{r.description}</dd>
+            <dd className="text-body text-ink-on-shell-muted">{(RULE_KEYS as string[]).includes(r.key) ? ruleDescription(r.key as RuleKey, currentLang()) : r.description}</dd>
             <dd className="md:text-right">
               <span className="sr-only">{t.rules.value}: </span>
               <span className="tech break-words text-ink-on-shell">{r.value}</span>

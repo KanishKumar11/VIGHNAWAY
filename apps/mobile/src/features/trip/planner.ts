@@ -2,7 +2,7 @@ import type { PlanResult, RouteEvaluation } from '@vighnaway/contracts';
 import type { Place } from '@vighnaway/contracts';
 import { followPlan, haversineM, planTrip, replanFrom, snapToNode, startVehicle, vehiclePosition, type Graph, type VehicleState } from '@vighnaway/engine';
 import { t } from '@/i18n/en';
-import { changeText, noticeText, routeName, speechFor } from '@/i18n/engineText';
+import { changeText, noticeText, routeLabel, speechFor } from '@/i18n/engineText';
 import { getGraph } from '@/lib/engine';
 import { announce, haptic } from '@/lib/feedback';
 import { dur } from '@/lib/motion';
@@ -147,8 +147,7 @@ function handleOutcome(prevPlan: PlanResult | null, plan: PlanResult, contextCha
       plan.routes.find((r) => r.routeId === change.fromRouteId)?.blockedBy[0]?.edgeId ??
       fromRoute?.edgeIds.find((id) => plan.routes.some((r) => r.blockedBy.some((b) => b.edgeId === id))) ??
       null;
-    const byId = useIncidents.getState().byId;
-    const text = changeText(plan, fromRoute, byId) ?? { message: change.message, tradeOff: change.tradeOff };
+    const text = changeText(plan) ?? { message: change.message, tradeOff: change.tradeOff };
     haptic.warning();
     trip.showBanner({
       tone: plan.isReversal || change.kind === 'no_viable_route' ? 'danger' : 'change',
@@ -159,7 +158,7 @@ function handleOutcome(prevPlan: PlanResult | null, plan: PlanResult, contextCha
       incidentId: change.trigger?.incidentId ?? null,
     });
     announce(text.message);
-    void speakChange(speechFor(plan, fromRoute, byId));
+    void speakChange(speechFor(plan));
     activity.add({
       atS: nowS,
       kind: change.kind === 'no_viable_route' ? 'no_viable_route' : 'route_changed',
@@ -171,7 +170,7 @@ function handleOutcome(prevPlan: PlanResult | null, plan: PlanResult, contextCha
   }
 
   for (const notice of plan.notices) {
-    const message = noticeText(notice, plan, useIncidents.getState().byId);
+    const message = noticeText(notice);
     const key = `${notice.kind}|${notice.message}|${plan.incidentCount}|${useIncidents.getState().lastSeq}`;
     if (notice.kind === 'unchanged_with_hazard') {
       // Never say "Route unchanged" while the "Route changed" banner is still on screen; the
@@ -251,7 +250,7 @@ export function startTrip(): void {
   const simTimeS = useSim.getState().simTimeS;
   trip.startTrip(startVehicle(rec.edgeIds), simTimeS);
   trip.dismissBanner();
-  useActivity.getState().add({ atS: simTimeS, kind: 'trip', text: t('activityTripStarted', { name: routeName(rec.name) }) });
+  useActivity.getState().add({ atS: simTimeS, kind: 'trip', text: t('activityTripStarted', { name: routeLabel(rec) }) });
 }
 
 export function endTrip(): void {

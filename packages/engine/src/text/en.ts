@@ -127,6 +127,15 @@ export const en = {
   'change.new.better': 'Route changed. Another route is now clearly better. New route {via} {eta}.',
   'change.reversal': '{base} No forward route is viable. {reversal}.',
 
+  // Why not that route? (counterfactuals)
+  'cf.blocked.notEnough': 'Even if {hazards|lower} were cleared, another route would still be recommended.',
+  'cf.hazard.one': 'Would be recommended if {hazard|lower} were cleared.',
+  'cf.hazard.many': 'Would be recommended if these were cleared: {hazards}.',
+  'cf.time': 'Would be recommended if it were {n} min faster.',
+  'cf.none.hazards': 'Clearing its reported hazards would not make it recommended.',
+  'cf.none.time': 'Saving time alone would not make it recommended.',
+  'cf.join': '{head}; {tail}',
+
   // Plan notices
   'notice.unchanged.one': 'Route unchanged: one unverified report',
   'notice.unchanged.many': 'Route unchanged: {n} unverified reports',

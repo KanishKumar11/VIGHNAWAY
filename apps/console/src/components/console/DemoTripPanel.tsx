@@ -2,12 +2,13 @@
 
 import type { Incident, PlanResult, RouteEvaluation } from '@vighnaway/contracts';
 import { formatDistance, formatSimClock } from '@vighnaway/contracts';
-import { nextAction } from '@vighnaway/engine';
+import { nextActionText, renderText } from '@vighnaway/engine';
 import { motion as motionTokens } from '@vighnaway/tokens';
 import { ArrowRight, Hospital, Info, OctagonX, Phone, TriangleAlert, Undo2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { currentLang, t } from '@/i18n';
+import { bannerBody, routeLabel, rt } from '@/i18n/engineText';
 import { cn } from '@/lib/cn';
 import { currentEtaS, recommendedRoute, type TripChange, type TripState } from '@/lib/demoTrip';
 import { placeById } from '@/lib/scenario';
@@ -27,13 +28,9 @@ const ease = motionTokens.easeOut as [number, number, number, number];
 const springSnappy = { type: 'spring' as const, ...motionTokens.springSnappy };
 const clock = (s: number) => formatSimClock(activeScenario().clockStartsAt, s);
 
-/** The banner title already says "Route changed" or "No viable route"; drop the repeat. */
-export const bannerBody = (message: string): string => message.replace(/^(Route changed|No viable route)\.\s*/, '');
+export { bannerBody };
 
-/**
- * "What to do now": one plain sentence. English is the engine's own sentence (nextAction);
- * Hindi and Marathi fill the same shape from their tables with the engine's values.
- */
+/** "What to do now": one plain sentence, rendered from the engine's structured text in the active language. */
 export function whatToDoNow(plan: PlanResult, destName: string | undefined): string {
   if (currentLang() === 'en') return nextAction(plan, destName);
   const rec = recommendedRoute(plan);
@@ -201,6 +198,7 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
   const doNow = whatToDoNow(flashing ? prev.current.plan : trip.plan, destName);
 
   return (
+    <article aria-label={`${t.decision.label}: ${routeLabel(shown)}`} className="px-6 pt-5 pb-6">
     <article aria-label={`${t.decision.label}: ${shown.name}`} className="px-5 pt-5 pb-6">
       {reversal && (
         <p role="alert" className="mb-4 flex items-center gap-2.5 rounded-button border border-danger bg-danger-surface px-3.5 py-2.5 text-body font-semibold text-danger-ink">
@@ -240,7 +238,7 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
           transition={{ duration: 0.3, ease }}
           className="mt-5 text-console-title font-semibold tracking-tight text-ink-on-shell"
         >
-          {shown.name}
+          {routeLabel(shown)}
         </motion.h3>
       </AnimatePresence>
       <p className="mt-1.5 flex items-start gap-2 text-body font-medium text-ink-on-shell">
@@ -253,9 +251,9 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
 
       <dl className="well mt-4 grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2.5 px-4 py-3.5 text-body">
         <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.avoids}</dt>
-        <dd className="text-ink-on-shell">{shown.explanation.reason}</dd>
+        <dd className="text-ink-on-shell">{rt(shown.explanation.reasonText, shown.explanation.reason)}</dd>
         <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.tradeOff}</dt>
-        <dd className="text-ink-on-shell">{shown.explanation.tradeOff || t.route.noTradeOff}</dd>
+        <dd className="text-ink-on-shell">{shown.explanation.tradeOff ? rt(shown.explanation.tradeOffText, shown.explanation.tradeOff) : t.route.noTradeOff}</dd>
       </dl>
 
       <div className="mt-6">
@@ -265,10 +263,10 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1">
         <ConfidenceMeter confidence={shown.explanation.confidence} />
-        {shown.explanation.confidenceReasons.length > 0 && <p className="text-meta text-ink-on-shell-muted">{shown.explanation.confidenceReasons.join(' · ')}</p>}
+        {shown.explanation.confidenceReasons.length > 0 && <p className="text-meta text-ink-on-shell-muted">{shown.explanation.confidenceReasons.map((reason, i) => rt(shown.explanation.confidenceReasonTexts?.[i], reason)).join(' · ')}</p>}
       </div>
       <p className="mt-2 text-meta text-ink-on-shell-muted">
-        <span className="font-semibold">{t.route.recheckIf}:</span> {shown.explanation.recheckIf}
+        <span className="font-semibold">{t.route.recheckIf}:</span> {rt(shown.explanation.recheckIfText, shown.explanation.recheckIf)}
       </p>
 
       {change && !flashing && <WhatChanged change={change} plan={trip.plan} incidents={incidents} nowS={nowS} />}
@@ -325,11 +323,16 @@ function Comparison({ rec, others }: { rec: RouteEvaluation | null; others: Rout
             <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${r.name}`} className="rounded-card border border-shell-line bg-shell-raised px-4 py-3 transition-colors hover:bg-panel-sunken">
               <div className="grid grid-cols-[1.5rem_1fr_auto] items-center gap-x-3">
                 <LineSwatch role={r.role} />
-                <p className="min-w-0 truncate text-body font-semibold text-ink-on-shell">{r.name}</p>
+                <p className="min-w-0 truncate text-body font-semibold text-ink-on-shell">{routeLabel(r)}</p>
                 <p className={cn('text-right text-body font-semibold tabular', blocked ? 'text-danger-ink' : 'text-ink-on-shell')}>{blocked ? t.route.notViable : t.time.duration(r.etaS)}</p>
                 <span />
-                <p className="text-meta text-ink-on-shell-muted">{blocked ? r.explanation.reason : t.route.roles[r.role]}</p>
+                <p className="text-meta text-ink-on-shell-muted">{blocked ? rt(r.explanation.reasonText, r.explanation.reason) : t.route.roles[r.role]}</p>
                 <p className="text-right text-meta text-ink-on-shell-muted tabular">{!blocked && rec ? t.route.deltaVsRecommended(t.time.delta(r.etaS - rec.etaS)) : ''}</p>
+                {r.counterfactualText && (
+                  <p className="col-span-3 mt-1.5 text-meta text-ink-on-shell-muted" data-testid="why-not">
+                    <span className="font-semibold">{t.route.whyNot}</span> {rt(r.counterfactualText, '')}
+                  </p>
+                )}
               </div>
             </li>
           );
@@ -379,7 +382,7 @@ export function ChangeBanner({ trip, motion: m, dismissedId, onDismiss }: { trip
               <span className={cn('text-title font-semibold', danger ? 'text-danger-ink' : 'text-warn-ink')}>{danger ? t.route.noViable.title : t.route.changedTitle}</span>
               <span className={cn('tech', danger ? 'text-danger-ink' : 'text-warn-ink')}>{clock(change.atS)}</span>
             </p>
-            <p className={cn('mt-0.5 text-body', danger ? 'text-danger-ink' : 'text-warn-ink')}>{bannerBody(change.message)}</p>
+            <p className={cn('mt-0.5 text-body', danger ? 'text-danger-ink' : 'text-warn-ink')}>{bannerBody(rt(change.messageText, change.message))}</p>
           </div>
           <button
             type="button"
@@ -509,7 +512,7 @@ export function DemoTripPanel({
             {trip.notice && !trip.change && (
               <p className="flex items-start gap-2.5 border-b border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell">
                 <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-ink-on-shell-muted" />
-                {trip.notice.message}
+                {rt(trip.notice.messageText, trip.notice.message)}
               </p>
             )}
             {trip.plan.noViableRoute && !rec && <NoViable trip={trip} destName={dest?.name} />}

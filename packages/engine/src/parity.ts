@@ -1,8 +1,8 @@
-import type { GraphFile, Incident, Profile, Scenario } from '@vighnaway/contracts';
+import type { GraphFile, Incident, PlanResult, Profile, Scenario } from '@vighnaway/contracts';
 import { PROFILES } from '@vighnaway/contracts';
 import type { Graph } from './graph';
 import { loadGraph, snapToEdge } from './graph';
-import { hashValue } from './hash';
+import { hashValue, stripText } from './hash';
 import { planTrip } from './plan';
 
 /**
@@ -13,7 +13,7 @@ import { planTrip } from './plan';
  * the edge it snaps to, in three evidence states, and each state is planned for every profile at
  * several simulation times.
  */
-export function parityCases(graphFile: GraphFile, scenario: Scenario): { label: string; hash: string }[] {
+export function parityPlans(graphFile: GraphFile, scenario: Scenario): { label: string; plan: PlanResult }[] {
   const graphs = new Map<Profile, Graph>(PROFILES.map((p) => [p, loadGraph(graphFile, p)] as const));
   const snapGraph = graphs.get('foot')!;
   const origin = scenario.places.find((p) => p.id === scenario.demoTrip.originId)!;
@@ -56,7 +56,7 @@ export function parityCases(graphFile: GraphFile, scenario: Scenario): { label: 
       return [inc];
     });
 
-  const cases: { label: string; hash: string }[] = [];
+  const cases: { label: string; plan: PlanResult }[] = [];
   for (const profile of PROFILES) {
     const graph = graphs.get(profile)!;
     for (const status of ['unverified', 'corroborated', 'verified'] as const) {
@@ -73,12 +73,17 @@ export function parityCases(graphFile: GraphFile, scenario: Scenario): { label: 
             places: scenario.places,
             destinationPlaceId: dest.id,
           });
-          cases.push({ label: `${profile}/${status}/${upTo}/${nowS}`, hash: hashValue(plan) });
+          cases.push({ label: `${profile}/${status}/${upTo}/${nowS}`, plan });
         }
       }
     }
   }
   return cases;
+}
+
+/** One hash per parity plan. Structured text companions are not hashed (see stripText). */
+export function parityCases(graphFile: GraphFile, scenario: Scenario): { label: string; hash: string }[] {
+  return parityPlans(graphFile, scenario).map(({ label, plan }) => ({ label, hash: hashValue(stripText(plan)) }));
 }
 
 /** Single hash over every parity case. */

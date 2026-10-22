@@ -1,4 +1,4 @@
-import type { Incident, PlanNotice, PlanResult, RouteEvaluation, Scenario, TripPosition } from '@vighnaway/contracts';
+import type { Incident, PlanNotice, Text, PlanResult, RouteEvaluation, Scenario, TripPosition } from '@vighnaway/contracts';
 import { formatDuration } from '@vighnaway/contracts';
 import type { Graph, VehicleState } from '@vighnaway/engine';
 import {
@@ -33,6 +33,8 @@ export interface TripChange {
   atS: number;
   kind: 'invalid' | 'outperformed' | 'no_viable_route' | 'destination';
   message: string;
+  /** Structured form of `message` for the active language (absent for a destination switch). */
+  messageText?: Text;
   fromRouteId: string | null;
   toRouteId: string | null;
   /** Name of the route that was being followed (route ids change when re-planning from the vehicle). */
@@ -280,6 +282,7 @@ export function incidentsTrip(env: TripEnv, s0: TripState, incidents: readonly I
       atS: nowS,
       kind: switchedTo ? 'destination' : plan.change!.kind,
       message,
+      ...(!switchedTo && plan.change!.messageText ? { messageText: plan.change!.messageText } : {}),
       fromRouteId: oldRec?.routeId ?? null,
       toRouteId: plan.recommendedRouteId,
       fromRouteName: oldRec?.name ?? null,

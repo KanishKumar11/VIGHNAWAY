@@ -233,6 +233,6 @@ describe('languages', () => {
     const replay = replayTrip(env, history(), 200);
     expect(whatToDoNow(replay.trip.plan, 'Kokilaben Dhirubhai Ambani Hospital')).toMatch(/^Take Gokhale Bridge to Kokilaben Dhirubhai Ambani Hospital, \d+ min\.$/);
     setCurrentLang('hi');
-    expect(whatToDoNow(replay.trip.plan, 'Kokilaben Dhirubhai Ambani Hospital')).toMatch(/^Gokhale Bridge से Kokilaben Dhirubhai Ambani Hospital जाएँ, \d+ मिनट।$/);
+    expect(whatToDoNow(replay.trip.plan, 'Kokilaben Dhirubhai Ambani Hospital')).toMatch(/^Kokilaben Dhirubhai Ambani Hospital के लिए Gokhale Bridge से जाएँ, \d+ मिनट।$/);
   });
 });

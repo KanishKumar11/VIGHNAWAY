@@ -181,6 +181,7 @@ export const en = {
     tradeOff: 'Trade-off',
     recheckIf: 'Re-check if',
     noTradeOff: 'None',
+    whyNot: 'Why not this route?',
     confidence: { high: 'High', medium: 'Medium', low: 'Low' },
     confidenceLabel: (word: string) => `${word} confidence`,
     distance: 'Distance',

@@ -29,6 +29,10 @@ export { rank, compareEvaluations, exceedsSwitchThreshold, switchThresholdS } fr
 export type { RankResult, RankDecision } from './rank';
 export { explain, confidenceFor, describeChange, hazardLabel, hazardPhrase, evidencePhrase } from './explain';
 export type { ExplainContext } from './explain';
+export { buildReceipt, verifyReceipt, encodeReceipt, decodeReceipt, inputsHash, rulesHash, ENGINE_VERSION, RECEIPT_VERSION } from './receipt';
+export type { Receipt, ReceiptContext, ReceiptCheck, ReceiptVerification } from './receipt';
+export { counterfactuals } from './counterfactual';
+export type { CounterfactualInput, CounterfactualResult } from './counterfactual';
 export { planTrip, replanFrom, findReachableDestination, planHash, edgeMultiplier, nodeLatLng } from './plan';
 export type { PlanTripInput, ReplanInput, TripConditions } from './plan';
 export {
@@ -40,7 +44,7 @@ export {
   remainingEtaS,
 } from './vehicle';
 export type { VehicleState } from './vehicle';
-export { canonicalJson, hashString, hashValue } from './hash';
+export { canonicalJson, hashString, hashValue, stripText } from './hash';
 export { haversineM, bearingDeg, pointAlong, cumulativeLengths } from './geo';
 
 import type { GEdge, Graph } from './graph';
@@ -61,6 +65,25 @@ export function routeGeometry(graph: Graph, edgeIds: readonly string[]): LngLatT
   }
   return out;
 }
-export { parityCases, parityHash } from './parity';
-export { routeFlow, flowDurationMs, nextAction, spokenChange } from './present';
+export { parityCases, parityHash, parityPlans } from './parity';
+export { routeFlow, flowDurationMs, nextAction, nextActionText, spokenChange } from './present';
+export { renderText, placeholdersOf, isTextKey, TEXT_LANGS } from './text/render';
+export type { TextLang } from './text/render';
+export { TEXT_CATALOGS, RULE_KEYS, ruleDescription } from './text/catalogs';
+export type { RuleKey } from './text/rules';
+export type { TextKey } from './text/en';
+export {
+  tx,
+  hazardLabelText,
+  hazardPhraseText,
+  statusLabelText,
+  sourceLabelText,
+  evidenceText,
+  durationText,
+  deltaText,
+  etaChangeText,
+  crossingNameText,
+  viaRoadText,
+  viaLowerText,
+} from './text/build';
 export type { RouteSegmentFlow } from './present';

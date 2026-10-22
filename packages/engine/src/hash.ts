@@ -31,3 +31,27 @@ export function hashString(s: string): string {
 }
 
 export const hashValue = (v: unknown): string => hashString(canonicalJson(v));
+
+/**
+ * Structured text companions ("nameText", "reasonText", ...) are another rendering of strings that
+ * are already hashed, so plan hashes ignore them. Everything else in the value is kept.
+ */
+const TEXT_FIELDS = new Set([
+  'nameText',
+  'reasonText',
+  'tradeOffText',
+  'recheckIfText',
+  'confidenceReasonTexts',
+  'messageText',
+  'counterfactualText',
+]);
+
+export function stripText<T>(value: T): T {
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map((v) => stripText(v)) as unknown as T;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (!TEXT_FIELDS.has(k)) out[k] = stripText(v);
+  }
+  return out as T;
+}
