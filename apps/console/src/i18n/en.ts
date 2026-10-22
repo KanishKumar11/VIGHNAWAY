@@ -497,7 +497,7 @@ export const en = {
     to: (name: string, min: number) => `${name}, about ${min} min`,
     none: 'No hospital can be reached',
     reasonNearest: 'Nearest hospital by arrival time.',
-    passedState: (name: string, state: string) => `${name} is nearer but is ${state.toLowerCase()}.`,
+    passedState: (name: string, state: string) => `${name} is nearer but is ${String(state).toLowerCase()}.`,
     passedLoad: (name: string, n: number) => `${name} is nearer but already has ${n} simulated ${n === 1 ? 'caller' : 'callers'}.`,
     footnote: 'Simulated callers and a state set by the control room in a simulated scenario. Arrival times are modelled.',
   },

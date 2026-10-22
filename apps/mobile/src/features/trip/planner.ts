@@ -242,6 +242,7 @@ function checkCommute(plan: PlanResult, nowS: number): void {
   const { saved, markAlerted } = useCommute.getState();
   if (!saved) return;
   const { originId, destinationId } = useTrip.getState();
+  if (!originId || !destinationId) return;
   const profile = useSettings.getState().profile;
   const alert = commuteAlertFor(saved, { originId, destinationId, profile }, plan);
   if (!alert) {

@@ -55,7 +55,7 @@ describe('console brand meets WCAG AA', () => {
 
 describe.each(Object.entries(phoneBrand))('phone brand layer (%s) meets WCAG AA', (_name, b) => {
   it.each(phoneBrandContrastPairs.map((p) => [p.what, p] as const))('%s', (_what, p) => {
-    const ratio = contrast(b[p.fg], b[p.bg], b.from);
+    const ratio = contrast(b[p.fg], b[p.bg], b.hero);
     expect(ratio, `${p.fg} on ${p.bg} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(p.min);
   });
 });

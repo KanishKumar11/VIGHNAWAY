@@ -87,6 +87,7 @@ const pick = (s: PrefsStore): Prefs => ({
   queueHidden: s.queueHidden,
   tripHidden: s.tripHidden,
   coverage: s.coverage,
+  walking: s.walking,
 });
 
 /** P toggles presenter mode, Escape leaves it; ignored while typing. Pure, for tests. */

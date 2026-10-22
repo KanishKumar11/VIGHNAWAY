@@ -141,7 +141,7 @@ export default function SettingsScreen() {
     const sc = useScenario.getState().scenario;
     const from = placeById(sc, trip.originId);
     const to = placeById(sc, trip.destinationId);
-    if (!plan || !usual || !from || !to) {
+    if (!plan || !usual || !from || !to || !trip.originId || !trip.destinationId) {
       useToast.getState().show(t('commuteNoTrip'));
       return;
     }
