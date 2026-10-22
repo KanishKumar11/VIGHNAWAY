@@ -35,6 +35,8 @@ export interface MapLine {
 export interface MapPin {
   key: string;
   kind: 'origin' | 'destination' | 'blocking' | 'vehicle';
+  /** Destination pin: a hospital gets the hospital glyph, any other place a plain pin. */
+  hospital?: boolean;
   coordinate: MapCoord;
   headingDeg?: number;
 }
@@ -55,6 +57,49 @@ const roleZ: Record<RouteRole, number> = {
   blocked: zIndex.blocked,
   recommended: zIndex.recommended,
 };
+
+/**
+ * Most incident markers the map draws. A live feed can carry hundreds; each is a native bitmap, and
+ * drawing them all stalls the phone. Routing still uses every incident; only the drawing is capped.
+ */
+export const MAP_MARKERS_MAX = 40;
+/** How far (degrees, ~500 m) around the routes an off-route incident still earns a marker. */
+const CORRIDOR_PAD_DEG = 0.005;
+const STATUS_RANK: Record<string, number> = { verified: 0, corroborated: 1, unverified: 2, resolved: 3 };
+
+/**
+ * The incidents worth a marker: every one the engine tied to a shown route (hazard or block) first,
+ * then open ones in the corridor around the routes, verified first and newest first, up to
+ * MAP_MARKERS_MAX.
+ */
+export function mapIncidents(graph: Graph, incidents: Incident[], routes: RouteEvaluation[], origin: Place | null, destination: Place | null): Incident[] {
+  const visible = incidents.filter((i) => isOpenStatus(i.status) || i.status === 'resolved');
+  if (visible.length <= MAP_MARKERS_MAX) return visible;
+  const onRoute = new Set<string>();
+  for (const r of routes) {
+    for (const h of r.hazards) if (h.effect !== 'none') onRoute.add(h.incidentId);
+    for (const b of r.blockedBy) onRoute.add(b.incidentId);
+  }
+  let south = Infinity;
+  let north = -Infinity;
+  let west = Infinity;
+  let east = -Infinity;
+  const grow = (lat: number, lng: number) => {
+    south = Math.min(south, lat);
+    north = Math.max(north, lat);
+    west = Math.min(west, lng);
+    east = Math.max(east, lng);
+  };
+  for (const r of routes) for (const c of routeCoords(graph, r.edgeIds, r.routeId)) grow(c.latitude, c.longitude);
+  for (const p of [origin, destination]) if (p) grow(p.point.lat, p.point.lng);
+  const inCorridor = (i: Incident) =>
+    i.point.lat >= south - CORRIDOR_PAD_DEG && i.point.lat <= north + CORRIDOR_PAD_DEG && i.point.lng >= west - CORRIDOR_PAD_DEG && i.point.lng <= east + CORRIDOR_PAD_DEG;
+  const first = visible.filter((i) => onRoute.has(i.id));
+  const rest = visible
+    .filter((i) => !onRoute.has(i.id) && isOpenStatus(i.status) && inCorridor(i))
+    .sort((a, b) => (STATUS_RANK[a.status] ?? 9) - (STATUS_RANK[b.status] ?? 9) || b.lastReportAtS - a.lastReportAtS || (a.id < b.id ? -1 : 1));
+  return [...first, ...rest].slice(0, Math.max(MAP_MARKERS_MAX, first.length));
+}
 
 /** Progressive coordinate reveal (polylines cannot animate their stroke). */
 export function sliceCoords(coords: MapCoord[], progress: number): MapCoord[] {
@@ -158,7 +203,7 @@ export function useMapModel(args: {
   const pins = useMemo(() => {
     const out: MapPin[] = [];
     if (origin) out.push({ key: 'origin', kind: 'origin', coordinate: toCoord(origin.point) });
-    if (destination) out.push({ key: 'destination', kind: 'destination', coordinate: toCoord(destination.point) });
+    if (destination) out.push({ key: 'destination', kind: 'destination', coordinate: toCoord(destination.point), hospital: destination.kind === 'hospital' });
     const seen = new Set<string>();
     for (const r of routes ?? []) {
       for (const b of r.blockedBy) {
@@ -179,13 +224,10 @@ export function useMapModel(args: {
 
   // Age labels change once a minute; bucket nowS so markers do not re-render every tick.
   const minute = Math.floor(nowS / 60);
+  const shown = useMemo(() => mapIncidents(graph, incidents, routes ?? [], origin, destination), [graph, incidents, routes, origin, destination]);
   const markers = useMemo<MapIncident[]>(
-    () =>
-      incidents
-        .filter((i) => isOpenStatus(i.status) || i.status === 'resolved')
-        .map((i) => ({ incident: i, coordinate: toCoord(i.point), ageLabel: fmtAge(Math.max(0, minute * 60 - i.lastReportAtS)), a11y: incidentA11y(i, minute * 60) })),
-     
-    [incidents, minute],
+    () => shown.map((i) => ({ incident: i, coordinate: toCoord(i.point), ageLabel: fmtAge(Math.max(0, minute * 60 - i.lastReportAtS)), a11y: incidentA11y(i, minute * 60) })),
+    [shown, minute],
   );
 
   return { lines, travelled, pins, vehiclePin, markers };

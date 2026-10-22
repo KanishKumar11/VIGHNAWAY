@@ -41,6 +41,7 @@ export class ApiRequestError extends Error {
 }
 
 const TIMEOUT_MS = 8000;
+const REPORT_TIMEOUT_MS = 20000;
 
 /** The part of a Zod schema we use (zod is a dependency of contracts, not of this app). */
 interface Parser<T> {
@@ -119,7 +120,8 @@ export const api = {
    * it is sent again anonymously, so a stale session can never stop a report.
    */
   report: async (baseUrl: string, id: string, input: ReportInput, token?: string | null): Promise<ReportResponse> => {
-    const send = (tk?: string | null) => request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body: input, token: tk });
+    // A report is tiny but the phone may be on a very slow link: wait longer than a read before queueing it.
+    const send = (tk?: string | null) => request(baseUrl, API_PATHS.reports(id), ReportResponseSchema, { method: 'POST', body: input, token: tk, timeoutMs: REPORT_TIMEOUT_MS });
     if (!token) return send();
     try {
       return await send(token);

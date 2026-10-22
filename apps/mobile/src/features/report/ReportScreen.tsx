@@ -1,4 +1,3 @@
-import * as Location from 'expo-location';
 import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, StyleSheet, Switch, TextInput, useWindowDimensions, View, type TextInputInstance } from 'react-native';
@@ -9,10 +8,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REPORT_DESCRIPTION_MAX, type LatLng, type ReportType } from '@vighnaway/contracts';
 import { vehiclePosition } from '@vighnaway/engine';
 import { AppText } from '@/components/AppText';
+import { APPROXIMATE_FIX_M } from '@/features/search/myLocation';
+import { accurateFix, requestLocationPermission } from '@/lib/location';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { CircleCheck, Crosshair, Eye, LocateFixed, TriangleAlert, X } from '@/components/icons';
+import { Crosshair, Eye, LocateFixed, TriangleAlert, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Lottie } from '@/components/Lottie';
 import { MapField } from '@/components/MapField';
@@ -22,7 +23,8 @@ import { ToastHost } from '@/components/Toast';
 import { googleMapsConfigured } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { getDeviceId } from '@/lib/deviceId';
-import { getGraph } from '@/lib/engine';
+import { getGraph, snapToRoad } from '@/lib/engine';
+import { graphForRegion } from '@/regions';
 import { announce, haptic } from '@/lib/feedback';
 import { useReduceMotion } from '@/lib/motion';
 import { placeById, useScenario } from '@/stores/scenario';
@@ -100,7 +102,7 @@ function TypeTile({ type, label, selected, onPress, wide }: { type: ReportType; 
         style={[styles.tile, selected && styles.tileSelected]}
       >
         <View style={[styles.tileDisc, selected && styles.tileDiscSelected]}>
-          {type === 'road_clear' ? <CircleCheck size={22} color={fg} strokeWidth={2} /> : <IncidentGlyph type={type} size={22} color={fg} />}
+          <IncidentGlyph type={type} size={24} color={fg} />
         </View>
         <AppText variant="meta" tone={selected ? 'inverse' : 'ink'} numberOfLines={2} style={[styles.tileLabel, selected && styles.strong]}>
           {label}
@@ -169,22 +171,32 @@ export function ReportScreen() {
   const [locationSource, setLocationSource] = useState<'map' | 'device'>('map');
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [noteFocused, setNoteFocused] = useState(false);
+  const [headerH, setHeaderH] = useState(insets.top + layout.minTouch + spacing.xl);
 
-  // Default point: map centre, else the vehicle, else the trip origin.
+  // Default point: the map centre when it is on a mapped road, else the vehicle, else the trip
+  // start, so the form opens on a spot that can be sent (the map may be showing somewhere else).
   const fallbackPoint = useMemo<LatLng | null>(() => {
-    const centre = useUi.getState().mapCenter;
-    if (centre) return centre;
     const { graphFile, scenario } = useScenario.getState();
     const trip = useTrip.getState();
+    const candidates: LatLng[] = [];
+    const centre = useUi.getState().mapCenter;
+    if (centre) candidates.push(centre);
     if (trip.vehicle) {
       const pos = vehiclePosition(getGraph(graphFile, useSettings.getState().profile), trip.vehicle);
-      if (pos) return pos.point;
+      if (pos) candidates.push(pos.point);
     }
-    return placeById(scenario, trip.originId)?.point ?? null;
+    const start = placeById(scenario, trip.originId)?.point;
+    if (start) candidates.push(start);
+    const car = getGraph(graphForRegion('andheri'), 'car');
+    return candidates.find((p) => snapToRoad(car, p)) ?? candidates[0] ?? null;
   }, []);
   useEffect(() => {
     if (!draft.point && fallbackPoint) setDraft((d) => ({ ...d, point: fallbackPoint }));
   }, [draft.point, fallbackPoint]);
+  // The road the report lands on (null = no mapped road nearby, so it cannot be sent).
+  // Reports exist for the Andheri map only (the API checks them against it), whichever map is showing.
+  const andheri = graphForRegion('andheri');
+  const snap = useMemo(() => (draft.point ? snapToRoad(getGraph(andheri, 'car'), draft.point) : null), [draft.point, andheri]);
 
   // Auto-focus only after the modal's open transition, so the keyboard does not jump mid-animation.
   useEffect(() => {
@@ -219,14 +231,17 @@ export function ReportScreen() {
     setLocationNote(null);
     setLocationSource('device');
     try {
-      const perm = await Location.requestForegroundPermissionsAsync();
-      if (!perm.granted) {
+      const perm = await requestLocationPermission();
+      if (perm === 'denied' || perm === 'unknown') {
         setLocationNote(t('locationDenied'));
         setLocationSource('map');
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      set({ point: { lat: pos.coords.latitude, lng: pos.coords.longitude } });
+      const fix = await accurateFix();
+      set({ point: { lat: fix.lat, lng: fix.lng } });
+      // Say when the position is rough, so the reporter can drag the map to the exact spot.
+      if (perm === 'approximate') setLocationNote(t('locationApproximatePermission'));
+      else if (fix.accuracyM !== null && fix.accuracyM > APPROXIMATE_FIX_M) setLocationNote(t('locationApproximate', { m: Math.round(fix.accuracyM) }));
     } catch {
       setLocationNote(t('locationFailed'));
       setLocationSource('map');
@@ -242,8 +257,15 @@ export function ReportScreen() {
       if (first) announce(first);
       return;
     }
+    // The API only takes points on a mapped road: say so now rather than after a queued retry.
+    if (!snap) {
+      setErrors({ form: t('reportOffRoad') });
+      haptic.warning();
+      announce(t('reportOffRoad'));
+      return;
+    }
     setStatus('sending');
-    const outcome = await submitReport(result.input);
+    const outcome = await submitReport({ ...result.input, point: snap.point });
     if (outcome.kind === 'error') {
       setStatus('editing');
       setErrors({ form: outcome.message });
@@ -268,7 +290,11 @@ export function ReportScreen() {
   return (
     <View style={styles.root}>
       <ThemedStatusBar />
-      <View style={styles.header}>
+      {/* Android draws the modal edge to edge: the header clears the status bar and side insets. */}
+      <View
+        style={[styles.header, { paddingTop: insets.top + spacing.sm, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]}
+        onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
+      >
         <View style={styles.headerRow}>
           <AppText variant="title" accessibilityRole="header" style={styles.flexShrink}>
             {t('reportTitle')}
@@ -286,7 +312,10 @@ export function ReportScreen() {
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingBottom: layout.minTouch + spacing.xl + insets.bottom }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: layout.minTouch + spacing.xl + insets.bottom, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md },
+        ]}
       >
         <Section step={stepOf()} label={t('reportTypeLabel')} error={errors.type} index={0}>
           <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel={t('reportTypeLabel')}>
@@ -364,6 +393,9 @@ export function ReportScreen() {
                     {draft.point.lat.toFixed(5)}
                   </AppText>
                   <AppText variant="mono">{draft.point.lng.toFixed(5)}</AppText>
+                  <AppText variant="meta" tone={snap ? 'muted' : 'warn'} testID="location-road">
+                    {snap ? (snap.roadName ? t('reportOnRoad', { road: snap.roadName }) : t('reportOnRoadUnnamed')) : t('reportOffRoadShort')}
+                  </AppText>
                 </View>
               </View>
             ) : null}
@@ -423,17 +455,18 @@ export function ReportScreen() {
             thumbColor={tc.white}
           />
         </View>
-        {errors.form ? (
-          <View style={styles.formError} accessibilityRole="alert">
-            <TriangleAlert size={16} color={tc.dangerInk} />
-            <AppText tone="danger" testID="form-error" style={styles.flex}>
-              {errors.form}
-            </AppText>
-          </View>
-        ) : null}
       </KeyboardAwareScrollView>
       <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm, paddingLeft: insets.left + spacing.md, paddingRight: insets.right + spacing.md }]}>
+          {/* Pinned above the button so a failed send is never hidden below the fold. */}
+          {errors.form ? (
+            <View style={styles.formError} accessibilityRole="alert">
+              <TriangleAlert size={16} color={tc.dangerInk} />
+              <AppText tone="danger" testID="form-error" style={styles.flex}>
+                {errors.form}
+              </AppText>
+            </View>
+          ) : null}
           {status === 'sent' ? (
             <Animated.View
               entering={reduce ? undefined : ZoomIn.duration(motion.reportSent).easing(easing)}
@@ -452,7 +485,8 @@ export function ReportScreen() {
           )}
         </View>
       </KeyboardStickyView>
-      <ToastHost top={spacing.xl + spacing.xl} />
+      {/* Toasts open under the header, never over the title or the status bar. */}
+      <ToastHost top={headerH + spacing.xs} />
     </View>
   );
 }
@@ -493,7 +527,9 @@ const useStyles = createStyles((tc) => ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    padding: spacing.sm,
+    // Narrow side padding so one-word labels ("Congestion") fit three across without breaking.
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xxs,
     borderRadius: radius.card,
     backgroundColor: tc.panel,
     // Control boundary at 3:1 (DESIGN_VISION 5.1); flat, no shadow.
@@ -539,7 +575,7 @@ const useStyles = createStyles((tc) => ({
   input: { ...text.body, color: tc.ink, minHeight: spacing.xl * 2 + spacing.sm, padding: 0, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null) },
   inputError: { borderColor: tc.danger, borderWidth: 2 },
   counter: { alignSelf: 'flex-end' },
-  formError: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.dangerSurface },
+  formError: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, marginBottom: spacing.sm, borderRadius: radius.card, backgroundColor: tc.dangerSurface },
   footer: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, backgroundColor: tc.shell, borderTopWidth: hairline, borderTopColor: tc.panelHairline },
   sentButton: {
     minHeight: layout.minTouch + spacing.xxs,

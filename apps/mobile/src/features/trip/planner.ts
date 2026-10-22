@@ -1,6 +1,7 @@
-import type { PlanResult, RouteEvaluation } from '@vighnaway/contracts';
+import type { LatLng, PlanResult, RouteEvaluation } from '@vighnaway/contracts';
 import type { Place } from '@vighnaway/contracts';
-import { followPlan, haversineM, planTrip, replanFrom, snapToNode, startVehicle, vehiclePosition, type Graph, type VehicleState } from '@vighnaway/engine';
+import { followPlan, haversineM, nodePoint, planTrip, replanFrom, snapToNode, startVehicle, vehiclePosition, type Graph, type VehicleState } from '@vighnaway/engine';
+import { graphForRegion, regionOfPoint } from '@/regions';
 import { t } from '@/i18n/en';
 import { changeText, noticeText, routeLabel, speechFor } from '@/i18n/engineText';
 import { getGraph } from '@/lib/engine';
@@ -39,10 +40,12 @@ function nodeFor(graph: Graph, place: Place): string {
 }
 
 export function computePlan(): PlanOutcome | null {
-  const { scenario, graphFile } = useScenario.getState();
+  const { scenario, graphFile, region } = useScenario.getState();
   const { profile } = useSettings.getState();
   const trip = useTrip.getState();
-  const incidents = Object.values(useIncidents.getState().byId);
+  // The corridor map has roads only: no incidents, alerts or scenario places apply to it.
+  const roadsOnly = region !== 'andheri';
+  const incidents = roadsOnly ? [] : Object.values(useIncidents.getState().byId);
   const nowS = useSim.getState().simTimeS;
   const graph = getGraph(graphFile, profile);
   const origin = placeById(scenario, trip.originId);
@@ -53,9 +56,9 @@ export function computePlan(): PlanOutcome | null {
   const conditions = {
     incidents,
     nowS,
-    alerts: scenario.alerts,
-    hasAlertInformation: scenario.hasAlertInformation,
-    places: scenario.places,
+    alerts: roadsOnly ? [] : scenario.alerts,
+    hasAlertInformation: roadsOnly ? false : scenario.hasAlertInformation,
+    places: roadsOnly ? [] : scenario.places,
     destinationPlaceId: dest.id,
   };
   const context = planContextKey();
@@ -259,10 +262,59 @@ export function endTrip(): void {
 }
 
 export type PlaceRole = 'from' | 'to';
-export type ChooseResult = 'ok' | 'same' | 'en_route';
+export type ChooseResult = 'ok' | 'same' | 'en_route' | 'outside' | 'different_regions' | 'no_road';
 
 /** Two ends this close are the same place for routing purposes. */
 const SAME_PLACE_M = 50;
+/** On the corridor map a start or end farther than this from every mapped road has no usable route. */
+const ACCESS_MAX_M = 15_000;
+
+/** Distance from a point to the road node the engine would start or end at. */
+function accessM(graph: Graph, point: LatLng): number {
+  const id = snapToNode(graph, point);
+  const idx = id === null ? undefined : graph.nodeIndex.get(id);
+  return idx === undefined ? Infinity : haversineM(point, nodePoint(graph, idx));
+}
+
+/**
+ * Sets the whole trip at once: start and destination from the search sheet. Both must lie in the
+ * same map region (Andheri, or the Amritsar to Ambala corridor); the app moves to that region's
+ * graph and plans there. Returns why it refused, if it did.
+ */
+export function setTripPlaces(from: Place, to: Place): ChooseResult {
+  const trip = useTrip.getState();
+  if (trip.mode !== 'planning') return 'en_route';
+  const regionFrom = regionOfPoint(from.point);
+  const regionTo = regionOfPoint(to.point);
+  if (!regionFrom || !regionTo) return 'outside';
+  if (regionFrom !== regionTo) return 'different_regions';
+  if (from.id === to.id || haversineM(from.point, to.point) < SAME_PLACE_M) return 'same';
+
+  const graph = getGraph(graphForRegion(regionFrom), useSettings.getState().profile);
+  const fromM = accessM(graph, from.point);
+  const toM = accessM(graph, to.point);
+  if (regionFrom === 'north' && (fromM > ACCESS_MAX_M || toM > ACCESS_MAX_M)) return 'no_road';
+
+  registerCustomPlace(from);
+  registerCustomPlace(to);
+  const scenarioState = useScenario.getState();
+  if (scenarioState.region !== regionFrom) {
+    // Another map: the old plan, history and banner belong to the old graph.
+    scenarioState.setRegion(regionFrom);
+    useTrip.setState({ plan: null, planContext: null, history: [], banner: null, transition: null });
+  }
+  if (trip.originId !== from.id) {
+    trip.setOrigin(from.id);
+    useActivity.getState().add({ atS: useSim.getState().simTimeS, kind: 'trip', text: t('activityOrigin', { place: from.name }) });
+  }
+  if (trip.destinationId !== to.id) {
+    trip.setDestination(to.id);
+    useActivity.getState().add({ atS: useSim.getState().simTimeS, kind: 'trip', text: t('activityDestination', { place: to.name }) });
+  }
+  trip.setAccess({ fromM: Math.round(fromM), toM: Math.round(toM) });
+  schedulePlan({ showEvaluating: true, delayMs: 0 });
+  return 'ok';
+}
 
 /**
  * Sets the trip's start or destination from a search result or the phone's position. The start
@@ -272,6 +324,10 @@ export function choosePlace(role: PlaceRole, place: Place): ChooseResult {
   const trip = useTrip.getState();
   if (role === 'from' && trip.mode !== 'planning') return 'en_route';
   const scenario = useScenario.getState().scenario;
+  // One end alone cannot move the trip to another map: the other end is on the current one.
+  const placeRegion = regionOfPoint(place.point);
+  if (!placeRegion) return 'outside';
+  if (placeRegion !== useScenario.getState().region) return 'different_regions';
   registerCustomPlace(place);
   const other = placeById(scenario, role === 'from' ? trip.destinationId : trip.originId);
   if (other && (other.id === place.id || haversineM(other.point, place.point) < SAME_PLACE_M)) return 'same';

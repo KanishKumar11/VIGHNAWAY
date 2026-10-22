@@ -53,6 +53,9 @@ interface TripState {
   /** Live mode only: whether the trip follows the device location, or location was refused. */
   liveLocation: 'idle' | 'following' | 'denied';
   setLiveLocation: (v: 'idle' | 'following' | 'denied') => void;
+  /** How far the chosen start and destination are from the road network the route uses (metres). */
+  access: { fromM: number; toM: number } | null;
+  setAccess: (a: { fromM: number; toM: number } | null) => void;
   setOrigin: (id: string) => void;
   setDestination: (id: string) => void;
   setEvaluating: (v: boolean) => void;
@@ -90,12 +93,15 @@ export const useTrip = create<TripState>()((set, get) => ({
   transition: null,
   liveLocation: 'idle',
   setLiveLocation: (liveLocation) => set({ liveLocation }),
+  access: null,
+  setAccess: (access) => set({ access }),
   setOrigin: (originId) => set({ originId }),
   setDestination: (destinationId) => set({ destinationId }),
   setEvaluating: (evaluating) => set({ evaluating }),
   setPlan: (plan, planContext, vehicle) => {
     set(vehicle === undefined ? { plan, planContext } : { plan, planContext, vehicle });
-    storage.setJSON(KEYS.lastPlan, { plan, context: planContext });
+    // The saved plan is only restored at launch on the Andheri map, so a corridor plan is not kept.
+    if (useScenario.getState().region === 'andheri') storage.setJSON(KEYS.lastPlan, { plan, context: planContext });
   },
   startTrip: (vehicle, atS) => set({ mode: 'en_route', vehicle, vehicleAtS: atS }),
   setVehicle: (vehicle, vehicleAtS) => set({ vehicle, vehicleAtS }),
@@ -114,6 +120,7 @@ export const useTrip = create<TripState>()((set, get) => ({
       destinationId: demoTrip().destinationId,
       plan: null,
       planContext: null,
+      access: null,
     }),
   pushHistory: (h) => set({ history: [...get().history, h].slice(-50) }),
   showBanner: (b) => set({ banner: { ...b, id: bannerId++ } }),

@@ -5,7 +5,7 @@ import { REPORT_DESCRIPTION_MAX, REPORT_TYPES, ReportInputSchema } from '@vighna
 import { snapToEdge } from '@vighnaway/engine';
 import { motion as motionTokens } from '@vighnaway/tokens';
 import successAnimation from '@vighnaway/tokens/lottie/success.json';
-import { CircleAlert, CircleCheck, LocateFixed, MapPin, Send } from 'lucide-react';
+import { CircleAlert, LocateFixed, MapPin, Send } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { t } from '@/i18n';
@@ -309,7 +309,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                 >
                   {on && <motion.span layoutId="type-bg" className="absolute inset-0 rounded-card border-2 border-accent bg-recommended-surface" transition={snappy} />}
                   <span className={cn('relative flex size-11 items-center justify-center rounded-chip', on ? 'bg-accent text-on-accent' : kind === 'road_clear' ? 'bg-positive-soft text-positive-ink' : 'bg-panel-sunken text-ink')}>
-                    {kind === 'road_clear' ? <CircleCheck aria-hidden className="size-6" /> : <IncidentGlyph type={kind} className="size-6" />}
+                    <IncidentGlyph type={kind} className="size-6" />
                   </span>
                   <span className={cn('relative leading-tight', on && 'text-recommended-ink')}>{t.report.types[kind]}</span>
                 </motion.button>

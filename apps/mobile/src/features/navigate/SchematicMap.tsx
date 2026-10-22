@@ -11,7 +11,7 @@ import Animated, {
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import type { GraphFile, Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
-import { Hospital, X } from '@/components/icons';
+import { Hospital, MapPin as PinIcon, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { MapFieldLayer } from '@/components/MapField';
 import { springEntry } from '@/components/motion';
@@ -431,7 +431,7 @@ function PinView({ pin, project }: { pin: MapPin; project: Project }) {
     return (
       <View pointerEvents="none" style={[styles.anchor, { left: p.x - s / 2, top: p.y - s - spacing.xs, width: s, height: s + spacing.xs }]}>
         <View style={[styles.destination, { width: s, height: s }, shadow('sm')]}>
-          <Hospital size={18} color={tc.ink} strokeWidth={2} />
+          {pin.hospital === false ? <PinIcon size={18} color={tc.ink} strokeWidth={2} /> : <Hospital size={18} color={tc.ink} strokeWidth={2} />}
         </View>
         <View style={styles.destinationStem} />
       </View>

@@ -7,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { ConfidenceMeter } from '@/components/ConfidenceMeter';
 import { EvidenceChips } from '@/components/EvidenceChips';
-import { ArrowRight, Car, ChevronRight, CircleCheck, Hospital, Phone, Play, Share2, TriangleAlert, X } from '@/components/icons';
+import { ArrowRight, Car, ChevronRight, CircleCheck, Hospital, Info, Phone, Play, Share2, TriangleAlert, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Illustration } from '@/components/Illustration';
 import { enterUp, PressScale, RollingText, SkeletonBlock } from '@/components/motion';
@@ -191,9 +191,15 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, onStart, 
     >
       <View style={styles.miniText}>
         <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="eta" unitVariant="label" testID="peek-eta" style={styles.flexShrink} />
-        <AppText variant="body" tone="muted" numberOfLines={1} style={styles.strong}>
-          {name}
-        </AppText>
+        <View style={styles.nameRow}>
+          {/* The road distance of the recommended route: exact for the mapped roads, never a guess. */}
+          <AppText variant="num" tone="muted" numberOfLines={1} style={styles.noShrink} testID="peek-distance">
+            {fmtDistance(route.distanceM)}
+          </AppText>
+          <AppText variant="body" tone="muted" numberOfLines={1} style={[styles.strong, styles.flexShrink]}>
+            {name}
+          </AppText>
+        </View>
       </View>
       {enRoute ? (
         <Button label={t('endTrip')} kind="secondary" onPress={onEnd} style={styles.miniButton} testID="end-trip" />
@@ -203,6 +209,32 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, onStart, 
     </View>
   );
 });
+
+/**
+ * Shown on the corridor map (Amritsar to Ambala), which has roads only: no incident or live traffic
+ * data, so the route is road distance at typical speeds. When the start or end is far from a mapped
+ * road, says how far; that distance is not in the route.
+ */
+export function RoadsOnlyNote({ access }: { access: { fromM: number; toM: number } | null }) {
+  const tc = useColors();
+  const styles = useStyles();
+  const far = access && (access.fromM > 500 || access.toM > 500);
+  return (
+    <View style={styles.roadsOnly} testID="roads-only-note" accessible>
+      <Info size={18} color={tc.inkMuted} />
+      <View style={styles.roadsOnlyText}>
+        <AppText variant="meta" tone="muted">
+          {t('roadsOnlyNote')}
+        </AppText>
+        {far ? (
+          <AppText variant="meta" tone="muted">
+            {t('accessNote', { from: fmtDistance(access.fromM), to: fmtDistance(access.toM) })}
+          </AppText>
+        ) : null}
+      </View>
+    </View>
+  );
+}
 
 interface MoreProps {
   route: RouteEvaluation;
@@ -596,6 +628,10 @@ const useStyles = createStyles((tc) => ({
   peek: { gap: spacing.sm },
   mini: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   miniText: { flex: 1, minWidth: 0, gap: 0 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minWidth: 0 },
+  noShrink: { flexShrink: 0 },
+  roadsOnly: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panelSunken },
+  roadsOnlyText: { flex: 1, gap: spacing.xxs },
   miniButton: { flexShrink: 0, paddingHorizontal: spacing.md },
   miniChange: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, paddingLeft: spacing.sm, paddingRight: spacing.xs, minHeight: layout.minTouch - spacing.xs },
   miniChangeMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: layout.minTouch - spacing.xs },

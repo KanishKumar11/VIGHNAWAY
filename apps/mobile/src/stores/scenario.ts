@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { ScenarioSchema, type GraphFile, type Place, type Scenario } from '@vighnaway/contracts';
 import { andheriGraph, andheriLiveScenario, andheriScenario } from '@vighnaway/scenario-data';
 import { KEYS, storage } from '@/lib/storage';
+import { graphForRegion, type RegionId } from '@/regions';
 import { savedDataMode, type DataMode } from './settings';
 
 /** The bundled scenario for each data mode (same graph, different places, events and clock). */
@@ -14,12 +15,16 @@ export const bundledScenario = (mode: DataMode): Scenario => (mode === 'live' ? 
 interface ScenarioState {
   scenario: Scenario;
   graphFile: GraphFile;
+  /** Which map the trip is on: the Andheri scenario, or the roads-only north corridor. */
+  region: RegionId;
   source: 'bundled' | 'server';
   /** Server scenario rejected because its graph version differs from the bundled graph. */
   graphMismatch: string | null;
   setServerScenario: (s: unknown) => void;
   /** Switch to the bundled (or cached server) scenario of a data mode. */
   selectMode: (mode: DataMode) => void;
+  /** Move the app to another region's map (its graph). Callers reset the trip that used the old one. */
+  setRegion: (region: RegionId) => void;
 }
 
 function initial(mode: DataMode): Pick<ScenarioState, 'scenario' | 'source'> {
@@ -35,6 +40,7 @@ function initial(mode: DataMode): Pick<ScenarioState, 'scenario' | 'source'> {
 export const useScenario = create<ScenarioState>()((set) => ({
   ...initial(savedDataMode()),
   graphFile: andheriGraph,
+  region: 'andheri',
   graphMismatch: null,
   setServerScenario: (raw) => {
     const parsed = ScenarioSchema.safeParse(raw);
@@ -48,7 +54,8 @@ export const useScenario = create<ScenarioState>()((set) => ({
     storage.setJSON(KEYS.scenario, parsed.data);
     set({ scenario: parsed.data, source: 'server', graphMismatch: null });
   },
-  selectMode: (mode) => set({ ...initial(mode), graphMismatch: null }),
+  selectMode: (mode) => set({ ...initial(mode), graphFile: andheriGraph, region: 'andheri', graphMismatch: null }),
+  setRegion: (region) => set({ region, graphFile: graphForRegion(region) }),
 }));
 
 /**
@@ -56,7 +63,7 @@ export const useScenario = create<ScenarioState>()((set) => ({
  * position. They live only for this session; the engine still plans between graph nodes.
  */
 const customPlaces = new Map<string, Place>();
-const CUSTOM_PREFIXES = ['road:', 'my-location:'] as const;
+const CUSTOM_PREFIXES = ['road:', 'my-location:', 'place:'] as const;
 
 export const isCustomPlaceId = (id: string): boolean => CUSTOM_PREFIXES.some((p) => id.startsWith(p));
 

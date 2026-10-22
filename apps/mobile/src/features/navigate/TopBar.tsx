@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FEED_PROVIDER_LABEL, PROFILES, type Profile } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
-import { Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, WifiOff, type LucideIcon } from '@/components/icons';
+import { Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, SlidersHorizontal, WifiOff, type LucideIcon } from '@/components/icons';
 import { easing, PressScale } from '@/components/motion';
 import { Segmented } from '@/components/Segmented';
 import { t, type StringKey } from '@/i18n/en';
@@ -83,7 +83,19 @@ function StatusButton({ pill, expanded, onToggle }: { pill: StatusPill; expanded
  * Simulated badge), a compact status pill that merges connection and map-fallback state, and the
  * single-row profile control with a sliding indicator underneath.
  */
-export function TopBar({ onOpenDrawer, onOpenDestinations, onLayout }: { onOpenDrawer: () => void; onOpenDestinations: () => void; onLayout: (bottom: number) => void }) {
+export function TopBar({
+  onOpenDrawer,
+  onOpenDestinations,
+  onLayout,
+  menuOpen,
+  onToggleMenu,
+}: {
+  onOpenDrawer: () => void;
+  onOpenDestinations: () => void;
+  onLayout: (bottom: number) => void;
+  menuOpen: boolean;
+  onToggleMenu: () => void;
+}) {
   const { colors: tc } = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -188,6 +200,22 @@ export function TopBar({ onOpenDrawer, onOpenDestinations, onLayout }: { onOpenD
         onLayout={(e) => setStatusBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}
       >
         <StatusButton pill={pill} expanded={showPanel} onToggle={() => setExpanded((v) => !v)} />
+        {/* Quick options (Report, list, traffic, settings) sit right under the status pill. */}
+        <PressScale
+          haptic="selection"
+          onPress={() => {
+            setExpanded(false);
+            onToggleMenu();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('mapMenuLabel')}
+          accessibilityHint={t('mapMenuHint')}
+          accessibilityState={{ expanded: menuOpen }}
+          style={[styles.menuButton, menuOpen && styles.menuButtonOn, shadow('md')]}
+          testID="map-menu-button"
+        >
+          <SlidersHorizontal size={20} color={menuOpen ? tc.onAccent : tc.inkOnShell} strokeWidth={2.25} />
+        </PressScale>
       </View>
       {showPanel ? (
         <Animated.View
@@ -247,7 +275,23 @@ const useStyles = createStyles((tc) => ({
   dest: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingVertical: spacing.xxs, minHeight: layout.minTouch },
   destText: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2 },
   searchBadge: { width: spacing.xl + spacing.xxs, height: spacing.xl + spacing.xxs, borderRadius: radius.button, backgroundColor: tc.tealSoft, alignItems: 'center', justifyContent: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
+  statusRow: { alignItems: 'flex-end' },
+  // Floats under the pill without adding to the bar's height, which the map uses as its top padding.
+  menuButton: {
+    position: 'absolute',
+    top: '100%',
+    marginTop: spacing.xs,
+    right: 0,
+    width: layout.minTouch,
+    height: layout.minTouch,
+    borderRadius: radius.chip,
+    backgroundColor: tc.shellOverlay,
+    borderWidth: hairline,
+    borderColor: tc.shellHairlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuButtonOn: { backgroundColor: tc.accent, borderColor: tc.accent },
   // "To" and the mode badge share one centred line, so the eyebrow never sits above or below the badge text.
   destHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: spacing.md + spacing.xxs, overflow: 'hidden' },
   destName: { fontFamily: fontFamily.semibold },

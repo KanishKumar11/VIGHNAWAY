@@ -56,9 +56,15 @@ tells you why."; button "Continue". No permission prompts here.
 └──────────────────────────────┘
 ```
 
-**Header (v5).** The search bar holds only the destination (full name, mode badge) and a search icon. The connection and data status is a small pill on its own line under the profile chips; tapping it opens the notices just below it. **Share** always opens the system share sheet, so the traveller picks WhatsApp, Messages or any other app; nothing opens by itself. Route cards in the opened sheet show crossings as bands on the strip with one summary row ("Flyover ×3 · Underpass") instead of a label per crossing.
+**Header (v5).** The search bar holds only the destination (full name, mode badge) and a search icon. The connection and data status is a small pill on its own line under the profile chips; tapping it opens the notices just below it. Under the pill, at the right, a round **options** button opens a card of quick actions: Report a hazard, Routes and incidents (the list), Show my location (live mode), the Google traffic switch (display only) and Settings. Tapping outside or Back closes it. The bottom-left corner stays clear for Google's logo, and the Report button remains at the bottom right. **Share** always opens the system share sheet, so the traveller picks WhatsApp, Messages or any other app; nothing opens by itself. Route cards in the opened sheet show crossings as bands on the strip with one summary row ("Flyover ×3 · Underpass") instead of a label per crossing.
 
-**Search card (start and destination).** Tapping the card opens one search sheet with a From and a To field and a text box. It searches offline, over the scenario places and every named road of the bundled map, so any road in the Andheri map area can be the destination or the start. An empty query lists the scenario places. From also offers "My location" (foreground permission; refused with a calm message outside the map area or when permission is off). Every pick is a point that the engine snaps to its road graph for the active profile. The start cannot be changed during a trip, and a start equal to the destination is refused. Searched places stay on the phone: their trips are not published to the console.
+**Location (live mode).** Every position comes from apps/mobile/src/lib/location.ts: highest accuracy, a fresh fix (under 30 s old) within 25 m is taken at once, otherwise the best fresh fix after about 12 s; Android is asked once per session to turn on high-accuracy location. Approximate-only permission (Android 12+ / iOS reduced) is detected and said plainly. In live mode the map shows the phone as Google's location dot with its accuracy circle, a Show my location button recentres on it, and the trip starts from the phone when location is already allowed and the phone is inside the map area. A trip that follows the phone updates every second and skips fixes worse than 75 m.
+
+**Search card (start and destination).** Tapping the card opens one search sheet with two stacked inputs: **From** above, **To** below, and a swap button beside them. The keyboard opens on To. Each input searches offline over the Andheri places and named roads and the cities, towns and villages from Amritsar to Ambala; an empty query lists the Andheri places and the larger corridor places. Picking a place fills that input and moves to the other; when both are set the trip is planned and the sheet closes. From also offers "My location" (foreground permission; refused with a calm message when permission is off or the phone is outside both maps). Every pick is a point that the engine snaps to its road graph for the active profile. The start cannot be changed during a trip (To still can), and a start equal to the destination is refused. Searched places stay on the phone: their trips are not published to the console.
+
+**Two maps.** The app has two road maps: Andheri (scenario, incidents, simulation, live feed) and the Amritsar to Ambala corridor (real OpenStreetMap roads only). A trip lives on one map. Picking a place on the other map empties the other input and says "Now choose a start / destination in the same area", so the pair is always routable; for example, "My location" in Amritsar followed by Ambala. On the corridor map the sheet shows the real road distance beside the route name ("247.6 km  Via Grand Trunk Road (NH44)"), the ETA at typical speeds per road class, and a note that this area has roads only: no incident or live traffic data, no evidence section and no data-gap questions. When the start or end is more than 500 m from a mapped road the note says how far; that distance is not in the route. A place more than 15 km from any mapped road, or outside both maps, is refused with a plain message.
+
+**Live feed load.** A live feed refresh arrives as dozens of incidents at once. The phone applies a burst in one update (250 ms batch), so the map and sheet render and re-plan once, and the map draws at most 40 markers: every incident tied to a shown route, then open ones near the routes. Routing still uses every incident. Age labels on markers appear only when 8 or fewer are drawn.
 
 Sheet snap points (v5): **small** (the default and lowest stop: ETA, route name and Start trip, plus a
 one-line "Route changed · Details" notice when the route has changed; about a sixth of the screen so the
@@ -98,7 +104,7 @@ heuristic, not proof of independent witnesses." Back closes it.
 Fields in order: type (flood, closure, congestion, debris, accident, road clear) as large chips;
 depth pictograms for flood (ankle, knee, waist, "Not sure"); level for congestion (moderate,
 heavy, standstill); severity for debris/accident (low, medium, high) and a "Road is impassable"
-switch; location ("Use my location" or "Use map centre" with a small static map); note (optional,
+switch; location ("Use my location" or "Use map centre" with a small static map and the road it lands on; the form opens on the map centre when that is on a mapped road, else the vehicle, else the trip start); note (optional,
 200 characters, counter "{n}/200"); "I saw this myself" switch; sticky "Send report" button in a
 KeyboardStickyView.
 
@@ -107,7 +113,8 @@ KeyboardStickyView.
 | Validation | "Choose what you saw" / "Choose a congestion level" / "Note is too long" |
 | Sending | Button "Sending…" |
 | Sent | Button morphs to a check; toast "Sent. Shown as Unverified until confirmed." |
-| Not on a road (422) | "That point is not on a known road. Move the pin onto a road." |
+| Not on a road | Before sending, the point is snapped to the nearest mapped road (within 120 m) and the form shows "On {road}". With no road in range the send is refused up front, in a message pinned above the button: "No mapped road here. Reports work inside the Andheri area: move the map onto a road there." Nothing is queued. |
+| Not on a road (422) | "That point is not on a known road. Move the pin onto a road." A queued report the API rejects later raises a toast and an Activity entry ("Report not accepted: …"); it is never dropped silently. |
 | Rate limited (429) | "Too many reports from this device. Try again in a minute." |
 | Offline | Toast "Saved. Pending send when you are back online."; activity shows "Pending send" |
 | Discard | Alert "Discard this report?" buttons "Keep editing" / "Discard" |

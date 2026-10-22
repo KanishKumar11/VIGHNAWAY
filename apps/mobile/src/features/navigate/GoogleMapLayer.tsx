@@ -3,7 +3,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type EdgePadding, type MapStyleElement, type Region } from 'react-native-maps';
 import type { Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
-import { Hospital, Navigation, X } from '@/components/icons';
+import { Hospital, MapPin as PinIcon, Navigation, X } from '@/components/icons';
 import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { StatusRing } from '@/components/StatusRing';
 import { t } from '@/i18n/en';
@@ -21,6 +21,9 @@ interface Props {
   markers: MapIncident[];
   /** Google traffic layer (display only; never used for routing). */
   showsTraffic?: boolean;
+  /** The phone's own position (Google's location dot with its accuracy circle); display only. */
+  showsUserLocation?: boolean;
+  onUserLocation?: (p: { lat: number; lng: number; accuracyM: number | null }) => void;
   onReady: () => void;
   onIncidentPress: (incident: Incident) => void;
   onMapPress: () => void;
@@ -39,7 +42,7 @@ function useTracksViewChanges(key: string): boolean {
 }
 
 /** Above this many markers the age labels step aside, so a busy live map stays readable (the age is in the incident sheet). */
-const AGE_LABELS_MAX = 24;
+const AGE_LABELS_MAX = 8;
 
 const IncidentMarker = memo(function IncidentMarker({ item, showAge, onPress }: { item: MapIncident; showAge: boolean; onPress: (i: Incident) => void }) {
   const tc = useColors();
@@ -103,7 +106,7 @@ const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
         </View>
       ) : pin.kind === 'destination' ? (
         <View style={styles.destination}>
-          <Hospital size={18} color={tc.ink} strokeWidth={2} />
+          {pin.hospital === false ? <PinIcon size={18} color={tc.ink} strokeWidth={2} /> : <Hospital size={18} color={tc.ink} strokeWidth={2} />}
         </View>
       ) : (
         <View style={styles.blocking}>
@@ -190,6 +193,14 @@ export const GoogleMapLayer = forwardRef<MapView, Props>(function GoogleMapLayer
       showsBuildings={false}
       showsCompass={false}
       showsMyLocationButton={false}
+      showsUserLocation={!!props.showsUserLocation}
+      userLocationPriority="high"
+      userLocationUpdateInterval={1000}
+      userLocationFastestInterval={1000}
+      onUserLocationChange={(e) => {
+        const c = e.nativeEvent.coordinate;
+        if (c) props.onUserLocation?.({ lat: c.latitude, lng: c.longitude, accuracyM: c.accuracy ?? null });
+      }}
       moveOnMarkerPress={false}
       onMapReady={props.onReady}
       onPress={props.onMapPress}

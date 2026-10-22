@@ -4,6 +4,7 @@ import { isStale } from '@vighnaway/engine';
 import { t } from '@/i18n/en';
 import { sourceText, statusText } from '@/i18n/engineText';
 import { fmtAge } from '@/i18n/format';
+import { useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
 import { createStyles, fontFamily, hairline, radius, spacing, statusChip, useColors } from '@/theme';
 import { AppText } from './AppText';
@@ -99,7 +100,27 @@ export function LiveBadge({ onShell = true, compact, style }: { onShell?: boolea
 /** The data-mode label for headers: Simulated (dashed) in the demo, Live data in live mode. */
 export function ModeBadge(props: { onShell?: boolean; compact?: boolean; style?: StyleProp<ViewStyle> }) {
   const live = useSettings((s) => s.dataMode === 'live');
+  // The corridor map has real roads and nothing simulated or live: say what it is.
+  const roadsOnly = useScenario((s) => s.region !== 'andheri');
+  if (roadsOnly) return <RoadsOnlyBadge {...props} />;
   return live ? <LiveBadge {...props} /> : <SimulatedBadge {...props} />;
+}
+
+/** Roads-only label for the Amritsar to Ambala map: real OpenStreetMap roads, no incident data. */
+export function RoadsOnlyBadge({ onShell = true, compact, style }: { onShell?: boolean; compact?: boolean; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
+  return (
+    <View
+      // Solid, not dashed: dashed means "simulated", and nothing on this map is.
+      style={[styles.badge, styles.badgeSolid, compact && styles.badgeCompact, onShell ? styles.badgeShell : styles.badgePanel, style]}
+      accessibilityLabel={t('roadsOnlyScenario')}
+      accessibilityRole="text"
+    >
+      <AppText variant="label" tone={onShell ? 'onShellMuted' : 'muted'} style={compact ? styles.badgeTextCompact : undefined}>
+        {t('roadsOnly')}
+      </AppText>
+    </View>
+  );
 }
 
 const useStyles = createStyles((tc) => ({
@@ -125,6 +146,7 @@ const useStyles = createStyles((tc) => ({
     borderWidth: hairline,
     borderStyle: 'dashed',
   },
+  badgeSolid: { borderStyle: 'solid' },
   badgeCompact: { paddingHorizontal: spacing.xxs + 2, paddingVertical: 0 },
   badgeTextCompact: { lineHeight: spacing.md - 1 },
   // Both neutral (DESIGN_VISION appendix A); Simulated is dashed, Live data solid with a dot.
