@@ -90,7 +90,7 @@ const STATUS_CODE: Record<number, ApiErrorCode> = {
 };
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PUT';
   body?: unknown;
   token?: string | null;
   signal?: AbortSignal;
