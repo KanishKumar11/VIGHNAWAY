@@ -323,6 +323,7 @@ export const en = {
     pinAt: (lat: string, lng: string) => `Pin at ${lat}, ${lng}`,
     nearestRoad: (road: string, m: number) => `Nearest road: ${road} (${m} m)`,
     farFromRoad: 'That point looks far from a known road. Move the pin onto a road.',
+    farFromRoadLive: 'No mapped road here. It will be saved as off-map and will not change any route.',
     noteLabel: 'Note (optional)',
     notePlaceholder: 'What you can see, in a few words',
     counter: (n: number, max: number) => `${n}/${max}`,
@@ -330,6 +331,7 @@ export const en = {
     send: 'Send report',
     sending: 'Sending…',
     sent: 'Sent. Shown as Unverified until confirmed.',
+    sentOffMap: 'Saved as off-map. There is no road data here yet, so it will not change routes.',
     another: 'Send another report',
     errors: {
       type: 'Choose what you saw',
@@ -460,6 +462,19 @@ export const en = {
     confirm: 'Close these roads',
     done: (road: string) => `Closed ${road}`,
   },
+  offmap: {
+    open: 'Off-map reports',
+    title: 'Off-map reports',
+    intro: 'Live reports from places with no mapped road. They create no incident and change no route; this shows where reports come from outside the map, so you can see where road data is missing.',
+    loading: 'Loading off-map reports…',
+    empty: 'No off-map reports yet.',
+    operatorOnly: 'Sign in as an operator, or enter the demo token, to see these.',
+    failed: (m: string) => `Could not load off-map reports: ${m}`,
+    cluster: (n: number, types: string) => `${n} ${n === 1 ? 'report' : 'reports'} here: ${types}`,
+    latest: (clock: string) => `Latest at ${clock}`,
+    truncated: (shown: number, total: number) => `Showing the newest ${shown} of ${total}.`,
+    footnote: 'Reports are grouped in cells of about 330 m. They are not evidence, are never Verified, and are not shown on the route.',
+  },
   hospitals: {
     open: 'Hospital load',
     title: 'Hospital load',
@@ -490,6 +505,7 @@ export const en = {
     pasteLabel: 'Code text (starts with VW1:)',
     send: 'Send this report',
     relayed: (type: string, road: string, status: string | null) => `Relayed: ${type} report on ${road}${status ? `, now ${status}` : ''}.`,
+    relayedOffMap: (type: string) => `Relayed: ${type} report saved off-map (no mapped road there; it changes no route).`,
     unnamedRoad: 'an unnamed road',
     refused: {
       not_vighnaway: 'That is not a VIGHNAWAY report code.',

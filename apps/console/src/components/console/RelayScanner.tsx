@@ -46,7 +46,10 @@ export function RelayScanner() {
     onSuccess: ({ res, id, type }) => {
       setProblem(null);
       const status = res.incident ? INCIDENT_STATUS_LABEL[res.incident.status] : null;
-      const line = t.relay.relayed(REPORT_TYPE_LABEL[type], res.receipt.roadName ?? t.relay.unnamedRoad, status);
+      const line =
+        res.receipt.outcome === 'off_map'
+          ? t.relay.relayedOffMap(REPORT_TYPE_LABEL[type])
+          : t.relay.relayed(REPORT_TYPE_LABEL[type], res.receipt.roadName ?? t.relay.unnamedRoad, status);
       setDone((cur) => (cur.some((d) => d.clientReportId === id) ? cur : [{ clientReportId: id, line }, ...cur]));
     },
     onError: (e, text) => {

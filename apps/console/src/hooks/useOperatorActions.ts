@@ -119,6 +119,19 @@ export function useCloseRoad() {
 }
 
 const HOSPITALS_POLL_MS = 15_000;
+const OFFMAP_POLL_MS = 20_000;
+
+/** Operator: live-mode reports that landed outside every mapped road (triage only; they change no route). */
+export function useOffMapReports(enabled: boolean) {
+  const scenarioId = useScenarioStore((s) => s.id);
+  return useQuery({
+    queryKey: ['offmap-reports', scenarioId],
+    queryFn: ({ signal }) => withCredential((token) => api.offmapReports(scenarioId, token, { signal })),
+    enabled,
+    refetchInterval: OFFMAP_POLL_MS,
+    retry: false,
+  });
+}
 
 /** Operator-set hospital states for the active scenario (P2-4), polled so a second console sees changes. */
 export function useHospitals() {

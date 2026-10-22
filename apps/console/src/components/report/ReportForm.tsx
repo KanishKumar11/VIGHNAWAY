@@ -163,6 +163,9 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
   const [observed, setObserved] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [phase, setPhase] = useState<Phase>('form');
+  // Live mode saves a report with no mapped road nearby as off-map: it changes no route, and the form says so.
+  const [offMap, setOffMap] = useState(false);
+  const liveScenario = !tripEnv(scenarioId).scenario.simulated;
   const [locating, setLocating] = useState(false);
   const [locationMsg, setLocationMsg] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string>('');
@@ -223,11 +226,13 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     }
     setPhase('sending');
     try {
-      await sendReport(scenarioId, parsed.data);
+      const res = await sendReport(scenarioId, parsed.data);
+      const saved = res.receipt.outcome === 'off_map';
+      setOffMap(saved);
       // The send button morphs into the success animation, then the sent state and the toast.
       finished.current = false;
       setPhase(reduced ? 'sent' : 'success');
-      if (reduced) toast.success(t.report.sent);
+      if (reduced) toast.success(saved ? t.report.sentOffMap : t.report.sent);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       const msg =
@@ -249,7 +254,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     if (finished.current) return;
     finished.current = true;
     setPhase('sent');
-    toast.success(t.report.sent);
+    toast.success(offMap ? t.report.sentOffMap : t.report.sent);
   }
 
   useEffect(() => {
@@ -268,6 +273,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     setNote('');
     setObserved(false);
     setErrors({});
+    setOffMap(false);
     setPhase('form');
   }
 
@@ -275,7 +281,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-4 px-6 py-16 text-center" role="status">
         <LottiePlayer data={successAnimation} className="size-36" />
-        <p className="text-title font-semibold text-ink">{t.report.sent}</p>
+        <p className="text-title font-semibold text-ink">{offMap ? t.report.sentOffMap : t.report.sent}</p>
         <button type="button" onClick={reset} className="vw-press mt-2 inline-flex min-h-14 items-center justify-center rounded-button border border-control-border bg-panel-raised px-6 text-body font-semibold text-ink">
           {t.report.another}
         </button>
@@ -418,7 +424,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                   {nearest && nearest.distanceM <= NOT_ON_ROAD_M ? (
                     <p className="text-ink-muted">{t.report.nearestRoad(nearestName, Math.round(nearest.distanceM))}</p>
                   ) : (
-                    nearest && <p className="font-semibold text-warn-ink">{t.report.farFromRoad}</p>
+                    nearest && <p className="font-semibold text-warn-ink">{liveScenario ? t.report.farFromRoadLive : t.report.farFromRoad}</p>
                   )}
                 </>
               ) : (

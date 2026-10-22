@@ -17,6 +17,7 @@ import {
   FeedStatusSchema,
   HistoryResponseSchema,
   HospitalStatesResponseSchema,
+  OffMapReportsResponseSchema,
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
   SimResponseSchema,
@@ -36,6 +37,7 @@ import {
   type FeedStatus,
   type HistoryResponse,
   type HospitalStatesResponse,
+  type OffMapReportsResponse,
   type HospitalStateValue,
   type HealthResponse,
   type ScenarioListResponse,
@@ -226,6 +228,9 @@ export const api = {
   /** Operator: one report's photo (JPEG). An <img src> cannot send the header, so it is fetched as a Blob. */
   photoBlob: (id: string, reportId: string, token: string, o?: RequestOptions): Promise<Blob> =>
     requestBlob(API_PATHS.reportPhoto(id, reportId), { ...o, token }),
+  /** Operator: live-mode reports saved off-map (no mapped road there), for triage. */
+  offmapReports: (id: string, token: string, o?: RequestOptions): Promise<OffMapReportsResponse> =>
+    request(API_PATHS.offmapReports(id), OffMapReportsResponseSchema, { ...o, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),
   simAction: (id: string, action: SimAction, token: string, o?: RequestOptions): Promise<SimResponse> =>
     request(API_PATHS.simAction(id, action), SimResponseSchema, { ...o, method: 'POST', body: {}, token }),

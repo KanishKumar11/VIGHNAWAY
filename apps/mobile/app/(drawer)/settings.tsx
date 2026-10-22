@@ -7,11 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
-<<<<<<< HEAD
-import { Accessibility, Bike, Car, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
-=======
-import { Bike, Car, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
->>>>>>> 0678aea215135ee7e76ef210adeb4510589541bb
+import { Accessibility, Bike, Car, ChevronRight, CircleCheck, FlaskConical, Footprints, HardDrive, Languages, MapIcon, Moon, Radio, ServerOff, Smartphone, Sun, TypeIcon, UserRound, Volume2, type LucideIcon } from '@/components/icons';
 import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
 import { GUTTER, Radio as RadioMark, Row, ScreenHeader, Section } from '@/components/ui';

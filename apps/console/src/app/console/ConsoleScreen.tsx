@@ -30,6 +30,7 @@ import {
 import { QrCard } from '@/components/console/QrCard';
 import { CloseRoadCard } from '@/components/console/CloseRoadCard';
 import { HospitalLoadCard } from '@/components/console/HospitalLoadCard';
+import { OffMapCard } from '@/components/console/OffMapCard';
 import { RelayScanner } from '@/components/console/RelayScanner';
 import { PanelToggle } from '@/components/console/PanelToggle';
 import { Timeline } from '@/components/console/Timeline';
@@ -189,6 +190,7 @@ export function ConsoleScreen() {
             />
             {!replay && <CloseRoadCard />}
             {!replay && <HospitalLoadCard />}
+            {!replay && live && <OffMapCard />}
             {!replay && <RelayScanner />}
             <QrCard />
           </aside>
