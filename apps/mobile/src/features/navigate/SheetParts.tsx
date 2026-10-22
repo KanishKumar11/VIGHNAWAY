@@ -14,7 +14,7 @@ import { enterUp, PressScale, RollingText, SkeletonBlock } from '@/components/mo
 import { RouteStrip } from '@/components/RouteStrip';
 import { StatusRing } from '@/components/StatusRing';
 import { t, type StringKey } from '@/i18n/en';
-import { hazardWhere, incidentA11y, routeName } from '@/i18n/engineText';
+import { counterfactualOf, hazardWhere, incidentA11y, reasonOf, routeLabel, tradeOffOf } from '@/i18n/engineText';
 import { fmtDistance, fmtDuration } from '@/i18n/format';
 import type { DeltaBar } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
@@ -198,7 +198,7 @@ export const PeekCard = memo(function PeekCard({
   const styles = useStyles();
   const eta = fmtDuration(etaS);
   const conf = route.explanation.confidence;
-  const name = routeName(route.name);
+  const name = routeLabel(route);
   return (
     <View
       style={styles.peek}
@@ -208,7 +208,7 @@ export const PeekCard = memo(function PeekCard({
         name,
         eta: enRoute ? t('etaLeft', { eta }) : eta,
         confidence: t(conf === 'high' ? 'confidenceHigh' : conf === 'medium' ? 'confidenceMedium' : 'confidenceLow'),
-        reason: route.explanation.reason,
+        reason: reasonOf(route),
       })}
     >
       <View style={styles.etaRow}>
@@ -242,7 +242,7 @@ export const PeekCard = memo(function PeekCard({
       ) : null}
       {compact ? null : (
         <AppText testID="peek-reason" tone="muted" numberOfLines={3}>
-          {route.explanation.reason}
+          {reasonOf(route)}
         </AppText>
       )}
       {hint ? (
@@ -298,9 +298,9 @@ export function RouteDetail({
   const styles = useStyles();
   return (
     <View style={styles.detail} testID="route-detail">
-      {route.explanation.tradeOff ? (
+      {tradeOffOf(route) ? (
         <AppText variant="meta" tone="muted">
-          {route.explanation.tradeOff}
+          {tradeOffOf(route)}
         </AppText>
       ) : null}
       <RouteStrip route={route} travelledFraction={travelledFraction} />
@@ -411,13 +411,14 @@ export const RouteRow = memo(function RouteRow({ route, bar, index }: { route: R
   const reduce = useReduceMotion();
   const blocked = route.role === 'blocked';
   const rec = route.role === 'recommended';
-  const name = routeName(route.name);
+  const name = routeLabel(route);
+  const whyNot = counterfactualOf(route);
   return (
     <Animated.View
       entering={enterUp(index, reduce)}
       style={[styles.row, index > 0 && styles.rowDivider]}
       accessible
-      accessibilityLabel={`${t('routeA11y', { role: roleLabel(route.role), name, eta: fmtDuration(route.etaS) })}. ${route.explanation.reason}`}
+      accessibilityLabel={`${t('routeA11y', { role: roleLabel(route.role), name, eta: fmtDuration(route.etaS) })}. ${reasonOf(route)}${whyNot ? `. ${t('whyNot')} ${whyNot}` : ''}`}
     >
       <View style={styles.rowHead}>
         <View style={[styles.flex, styles.rowTitle]}>
@@ -456,8 +457,16 @@ export const RouteRow = memo(function RouteRow({ route, bar, index }: { route: R
         </View>
       ) : null}
       <AppText variant="meta" tone="muted" numberOfLines={2}>
-        {route.explanation.reason}
+        {reasonOf(route)}
       </AppText>
+      {whyNot ? (
+        <AppText variant="meta" tone="muted" numberOfLines={3} testID="why-not">
+          <AppText variant="meta" style={styles.whyNotLabel}>
+            {t('whyNot')}{' '}
+          </AppText>
+          {whyNot}
+        </AppText>
+      ) : null}
     </Animated.View>
   );
 });
@@ -547,6 +556,7 @@ const useStyles = createStyles((tc) => ({
   flexShrink: { flexShrink: 1 },
   center: { textAlign: 'center' },
   strong: { fontFamily: fontFamily.semibold },
+  whyNotLabel: { fontFamily: fontFamily.semibold },
   stretch: { alignSelf: 'stretch' },
   sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   sectionRule: { flex: 1, height: hairline, backgroundColor: tc.panelHairline },

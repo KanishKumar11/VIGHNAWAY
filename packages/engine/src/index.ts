@@ -29,6 +29,10 @@ export { rank, compareEvaluations, exceedsSwitchThreshold, switchThresholdS } fr
 export type { RankResult, RankDecision } from './rank';
 export { explain, confidenceFor, describeChange, hazardLabel, hazardPhrase, evidencePhrase } from './explain';
 export type { ExplainContext } from './explain';
+export { buildReceipt, verifyReceipt, encodeReceipt, decodeReceipt, inputsHash, rulesHash, ENGINE_VERSION, RECEIPT_VERSION } from './receipt';
+export type { Receipt, ReceiptContext, ReceiptCheck, ReceiptVerification } from './receipt';
+export { counterfactuals } from './counterfactual';
+export type { CounterfactualInput, CounterfactualResult } from './counterfactual';
 export { planTrip, replanFrom, findReachableDestination, planHash, edgeMultiplier, nodeLatLng } from './plan';
 export type { PlanTripInput, ReplanInput, TripConditions } from './plan';
 export {

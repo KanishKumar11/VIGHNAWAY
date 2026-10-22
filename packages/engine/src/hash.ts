@@ -43,6 +43,8 @@ const TEXT_FIELDS = new Set([
   'recheckIfText',
   'confidenceReasonTexts',
   'messageText',
+  'counterfactualText',
+  'counterfactual',
 ]);
 
 export function stripText<T>(value: T): T {

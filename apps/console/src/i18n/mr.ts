@@ -214,6 +214,7 @@ export const mr: Strings = {
     tradeOff: 'तडजोड',
     recheckIf: 'पुन्हा तपासा जर',
     noTradeOff: 'काही नाही',
+    whyNot: 'हा मार्ग का नाही?',
     confidence: { high: 'उच्च', medium: 'मध्यम', low: 'कमी' },
     confidenceLabel: (word: string) => `${word} विश्वास`,
     distance: 'अंतर',

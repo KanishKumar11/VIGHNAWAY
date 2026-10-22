@@ -13,7 +13,7 @@ import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { beginTrip } from '@/features/trip/deviceTrip';
 import { ArriveAt, StateTag } from '@/features/navigate/SheetParts';
 import { t } from '@/i18n/en';
-import { routeName, whatToDoNow } from '@/i18n/engineText';
+import { routeLabel, whatToDoNow } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { evalContext, getGraph } from '@/lib/engine';
 import { setDriveOpen } from '@/lib/speech';
@@ -92,7 +92,7 @@ export function DriveScreen() {
   );
 
   const etaBlock = (
-    <View style={styles.etaBlock} accessible accessibilityLabel={rec ? `${enRoute ? t('etaLeft', { eta }) : eta}. ${routeName(rec.name)}` : next}>
+    <View style={styles.etaBlock} accessible accessibilityLabel={rec ? `${enRoute ? t('etaLeft', { eta }) : eta}. ${routeLabel(rec)}` : next}>
       {rec ? <StateTag kind="recommended" label={t('recommended')} /> : noViable ? <StateTag kind="critical" label={t('notViable')} /> : null}
       <AppText variant="display" style={styles.eta} numberOfLines={1} adjustsFontSizeToFit testID="drive-eta">
         {eta}
@@ -101,7 +101,7 @@ export function DriveScreen() {
         <>
           <ArriveAt clock={formatSimClock(scenario.clockStartsAt, minuteS + etaS)} />
           <AppText variant="title" numberOfLines={2}>
-            {routeName(rec.name)}
+            {routeLabel(rec)}
           </AppText>
         </>
       ) : null}

@@ -1,8 +1,9 @@
 'use client';
 
-import { SCORING_RULES, scoringRulesTable } from '@vighnaway/engine';
+import { RULE_KEYS, ruleDescription, SCORING_RULES, scoringRulesTable } from '@vighnaway/engine';
+import type { RuleKey } from '@vighnaway/engine';
 import { Info, Languages } from 'lucide-react';
-import { t } from '@/i18n';
+import { currentLang, t } from '@/i18n';
 import { ATTRIBUTION } from '@/lib/scenario';
 import { PageShell } from '@/components/shared/PageShell';
 
@@ -30,7 +31,7 @@ export function RulesContent() {
         {rows.map((r) => (
           <div key={r.key} className="grid gap-x-10 gap-y-1.5 border-b border-shell-line py-5 md:grid-cols-[16rem_1fr_minmax(0,18rem)]">
             <dt className="text-title font-semibold text-ink-on-shell">{t.rules.titles[r.key] ?? r.key}</dt>
-            <dd className="text-body text-ink-on-shell-muted">{r.description}</dd>
+            <dd className="text-body text-ink-on-shell-muted">{(RULE_KEYS as string[]).includes(r.key) ? ruleDescription(r.key as RuleKey, currentLang()) : r.description}</dd>
             <dd className="md:text-right">
               <span className="sr-only">{t.rules.value}: </span>
               <span className="tech break-words text-ink-on-shell">{r.value}</span>

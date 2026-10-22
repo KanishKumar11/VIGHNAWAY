@@ -109,6 +109,7 @@ export const en = {
   whyAvoids: 'Reason',
   whyTradeOff: 'Trade-off',
   whyRecheck: 'Re-check if',
+  whyNot: 'Why not this route?',
   evidenceTitle: 'Evidence on this route',
   noHazardsOnRoute: 'No reported hazards on this route',
   activityTitle: 'Recent activity',

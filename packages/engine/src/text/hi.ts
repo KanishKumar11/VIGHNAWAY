@@ -115,6 +115,14 @@ export const hi: Record<TextKey, string> = {
   'change.new.better': 'रास्ता बदला। अब दूसरा रास्ता साफ़ तौर पर बेहतर है। नया रास्ता {via}, {eta}।',
   'change.reversal': '{base} आगे का कोई रास्ता चलने लायक नहीं है। {reversal}।',
 
+  'cf.blocked.notEnough': '{hazards} हट जाने पर भी कोई दूसरा रास्ता ही सुझाया जाएगा।',
+  'cf.hazard.one': '{hazard|lower} हट जाए तो यह रास्ता सुझाया जाएगा।',
+  'cf.hazard.many': 'ये हट जाएँ तो यह रास्ता सुझाया जाएगा: {hazards}।',
+  'cf.time': 'यह रास्ता {n} मिनट और तेज़ हो तो सुझाया जाएगा।',
+  'cf.none.hazards': 'रिपोर्ट किए गए खतरे हटने पर भी यह रास्ता नहीं सुझाया जाएगा।',
+  'cf.none.time': 'सिर्फ़ समय बचने से यह रास्ता नहीं सुझाया जाएगा।',
+  'cf.join': '{head}; {tail}',
+
   'notice.unchanged.one': 'रास्ता नहीं बदला: एक असत्यापित रिपोर्ट',
   'notice.unchanged.many': 'रास्ता नहीं बदला: {n} असत्यापित रिपोर्टें',
   'notice.unchanged.hazard': 'रास्ता नहीं बदला: {hazard|lowerall} दूसरा रास्ता लेने जितना बड़ा नहीं है',

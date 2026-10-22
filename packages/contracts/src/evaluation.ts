@@ -92,6 +92,24 @@ export const ExplanationSchema = z.object({
 });
 export type Explanation = z.infer<typeof ExplanationSchema>;
 
+/**
+ * "Why not that route?": the smallest change that would make a route that is not recommended the
+ * recommendation, found by re-ranking the routes shown (never guessed). Absent on the recommended route.
+ * - blocked: the route is not viable while these incidents stand; `wouldBeRecommended` says whether
+ *   clearing all of them would make it the recommendation.
+ * - hazards: clearing these incidents would make it the recommendation. `smallest` is true only for a
+ *   single incident; a set of several is "if these were cleared", not a claim of minimality.
+ * - time: it would be recommended if its ranking cost were `cutS` seconds lower (the switching rule applied).
+ * - none_sufficient: clearing its hazards (`hazards`) or saving any time (`time`) would not be enough.
+ */
+export const CounterfactualSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('blocked'), blockerIds: z.array(IdSchema), wouldBeRecommended: z.boolean() }),
+  z.object({ kind: z.literal('hazards'), incidentIds: z.array(IdSchema), smallest: z.boolean() }),
+  z.object({ kind: z.literal('time'), cutS: z.number().int().min(1) }),
+  z.object({ kind: z.literal('none_sufficient'), reason: z.enum(['hazards', 'time']) }),
+]);
+export type Counterfactual = z.infer<typeof CounterfactualSchema>;
+
 export const RouteEvaluationSchema = z.object({
   /** Edge ids joined with "|". */
   routeId: z.string(),
@@ -115,6 +133,8 @@ export const RouteEvaluationSchema = z.object({
   usesStaleBlock: z.boolean(),
   role: RouteRoleSchema,
   explanation: ExplanationSchema,
+  counterfactual: CounterfactualSchema.optional(),
+  counterfactualText: TextSchema.optional(),
 });
 export type RouteEvaluation = z.infer<typeof RouteEvaluationSchema>;
 

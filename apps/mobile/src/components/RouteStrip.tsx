@@ -2,7 +2,7 @@ import { memo, useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, G, Line, Rect, Text as SvgText } from 'react-native-svg';
 import type { CrossingKind, RouteEvaluation } from '@vighnaway/contracts';
-import { routeName } from '@/i18n/engineText';
+import { routeLabel } from '@/i18n/engineText';
 import { fmtDistance } from '@/i18n/format';
 import { getLanguage } from '@/i18n/lang';
 import { t } from '@/i18n/en';
@@ -33,7 +33,7 @@ export const RouteStrip = memo(function RouteStrip({ route, travelledFraction }:
   const hazards = route.hazards.filter((h) => h.effect !== 'none');
   const blocked = route.role === 'blocked';
   const label = t('routeStripLabel', {
-    name: routeName(route.name),
+    name: routeLabel(route),
     distance: fmtDistance(route.distanceM),
     hazards: hazards.length ? t('routeStripHazards', { n: hazards.length }) : t('routeStripNoHazards'),
   });

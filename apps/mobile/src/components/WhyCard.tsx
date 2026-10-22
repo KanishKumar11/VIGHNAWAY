@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import type { RouteEvaluation } from '@vighnaway/contracts';
 import { t } from '@/i18n/en';
+import { confidenceReasonsOf, reasonOf, recheckOf, tradeOffOf } from '@/i18n/engineText';
 import { createStyles, hairline, radius, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
 import { Hourglass, RefreshCw, Route, type LucideIcon } from './icons';
@@ -32,7 +33,7 @@ function Line({ icon: Icon, label, value, last }: { icon: LucideIcon; label: str
  */
 export function WhyCard({ route }: { route: RouteEvaluation }) {
   const styles = useStyles();
-  const e = route.explanation;
+  const reasons = confidenceReasonsOf(route);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -42,16 +43,16 @@ export function WhyCard({ route }: { route: RouteEvaluation }) {
         <View style={styles.headRule} />
       </View>
       <View>
-        <Line icon={Route} label={t('whyAvoids')} value={e.reason} />
-        <Line icon={Hourglass} label={t('whyTradeOff')} value={e.tradeOff || '—'} />
-        <Line icon={RefreshCw} label={t('whyRecheck')} value={e.recheckIf} last />
+        <Line icon={Route} label={t('whyAvoids')} value={reasonOf(route)} />
+        <Line icon={Hourglass} label={t('whyTradeOff')} value={tradeOffOf(route) || '—'} />
+        <Line icon={RefreshCw} label={t('whyRecheck')} value={recheckOf(route)} last />
       </View>
-      {e.confidenceReasons.length ? (
+      {reasons.length ? (
         <View style={styles.reasons}>
           <AppText variant="label" tone="muted">
             {t('confidenceReasonsTitle')}
           </AppText>
-          {e.confidenceReasons.map((r) => (
+          {reasons.map((r) => (
             <View key={r} style={styles.bulletRow}>
               <View style={styles.bullet} />
               <AppText variant="meta" style={styles.flex}>

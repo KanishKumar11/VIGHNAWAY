@@ -11,6 +11,7 @@ import type {
 } from '@vighnaway/contracts';
 import type { Evaluated } from './evaluate';
 import { evaluate } from './evaluate';
+import { counterfactuals } from './counterfactual';
 import { describeChange, explain } from './explain';
 import type { GEdge, Graph } from './graph';
 import { nodePoint, snapToEdge, snapToNode } from './graph';
@@ -267,6 +268,19 @@ function planCore(
     keptDespiteGainS,
   };
 
+  const cfs = recommended
+    ? counterfactuals({
+        graph,
+        candidates: evaluations,
+        recommendedRouteId: recommended.routeId,
+        index,
+        ctx,
+        previousKey,
+        usualFastestRouteId: usualFastestId,
+        targets: shown,
+      })
+    : new Map();
+
   const roleOrder = { recommended: 0, usual_fastest: 1, alternative: 2, blocked: 3 } as const;
   const routes: RouteEvaluation[] = shown
     .map((ev) => {
@@ -275,7 +289,8 @@ function planCore(
         ...explainCtx,
         isReversal: opts.isReversal && role === 'recommended',
       });
-      return { ...ev, role, explanation };
+      const cf = cfs.get(ev.routeId);
+      return { ...ev, role, explanation, ...(cf ? { counterfactual: cf.counterfactual, counterfactualText: cf.text } : {}) };
     })
     .sort((a, b) => {
       const r = roleOrder[a.role] - roleOrder[b.role];

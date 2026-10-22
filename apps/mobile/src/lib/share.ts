@@ -3,7 +3,7 @@ import { Share } from 'react-native';
 import { formatSimClock, type Incident, type PlanResult, type RouteEvaluation } from '@vighnaway/contracts';
 import type { Graph } from '@vighnaway/engine';
 import { t } from '@/i18n/en';
-import { evidenceText, routeName } from '@/i18n/engineText';
+import { evidenceText, routeLabel } from '@/i18n/engineText';
 import { fmtDuration } from '@/i18n/format';
 import { roadSequence } from './engine';
 
@@ -43,7 +43,7 @@ export function buildShareText(input: ShareInput): string {
   const avoided = hazardsAvoided(plan, route, input.incidents);
   const lines = [
     t(input.live ? 'shareHeaderLive' : 'shareHeader'),
-    t('shareRouteLine', { name: routeName(route.name) }),
+    t('shareRouteLine', { name: routeLabel(route) }),
     t('shareTo', { place: input.placeName }),
     t('shareEta', { eta: fmtDuration(input.etaS) }),
     `${t('shareTurns')} ${roads.join(' > ')}`,
