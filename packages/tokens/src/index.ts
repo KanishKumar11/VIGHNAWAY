@@ -348,7 +348,35 @@ export const googleMapStyleConsoleLight = [
 ] as const;
 
 /** Map style per theme for the web control room. */
-export const consoleGoogleMapStyles = { dark: googleMapStyle, light: googleMapStyleConsoleLight } as const;
+export const googleMapStyleConsoleDark = [
+  { elementType: 'geometry', stylers: [{ color: '#141518' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#A3A4AB' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#141518' }, { weight: 3 }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#303238' }] },
+  { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#18191C' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.medical', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.medical', elementType: 'geometry', stylers: [{ color: '#232529' }] },
+  { featureType: 'poi.medical', elementType: 'labels.icon', stylers: [{ visibility: 'on' }, { saturation: -100 }, { lightness: 20 }] },
+  { featureType: 'poi.park', stylers: [{ visibility: 'on' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#172219' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#27292E' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#141518' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#31333A' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#41444B' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#C6C7CC' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.line', stylers: [{ visibility: 'on' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#C6C7CC' }, { weight: 1.6 }] },
+  { featureType: 'transit.station.rail', stylers: [{ visibility: 'on' }] },
+  { featureType: 'transit.station.rail', elementType: 'labels.icon', stylers: [{ visibility: 'on' }, { saturation: -100 }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0F1215' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6E7079' }] },
+] as const;
+
+export const consoleGoogleMapStyles = { dark: googleMapStyleConsoleDark, light: googleMapStyleConsoleLight } as const;
 
 export const tokens = { colors, spacing, radius, fontFamily, type, letterSpacing, elevation, routeStyles, zIndex, marker, motion, layout } as const;
 export default tokens;

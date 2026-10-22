@@ -232,6 +232,10 @@ export const en = {
     vehicle: 'Demo vehicle',
     region: 'Map of the demo area',
     origin: 'Origin',
+    hideQueue: 'Hide incident queue',
+    showQueue: 'Show incident queue',
+    hideTrip: 'Hide decision panel',
+    showTrip: 'Show decision panel',
   },
   qr: {
     title: 'Report a hazard',
@@ -365,6 +369,13 @@ export const en = {
       access: 'Road access by profile',
     } as Record<string, string>,
     attributionTitle: 'Attribution',
+    onThisPage: 'On this page',
+    groups: {
+      traffic: 'Traffic and travel time',
+      incidents: 'Incidents and evidence',
+      decision: 'Choosing a route',
+      roads: 'Roads and speeds',
+    },
   },
   receipt: {
     title: 'Decision receipt',
@@ -467,6 +478,11 @@ export const en = {
     ms: (n: number) => `${n.toFixed(1)} ms`,
     unknown: 'Not available',
     apiUrl: 'API URL',
+    graphGroup: 'Graph',
+    engineGroup: 'Engine and API',
+    graphMatch: 'Server and console use the same graph',
+    graphMismatch: 'Server graph differs from this console',
+    graphUnknown: 'Server not reached',
   },
   view: {
     menu: 'View',

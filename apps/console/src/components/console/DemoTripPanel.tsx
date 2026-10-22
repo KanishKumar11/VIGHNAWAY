@@ -4,7 +4,7 @@ import type { Incident, PlanResult, RouteEvaluation } from '@vighnaway/contracts
 import { formatDistance, formatSimClock } from '@vighnaway/contracts';
 import { nextActionText, renderText } from '@vighnaway/engine';
 import { motion as motionTokens } from '@vighnaway/tokens';
-import { ArrowRight, Hospital, Info, OctagonX, Phone, TriangleAlert, Undo2, X } from 'lucide-react';
+import { ArrowRight, Clock, Cpu, Gauge, Hospital, Info, Navigation, OctagonX, Phone, Ruler, Scale, ShieldCheck, TriangleAlert, Undo2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { currentLang, t } from '@/i18n';
@@ -216,11 +216,21 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
             <EtaHero seconds={shownEta} />
             <p className="mt-1.5 text-meta text-chrome-ink-muted">{enRoute ? t.trip.remaining : t.decision.estimated}</p>
           </div>
-          <dl className="grid shrink-0 grid-cols-[auto_auto] items-baseline gap-x-4 gap-y-2 border-l border-chrome-line pb-0.5 pl-5">
-            <dt className="text-meta text-chrome-ink-muted">{t.trip.arrive}</dt>
-            <dd className="text-title font-semibold text-chrome-ink tabular">{shownEta === null ? '–' : clock(trip.simTimeS + shownEta)}</dd>
-            <dt className="text-meta text-chrome-ink-muted">{t.route.distance}</dt>
-            <dd className="text-title font-semibold text-chrome-ink tabular">{formatDistance(shown.distanceM)}</dd>
+          <dl className="flex shrink-0 flex-col gap-2">
+            <div className="flex items-center gap-2.5 rounded-button border border-chrome-line bg-chrome-fill px-3 py-1.5">
+              <Clock aria-hidden className="size-4 shrink-0 text-chrome-accent" />
+              <div className="flex flex-col leading-tight">
+                <dt className="text-eyebrow font-medium text-chrome-ink-muted">{t.trip.arrive}</dt>
+                <dd className="text-body font-semibold text-chrome-ink tabular">{shownEta === null ? '–' : clock(trip.simTimeS + shownEta)}</dd>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-button border border-chrome-line bg-chrome-fill px-3 py-1.5">
+              <Ruler aria-hidden className="size-4 shrink-0 text-chrome-accent" />
+              <div className="flex flex-col leading-tight">
+                <dt className="text-eyebrow font-medium text-chrome-ink-muted">{t.route.distance}</dt>
+                <dd className="text-body font-semibold text-chrome-ink tabular">{formatDistance(shown.distanceM)}</dd>
+              </div>
+            </div>
           </dl>
         </div>
       </div>
@@ -245,25 +255,39 @@ function Decision({ route, trip, motion: m, incidents, nowS, destName }: { route
         </span>
       </p>
 
-      <dl className="well mt-4 grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-2.5 px-4 py-3.5 text-body">
-        <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.avoids}</dt>
-        <dd className="text-ink-on-shell">{rt(shown.explanation.reasonText, shown.explanation.reason)}</dd>
-        <dt className="pt-0.5 text-meta font-semibold text-ink-on-shell-muted">{t.route.tradeOff}</dt>
-        <dd className="text-ink-on-shell">{shown.explanation.tradeOff ? rt(shown.explanation.tradeOffText, shown.explanation.tradeOff) : t.route.noTradeOff}</dd>
+      <dl className="mt-4 divide-y divide-shell-line overflow-hidden rounded-card border border-shell-line bg-shell-raised text-body shadow-sm">
+        <div className="flex gap-3 px-4 py-3">
+          <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-button bg-teal-soft text-accent-ink">
+            <ShieldCheck className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <dt className="text-meta font-semibold text-accent-ink">{t.route.avoids}</dt>
+            <dd className="mt-0.5 text-ink-on-shell">{rt(shown.explanation.reasonText, shown.explanation.reason)}</dd>
+          </div>
+        </div>
+        <div className="flex gap-3 px-4 py-3">
+          <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-button bg-warn-soft text-warn-ink">
+            <Scale className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <dt className="text-meta font-semibold text-warn-ink">{t.route.tradeOff}</dt>
+            <dd className="mt-0.5 text-ink-on-shell">{shown.explanation.tradeOff ? rt(shown.explanation.tradeOffText, shown.explanation.tradeOff) : t.route.noTradeOff}</dd>
+          </div>
+        </div>
       </dl>
 
-      <div className="mt-6">
+      <div className="mt-3 rounded-card border border-shell-line bg-shell-raised px-4 pt-4 pb-3.5 shadow-sm">
         <RouteStrip route={shown} />
         <span className="sr-only">{routeStripText(shown)}</span>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-shell-line pt-3">
+          <Gauge aria-hidden className="size-4 shrink-0 text-ink-on-shell-muted" />
+          <ConfidenceMeter confidence={shown.explanation.confidence} />
+          {shown.explanation.confidenceReasons.length > 0 && <p className="text-meta text-ink-on-shell-muted">{shown.explanation.confidenceReasons.map((reason, i) => rt(shown.explanation.confidenceReasonTexts?.[i], reason)).join(' · ')}</p>}
+        </div>
+        <p className="mt-2.5 rounded-button bg-panel-sunken px-3 py-2 text-meta text-ink-on-shell-muted">
+          <span className="font-semibold text-ink-on-shell">{t.route.recheckIf}:</span> {rt(shown.explanation.recheckIfText, shown.explanation.recheckIf)}
+        </p>
       </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1">
-        <ConfidenceMeter confidence={shown.explanation.confidence} />
-        {shown.explanation.confidenceReasons.length > 0 && <p className="text-meta text-ink-on-shell-muted">{shown.explanation.confidenceReasons.map((reason, i) => rt(shown.explanation.confidenceReasonTexts?.[i], reason)).join(' · ')}</p>}
-      </div>
-      <p className="mt-2 text-meta text-ink-on-shell-muted">
-        <span className="font-semibold">{t.route.recheckIf}:</span> {rt(shown.explanation.recheckIfText, shown.explanation.recheckIf)}
-      </p>
 
       {change && !flashing && <WhatChanged change={change} plan={trip.plan} incidents={incidents} nowS={nowS} />}
       <Evidence items={evidence} nowS={nowS} />
@@ -316,17 +340,25 @@ function Comparison({ rec, others }: { rec: RouteEvaluation | null; others: Rout
         {others.map((r) => {
           const blocked = r.role === 'blocked' || !r.viable;
           return (
-            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${routeLabel(r)}`} className="rounded-card border border-shell-line bg-shell-raised px-4 py-3 transition-colors hover:bg-panel-sunken">
+            <li key={r.routeId} aria-label={`${t.route.roles[r.role]}: ${routeLabel(r)}`} className={cn('rounded-card border px-4 py-3 shadow-sm transition-[border-color,box-shadow] hover:shadow-md', blocked ? 'border-danger/25 bg-danger-surface' : 'border-shell-line bg-shell-raised hover:border-shell-hairline-strong')}>
               <div className="grid grid-cols-[1.5rem_1fr_auto] items-center gap-x-3">
                 <LineSwatch role={r.role} />
                 <p className="min-w-0 truncate text-body font-semibold text-ink-on-shell">{routeLabel(r)}</p>
                 <p className={cn('text-right text-body font-semibold tabular', blocked ? 'text-danger-ink' : 'text-ink-on-shell')}>{blocked ? t.route.notViable : t.time.duration(r.etaS)}</p>
                 <span />
-                <p className="text-meta text-ink-on-shell-muted">{blocked ? rt(r.explanation.reasonText, r.explanation.reason) : t.route.roles[r.role]}</p>
-                <p className="text-right text-meta text-ink-on-shell-muted tabular">{!blocked && rec ? t.route.deltaVsRecommended(t.time.delta(r.etaS - rec.etaS)) : ''}</p>
+                {blocked ? (
+                  <p className="text-meta text-danger-ink">{rt(r.explanation.reasonText, r.explanation.reason)}</p>
+                ) : (
+                  <p>
+                    <span className="inline-flex h-5 items-center rounded-chip bg-panel-sunken px-2 text-eyebrow font-semibold text-ink-on-shell-muted">{t.route.roles[r.role]}</span>
+                  </p>
+                )}
+                <p className={cn('text-right text-meta font-semibold tabular', !rec || blocked ? 'text-ink-on-shell-muted' : r.etaS < rec.etaS ? 'text-positive-ink' : 'text-warn-ink')}>
+                  {!blocked && rec ? t.route.deltaVsRecommended(t.time.delta(r.etaS - rec.etaS)) : ''}
+                </p>
                 {r.counterfactualText && (
-                  <p className="col-span-3 mt-1.5 text-meta text-ink-on-shell-muted" data-testid="why-not">
-                    <span className="font-semibold">{t.route.whyNot}</span> {rt(r.counterfactualText, '')}
+                  <p className="col-span-3 mt-2.5 rounded-button bg-panel-sunken px-3 py-2 text-meta text-ink-on-shell-muted" data-testid="why-not">
+                    <span className="font-semibold text-ink-on-shell">{t.route.whyNot}</span> {rt(r.counterfactualText, '')}
                   </p>
                 )}
               </div>
@@ -467,23 +499,25 @@ export function DemoTripPanel({
 
   return (
     <section aria-labelledby="trip-title" className="flex h-full min-h-0 flex-col">
-      <header className="border-b border-shell-line px-5 pt-4 pb-4">
+      <header className="vw-panel-head border-b border-shell-line px-5 pt-4 pb-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 id="trip-title" className="flex items-center gap-2.5 text-meta font-semibold text-ink-on-shell-muted">
-            <span aria-hidden className="vw-title-bar" />
+          <h2 id="trip-title" className="flex items-center gap-3 text-title font-semibold text-ink-on-shell">
+            <span aria-hidden className="vw-brand-fill flex size-8 items-center justify-center rounded-button shadow-sm">
+              <Navigation className="size-4" />
+            </span>
             {t.trip.title}
           </h2>
           {trip && rechecking && (
-            <span className="text-meta text-ink-on-shell-muted" role="status">
+            <span className="inline-flex h-7 items-center rounded-chip border border-shell-line bg-panel-sunken px-2.5 text-meta font-medium text-ink-on-shell-muted" role="status">
               {checkingLabel}
             </span>
           )}
         </div>
-        <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-3.5">
+        <div className="mt-3.5 grid grid-cols-[auto_1fr] gap-x-3.5 rounded-card border border-accent/20 bg-recommended-surface px-4 py-3">
           <span aria-hidden className="flex flex-col items-center py-1.5">
-            <span className="size-3 rounded-chip border-[3px] border-route-recommended bg-shell-raised" />
+            <span className="size-3 rounded-chip border-[3px] border-route-recommended bg-shell-raised ring-3 ring-route-recommended/15" />
             <span className="my-1 w-0.5 flex-1 rounded-chip bg-route-recommended/40" />
-            <Hospital className="size-4 text-ink-on-shell" />
+            <Hospital className="size-4 text-accent-ink" />
           </span>
           <div className="flex flex-col gap-2.5">
             <p className="text-body text-ink-on-shell-muted">{origin?.name}</p>
@@ -495,7 +529,12 @@ export function DemoTripPanel({
           </div>
         </div>
         <span className="sr-only">{t.trip.fromTo(origin?.name ?? '', dest?.name ?? '')}</span>
-        {trip && <p className="mt-3 text-meta text-ink-on-shell-muted">{vehicleLine(trip)}</p>}
+        {trip && (
+          <p className="mt-2.5 flex items-center gap-1.5 text-meta text-ink-on-shell-muted">
+            <Info aria-hidden className="size-3.5 shrink-0" />
+            {vehicleLine(trip)}
+          </p>
+        )}
       </header>
 
       <div className="vw-scroll flex min-h-0 flex-1 flex-col overflow-y-auto *:shrink-0">
@@ -518,7 +557,10 @@ export function DemoTripPanel({
           </>
         )}
       </div>
-      <p className="border-t border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell-muted">{t.trip.engineNote}</p>
+      <p className="flex items-center gap-2 border-t border-shell-line bg-panel-sunken px-5 py-3 text-meta text-ink-on-shell-muted">
+        <Cpu aria-hidden className="size-3.5 shrink-0" />
+        {t.trip.engineNote}
+      </p>
     </section>
   );
 }

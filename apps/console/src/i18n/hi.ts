@@ -265,6 +265,10 @@ export const hi: Strings = {
     vehicle: 'डेमो वाहन',
     region: 'डेमो क्षेत्र का नक्शा',
     origin: 'शुरुआत',
+    hideQueue: 'घटना सूची छिपाएँ',
+    showQueue: 'घटना सूची दिखाएँ',
+    hideTrip: 'निर्णय पैनल छिपाएँ',
+    showTrip: 'निर्णय पैनल दिखाएँ',
   },
   qr: {
     title: 'खतरे की रिपोर्ट करें',
@@ -397,6 +401,13 @@ export const hi: Strings = {
       access: 'प्रोफ़ाइल के अनुसार सड़क पहुँच',
     } as Record<string, string>,
     attributionTitle: 'श्रेय',
+    onThisPage: 'इस पेज पर',
+    groups: {
+      traffic: 'ट्रैफ़िक और यात्रा समय',
+      incidents: 'घटनाएँ और प्रमाण',
+      decision: 'रूट का चुनाव',
+      roads: 'सड़कें और गति',
+    },
   },
   receipt: {
     title: 'निर्णय रसीद',
@@ -499,6 +510,11 @@ export const hi: Strings = {
     ms: (n: number) => `${n.toFixed(1)} ms`,
     unknown: 'उपलब्ध नहीं',
     apiUrl: 'API URL',
+    graphGroup: 'ग्राफ़',
+    engineGroup: 'इंजन और API',
+    graphMatch: 'सर्वर और कंसोल एक ही ग्राफ़ इस्तेमाल करते हैं',
+    graphMismatch: 'सर्वर का ग्राफ़ इस कंसोल से अलग है',
+    graphUnknown: 'सर्वर तक नहीं पहुँचे',
   },
   view: {
     menu: 'दृश्य',

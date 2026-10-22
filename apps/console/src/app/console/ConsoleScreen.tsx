@@ -21,8 +21,13 @@ import { MapListView } from '@/components/map/MapListView';
 import { ReplayPill } from '@/components/console/ReplayPill';
 import { Header, StatusBanners } from '@/components/console/Header';
 import { IncidentQueue } from '@/components/console/IncidentQueue';
-import { ChangeBanner, changeBannerVisible, DemoTripPanel } from '@/components/console/DemoTripPanel';
+import {
+  ChangeBanner,
+  changeBannerVisible,
+  DemoTripPanel,
+} from '@/components/console/DemoTripPanel';
 import { QrCard } from '@/components/console/QrCard';
+import { PanelToggle } from '@/components/console/PanelToggle';
 import { Timeline } from '@/components/console/Timeline';
 import { AudienceCard } from '@/components/console/AudienceCard';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
@@ -61,6 +66,9 @@ export function ConsoleScreen() {
   const liveMotion = useRouteChangeMotion(liveTrip?.change ?? null);
   const presenter = usePrefs((s) => s.presenter);
   const listView = usePrefs((s) => s.listView);
+  const queueHidden = usePrefs((s) => s.queueHidden);
+  const tripHidden = usePrefs((s) => s.tripHidden);
+  const showQueue = !presenter && !queueHidden;
 
   // P toggles presenter mode; Escape leaves it.
   useEffect(() => {
@@ -79,13 +87,19 @@ export function ConsoleScreen() {
   const replayAtS = useReplay((s) => s.atS);
   const replayEntries = useReplay((s) => s.entries);
   const replay = useMemo(
-    () => (replayAtS !== null && replayEntries ? replayTrip(tripEnv(scenario.id), replayEntries, replayAtS) : null),
+    () =>
+      replayAtS !== null && replayEntries
+        ? replayTrip(tripEnv(scenario.id), replayEntries, replayAtS)
+        : null,
     [replayAtS, replayEntries, scenario.id],
   );
   useEffect(() => useReplay.getState().exit(), [scenario.id]);
   const trip = replay?.trip ?? liveTrip;
   // A replayed moment is shown settled: no flash, no draw-in.
-  const motion = useMemo<RouteMotion>(() => (replay ? { phase: 'settled', flashOn: false, change: replay.trip.change } : liveMotion), [replay, liveMotion]);
+  const motion = useMemo<RouteMotion>(
+    () => (replay ? { phase: 'settled', flashOn: false, change: replay.trip.change } : liveMotion),
+    [replay, liveMotion],
+  );
   useSpokenChanges(replay ? null : liveTrip);
   const sync = useLiveStore((s) => s.sync);
   const optimistic = useLiveStore((s) => s.optimistic);
@@ -103,17 +117,30 @@ export function ConsoleScreen() {
     return () => clearTimeout(timer);
   }, [changeId]);
   const insets = useMemo<Insets>(
-    () => (bannerUp || replay ? { ...MAP_INSETS, top: MAP_INSETS.top + (bannerUp ? BANNER_SPACE : REPLAY_SPACE) } : MAP_INSETS),
+    () =>
+      bannerUp || replay
+        ? { ...MAP_INSETS, top: MAP_INSETS.top + (bannerUp ? BANNER_SPACE : REPLAY_SPACE) }
+        : MAP_INSETS,
     [bannerUp, replay],
   );
 
-  const liveIncidents = useMemo(() => displayIncidents({ sync, optimistic, confirmed }), [sync, optimistic, confirmed]);
+  const liveIncidents = useMemo(
+    () => displayIncidents({ sync, optimistic, confirmed }),
+    [sync, optimistic, confirmed],
+  );
   const incidents = replay?.incidents ?? liveIncidents;
-  const scene = useMemo(() => buildScene(tripEnv(scenario.id), GRAPH_FILE, trip, motion, incidents), [scenario.id, trip, motion, incidents]);
+  const scene = useMemo(
+    () => buildScene(tripEnv(scenario.id), GRAPH_FILE, trip, motion, incidents),
+    [scenario.id, trip, motion, incidents],
+  );
   // Camera: the trip's places and every candidate route, with a little air around them.
   const fit = useMemo(() => {
-    const pts = [scene.origin, scene.destination, ...scene.otherPlaces].filter((p) => p !== null).map((p) => p.point);
-    for (const l of scene.lines) if (l.kind !== 'floodProne' && l.kind !== 'old' && l.kind !== 'blocking') for (const [lng, lat] of l.coords) pts.push({ lat, lng });
+    const pts = [scene.origin, scene.destination, ...scene.otherPlaces]
+      .filter((p) => p !== null)
+      .map((p) => p.point);
+    for (const l of scene.lines)
+      if (l.kind !== 'floodProne' && l.kind !== 'old' && l.kind !== 'blocking')
+        for (const [lng, lat] of l.coords) pts.push({ lat, lng });
     return boundsOf(pts, 0.03);
   }, [scene]);
   const noViable = !!trip && trip.plan.noViableRoute && !recommendedRoute(trip.plan);
@@ -123,16 +150,31 @@ export function ConsoleScreen() {
     <div className="vw-canvas flex h-dvh min-h-[calc(var(--spacing)*200)] w-full min-w-[calc(var(--spacing)*320)] flex-col overflow-hidden text-base text-ink-on-shell">
       <Header replayAtS={replay?.atS ?? null} />
       <div className="flex min-h-0 flex-1 gap-4 p-4">
-        {!presenter && (
-          <aside aria-label={t.queue.title} className="panel-card flex w-80 shrink-0 flex-col overflow-hidden min-[1440px]:w-100">
-            <IncidentQueue selectedId={selectedId} onSelect={toggle} incidents={incidents} nowS={nowS} readOnly={!!replay} trip={trip} />
+        {showQueue && (
+          <aside
+            id="console-queue"
+            aria-label={t.queue.title}
+            className="panel-card flex w-80 shrink-0 flex-col overflow-hidden min-[1440px]:w-100"
+          >
+            <IncidentQueue
+              selectedId={selectedId}
+              onSelect={toggle}
+              incidents={incidents}
+              nowS={nowS}
+              readOnly={!!replay}
+              trip={trip}
+            />
             <QrCard />
           </aside>
         )}
 
         <main className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="panel-card relative min-h-0 flex-1 overflow-hidden">
-            <section className="absolute inset-0" aria-label={t.map.region} aria-hidden={listView || undefined}>
+            <section
+              className="absolute inset-0"
+              aria-label={t.map.region}
+              aria-hidden={listView || undefined}
+            >
               <MapPanel
                 scene={scene}
                 incidents={incidents}
@@ -151,23 +193,62 @@ export function ConsoleScreen() {
                 <AudienceCard />
               </div>
             )}
-            {listView && <MapListView trip={trip} incidents={incidents} nowS={nowS} style={bannerUp || replay ? { paddingTop: bannerUp ? 168 : 96 } : undefined} />}
+            {listView && (
+              <MapListView
+                trip={trip}
+                incidents={incidents}
+                nowS={nowS}
+                style={bannerUp || replay ? { paddingTop: bannerUp ? 168 : 96 } : undefined}
+              />
+            )}
             {/* Notices, replay state and the route-change banner, over the top of the map stage. */}
             <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2 px-6">
               <StatusBanners />
               {replay && <ReplayPill atS={replay.atS} />}
-              {!replay && <ChangeBanner trip={trip} motion={motion} dismissedId={dismissedChange} onDismiss={setDismissedChange} />}
+              {!replay && (
+                <ChangeBanner
+                  trip={trip}
+                  motion={motion}
+                  dismissedId={dismissedChange}
+                  onDismiss={setDismissedChange}
+                />
+              )}
             </div>
+            {!presenter && (
+              <PanelToggle
+                side="left"
+                hidden={queueHidden}
+                onToggle={() => usePrefs.getState().toggle('queueHidden')}
+                label={queueHidden ? t.map.showQueue : t.map.hideQueue}
+                controls="console-queue"
+              />
+            )}
+            <PanelToggle
+              side="right"
+              hidden={tripHidden}
+              onToggle={() => usePrefs.getState().toggle('tripHidden')}
+              label={tripHidden ? t.map.showTrip : t.map.hideTrip}
+              controls="console-trip"
+            />
           </div>
           <Timeline replayAtS={replay?.atS ?? null} />
         </main>
 
-        <aside aria-label={t.trip.title} className={cn('panel-card shrink-0 overflow-hidden', presenter ? 'w-150' : 'w-96 min-[1440px]:w-115')}>
-          {/* Presenter mode enlarges the whole decision for the room. */}
-          <div className="h-full" style={presenter ? { zoom: PRESENTER_ZOOM } : undefined}>
-            <DemoTripPanel trip={trip} motion={motion} incidents={incidents} nowS={nowS} />
-          </div>
-        </aside>
+        {!tripHidden && (
+          <aside
+            id="console-trip"
+            aria-label={t.trip.title}
+            className={cn(
+              'panel-card shrink-0 overflow-hidden',
+              presenter ? 'w-150' : 'w-96 min-[1440px]:w-115',
+            )}
+          >
+            {/* Presenter mode enlarges the whole decision for the room. */}
+            <div className="h-full" style={presenter ? { zoom: PRESENTER_ZOOM } : undefined}>
+              <DemoTripPanel trip={trip} motion={motion} incidents={incidents} nowS={nowS} />
+            </div>
+          </aside>
+        )}
       </div>
       <OperatorTokenDialog />
     </div>

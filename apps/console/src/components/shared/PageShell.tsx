@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, useScroll, useTransform } from 'motion/react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { t } from '@/i18n';
@@ -18,15 +19,42 @@ const NAV = () =>
     ['/report', t.nav.report],
   ] as const;
 
-/** Floating bar and reading column for /rules and /debug, in the console's visual system. */
-export function PageShell({ title, eyebrow, intro, active, children }: { title: string; eyebrow?: string; intro?: ReactNode; active?: string; children: ReactNode }) {
+/** One column for the bar and the page, so the wordmark and the title share a left edge. */
+const CONTAINER = 'mx-auto w-full max-w-[calc(var(--spacing)*360)] px-5 sm:px-8';
+
+/** Floating bar and page column for /rules, /verify and /debug, in the console's visual system. */
+export function PageShell({
+  title,
+  eyebrow,
+  intro,
+  aside,
+  active,
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  intro?: ReactNode;
+  /** Shown beside the title on wide screens (badges, a short status). */
+  aside?: ReactNode;
+  active?: string;
+  children: ReactNode;
+}) {
+  const { scrollY, scrollYProgress } = useScroll();
+  // Hidden until the page moves, so a page too short to scroll never shows a full bar.
+  const progressOpacity = useTransform(scrollY, [0, 8], [0, 1]);
   return (
-    <div className="min-h-dvh bg-shell text-base text-ink-on-shell">
+    <div className="relative min-h-dvh bg-shell text-base text-ink-on-shell">
+      <div
+        aria-hidden
+        className="vw-page-glow pointer-events-none absolute inset-x-0 top-0 h-[calc(var(--spacing)*120)]"
+      />
       <div className="vw-header sticky top-0 z-30">
-        <header className="mx-auto flex h-18 max-w-[calc(var(--spacing)*300)] items-center gap-4 px-5">
+        <header className={cn(CONTAINER, 'flex h-16 items-center gap-4')}>
           <Link href="/console" className="flex items-center gap-3">
-            <BrandMark className="size-9 drop-shadow-sm" />
-            <span className="vw-brand-text text-body font-extrabold tracking-wordmark">{t.app.name}</span>
+            <BrandMark className="size-8" />
+            <span className="text-body font-bold tracking-wordmark text-ink-on-shell">
+              {t.app.name}
+            </span>
           </Link>
           <SimulatedBadge onShell />
           <nav className="ml-auto flex gap-1 text-body">
@@ -36,8 +64,10 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
                 href={href}
                 aria-current={active === href ? 'page' : undefined}
                 className={cn(
-                  'rounded-button px-3 py-1.5 font-medium transition-colors',
-                  active === href ? 'bg-panel-sunken text-ink-on-shell' : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
+                  'relative rounded-button px-3 py-1.5 font-medium transition-colors',
+                  active === href
+                    ? 'bg-brand-from/10 text-ink-on-shell after:absolute after:inset-x-3 after:-bottom-[calc(var(--spacing)*3.5)] after:h-0.5 after:rounded-chip after:bg-brand-from'
+                    : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
                 )}
               >
                 {label}
@@ -47,13 +77,28 @@ export function PageShell({ title, eyebrow, intro, active, children }: { title: 
           <ViewMenu console={false} />
           <ThemeToggle />
         </header>
+        <motion.div
+          aria-hidden
+          className="vw-progress absolute inset-x-0 bottom-0 h-0.5 origin-left"
+          style={{ scaleX: scrollYProgress, opacity: progressOpacity }}
+        />
       </div>
-      <main className="mx-auto max-w-[calc(var(--spacing)*280)] px-6 pt-14 pb-16">
-        {eyebrow && (
-          <p className="eyebrow text-accent-ink">{eyebrow}</p>
-        )}
-        <h1 className="mt-2 text-clock font-bold tracking-tight">{title}</h1>
-        {intro && <div className="mt-3 max-w-[70ch] text-base text-ink-on-shell-muted">{intro}</div>}
+      <main className={cn(CONTAINER, 'relative pt-12 pb-20')}>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            {eyebrow && (
+              <p className="eyebrow inline-flex items-center gap-2 text-accent-ink">
+                <span aria-hidden className="vw-title-bar" />
+                {eyebrow}
+              </p>
+            )}
+            <h1 className="mt-2 text-clock font-bold tracking-tight">{title}</h1>
+            {intro && (
+              <div className="mt-3 max-w-[70ch] text-base text-ink-on-shell-muted">{intro}</div>
+            )}
+          </div>
+          {aside && <div className="flex shrink-0 flex-wrap items-center gap-2">{aside}</div>}
+        </div>
         {children}
       </main>
     </div>
