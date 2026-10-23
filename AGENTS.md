@@ -17,6 +17,7 @@ VIGHNAWAY (vighnaway.app) is an emergency-aware navigation prototype: a citizen 
 - Hours are targets, not promises: cut Stretch, then non-demo Should items; never cut engine correctness, the primary journey, the simulation or tests.
 
 ## Docs
+docs/ is kept on each developer's machine and is gitignored, so it is not in a fresh clone; ask the team for a copy. Tests that compare against docs/ skip when it is missing.
 docs/PRD.md, DESIGN.md, UX_FLOWS.md, ARCHITECTURE.md, CONTRACTS.md, DATA_MODEL.md, scoring.md, demo-script.md, TASKS.md, ROADMAP.md (prioritised feature backlog), IMPLEMENTATION_PLAN.md, DEPENDENCY_MAP.md, ROADMAP_STATUS.md (current progress), design/ (locked hero screenshots).
 
 ## Folder ownership

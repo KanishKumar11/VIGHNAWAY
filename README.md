@@ -1,125 +1,110 @@
-# VIGHNAWAY
+# Vighnaway
 
-Emergency-aware navigation prototype (hackathon). Ordinary navigation picks the fastest route;
-in a flood that route may be blocked. VIGHNAWAY evaluates candidate routes against reported
-hazards and the evidence behind them, recommends a viable alternative, explains why in one
-sentence, and reassesses when the evidence changes, while holding steady when it does not.
+*Vighna* (विघ्न) means obstacle. Vighnaway is our hackathon take on navigation during a flood.
 
-**Real roads, simulated conditions.** Every flood, closure and congestion in the demo is
-simulated and labelled as such everywhere.
+Every monsoon the Andheri Subway in Mumbai fills with water, and map apps keep sending cars into it
+because on paper it is still the quickest way across the railway. People standing next to it know
+it's flooded. A control room might know. The app you're following usually doesn't.
 
-| Surface | Folder | Stack |
+Vighnaway routes on that kind of evidence. One unconfirmed report slows a road down in the ranking
+but doesn't close it. Two phones reporting the same spot, or an operator confirming it, does. Every
+time the route changes, the app tells you why in one line: what was reported, by whom (roughly),
+how long ago, and how sure we are. And if a flood-prone road has had no reports at all during a
+rain alert, we don't take that as good news.
+
+The roads are real (an OpenStreetMap extract of Andheri). The floods, jams and closures in the demo
+are simulated, and the app labels them that way on every screen.
+
+## What's in here
+
+| Part | Folder | Built with |
 | --- | --- | --- |
-| Citizen app | `apps/mobile` | Expo SDK 58 custom dev build (never Expo Go), Google Maps via react-native-maps |
-| Control room, /report, /rules, /debug | `apps/console` | Next.js 15, Tailwind 4, @vis.gl/react-google-maps |
-| API | `apps/api` | NestJS 11, Drizzle, Postgres 16 + PostGIS 3.4, socket.io |
-| Route engine | `packages/engine` | Pure TypeScript, deterministic, runs in Hermes, browsers and Node |
-| Contracts | `packages/contracts` | Zod schemas, socket events, REST payloads |
-| Design tokens | `packages/tokens` | Colours, type, spacing, route/marker styles, map style |
-| Scenario data | `packages/scenario-data` | Andheri graph, places, simulated scenario |
+| Phone app | `apps/mobile` | Expo SDK 58 dev build, Google Maps |
+| Control room (plus `/report`, `/verify`, `/rules`, `/debug`) | `apps/console` | Next.js 15, Tailwind 4 |
+| API | `apps/api` | NestJS 11, Drizzle, Postgres 16 + PostGIS, socket.io |
+| Route engine | `packages/engine` | Plain TypeScript, no dependencies on a hosted router |
+| Shared types | `packages/contracts` | Zod |
+| Colours, type, spacing | `packages/tokens` | |
+| Andheri graph and the demo scenario | `packages/scenario-data` | |
 
-The server never sends routes: the phone and the console run the same engine on the same incident
-snapshot and reach the same recommendation independently. Start with [`AGENTS.md`](AGENTS.md) and
-[`docs/BUILD_PROMPT.md`](docs/BUILD_PROMPT.md); design in [`docs/`](docs).
+The server never sends anyone a route. It stores and broadcasts reports, and the phone and the
+control room each run the same engine on them. Same reports in, same route out, which is how you can
+check one against the other (there's a parity hash on both debug screens) or re-run an old decision
+from its receipt on `/verify`. No LLM or randomness is involved in picking a route.
 
-## Setup
+A few other things we got working along the way: a step-free walking profile, an opt-in "prefer
+well-lit roads" preference, spreading trips across nearby hospitals, sending a report by QR code
+when you have no signal, Hindi and Marathi, and a second map with real roads from Amritsar to
+Ambala.
 
-Requirements: Node 22, pnpm 10, Postgres 16 with PostGIS 3.4 (or Docker), Python 3.11+ only for
-the OSM extract, Android Studio / SDK for the mobile dev build.
+## Running it
+
+You need Node 22, pnpm 10 and Postgres 16 with PostGIS (Docker is fine). The phone app needs the
+Android SDK, and it runs as a custom dev build; Expo Go won't work.
 
 ```sh
 pnpm install
-pnpm build                                  # packages first (Turborepo), then apps
-cp .env.example ...                         # see "Environment" below
-docker compose -f infra/docker-compose.yml up -d db   # or a local Postgres with PostGIS
-pnpm --filter api db:migrate && pnpm --filter api db:seed
-pnpm preflight                              # env, DB/PostGIS, API health, CORS, SHA-1, token leaks
+pnpm build
+docker compose -f infra/docker-compose.yml up -d db     # or your own Postgres with PostGIS
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
+pnpm preflight                                           # checks env, database, CORS and keys
 ```
 
-## Run
+Copy `.env.example` (and the one in each app) and fill it in first. Then, in separate terminals:
 
 ```sh
-pnpm --filter api dev                       # http://localhost:4000 (needs OPERATOR_TOKEN, CORS_ORIGINS)
-pnpm --filter console dev                   # http://localhost:3000/console
-pnpm --filter mobile android                # builds and installs the dev client (expo run:android)
-pnpm --filter mobile start                  # Metro for the dev client
+pnpm --filter api dev          # http://localhost:4000
+pnpm --filter console dev      # http://localhost:3000/console
+pnpm --filter mobile android   # builds and installs the dev client
+pnpm --filter mobile start     # Metro
 ```
 
-Full stack in Docker: `OPERATOR_TOKEN=... docker compose -f infra/docker-compose.yml up -d`.
-Demo procedure: [`docs/demo-script.md`](docs/demo-script.md).
+Or the whole thing in Docker: `OPERATOR_TOKEN=... docker compose -f infra/docker-compose.yml up -d`.
 
-## Test
+To run the demo, open the control room, enter the operator token, press Reset, then Play. Start a
+trip on the phone at the same time. `pnpm --filter @vighnaway/scenario-data tune` replays the same
+scenario offline and prints every decision, which is handy for checking nothing changed.
+
+## Tests
 
 ```sh
-pnpm test        # all suites (API tests need Postgres+PostGIS; TEST_DATABASE_URL, name ending _test)
+pnpm test         # the API suite needs a Postgres test database (TEST_DATABASE_URL ending in _test)
 pnpm typecheck
 pnpm lint
-pnpm --filter @vighnaway/engine bench       # planTrip timings
-pnpm --filter @vighnaway/scenario-data tune # replays the scripted demo offline and prints decisions
-pnpm docs:scoring                           # regenerates docs/scoring.md from SCORING_RULES
-pnpm graph:fixture                          # regenerates the schematic fixture graph and scenario
+pnpm --filter @vighnaway/engine bench
 ```
 
-Mobile Maestro flow: `apps/mobile/maestro/primary-journey.yaml` (run on a device with Maestro).
+`pnpm smoke` drills the scripted demo against a running API. It resets the scenario, so don't run it
+in the middle of a demo.
 
-## Environment
+## Environment variables
 
-All domains, URLs and keys are environment variables; everything runs locally without owning
-vighnaway.app. Full list with comments: [`.env.example`](.env.example) and each app's
-`.env.example`.
+Nothing is hard-coded to our domain, so it all runs locally. The full commented list is in
+`.env.example`; these are the ones you'll actually touch:
 
-| Variable | Used by | Purpose |
+| Variable | Where | What for |
 | --- | --- | --- |
-| `DATABASE_URL` | API | Postgres connection |
-| `OPERATOR_TOKEN` | API (typed into the console at runtime) | Operator and simulation actions. Server-side only |
-| `CORS_ORIGINS` | API | Allowed console origins (HTTP and socket) |
-| `DEVICE_HASH_SALT` | API | Salt for hashing device ids and IPs |
-| `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_KEY`, `NEXT_PUBLIC_REPORT_URL` | Console | API URL, referrer-restricted browser key, QR target |
-| `EXPO_PUBLIC_API_URL` | Mobile | Default API URL (editable in Settings) |
-| `EXPO_PUBLIC_CONSOLE_URL` | Mobile | Public console address; shared routes then carry a decision-receipt link to its /verify page (optional) |
-| `GOOGLE_MAPS_ANDROID_KEY`, `GOOGLE_MAPS_IOS_KEY` | Mobile build | Native map keys (package + SHA-1 restricted) |
-| `USE_CLEARTEXT` | Mobile build | `1` when the demo API is plain HTTP on the LAN |
-| `API_BASE_URL`, `PUBLIC_SITE_URL`, `REPORT_URL` | preflight, deploy | Origins for checks, CORS and the QR code |
+| `DATABASE_URL` | API | Postgres |
+| `OPERATOR_TOKEN` | API | Operator and simulation actions. Keep it server-side |
+| `CORS_ORIGINS` | API | Which console origins may connect |
+| `DEVICE_HASH_SALT` | API | Hashing device ids |
+| `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_KEY`, `NEXT_PUBLIC_REPORT_URL` | Console | API address, a referrer-restricted maps key, the QR link |
+| `EXPO_PUBLIC_API_URL` | Phone | Default API address (can be changed in Settings) |
+| `GOOGLE_MAPS_ANDROID_KEY` | Phone build | Maps key restricted to the package and SHA-1 |
+| `USE_CLEARTEXT` | Phone build | Set to `1` if the API is plain HTTP on your LAN |
 
-## What is real, simulated and incomplete
+## Honest limits
 
-**Real:** the engine and its rules ([`docs/scoring.md`](docs/scoring.md)); the API's PostGIS
-snapping, corroboration, sequencing and live sync; the console and the mobile app code.
+- Two devices agreeing is a heuristic, not proof. One person with two phones can do it. That's why
+  "Corroborated" and "Verified" are separate, and only an operator can set Verified.
+- OpenStreetMap doesn't mark the Andheri Subway as flood-prone, so we set that by hand. A real
+  deployment would use the city's own list.
+- Speeds are typical monsoon values per road type, not live traffic. The TomTom adapter is written
+  but hasn't been tested against the real service.
+- The phone app has only had a partial run on a real device so far. Route-planning speed on a phone
+  isn't measured yet.
+- The Hindi and Marathi text still needs a native speaker to go over it.
 
-**Simulated:** every incident, the rain alert, the scripted operator verifications, the demo
-vehicle, and the road graph's positions (see below). Device corroboration is a prototype
-heuristic, not proof of independent witnesses.
-
-**Verified in the build environment** (no phone, no Google key, no access to OpenStreetMap):
-
-- 172 automated tests pass: engine 44, contracts 9, tokens 2, scenario-data 5, API 34 (against
-  PostGIS), console 48, mobile 30 (Jest with mocks). Build, typecheck and lint pass.
-- The scripted scenario gives the same decisions in the offline replay, in the API's end-to-end
-  test (identical plan hashes after reset), and in the console driven by Playwright against the
-  real API: subway → unchanged after one unverified report → Gokhale Bridge → Jogeshwari Road Over
-  Bridge → no viable route with HBT Trauma Care Hospital offered. Operator Verify reached the
-  console in 26 ms.
-- The mobile app bundles for Android with Metro (2,441 modules) and `expo prebuild` applies all
-  config plugins.
-
-**Not done or not verified** (details in [`docs/TASKS.md`](docs/TASKS.md) and
-[`docs/limitations.md`](docs/limitations.md)):
-
-- **Road graph:** `packages/scenario-data/andheri/graph.json` is a schematic fixture (real road
-  names, approximate positions) because OpenStreetMap was unreachable. Run
-  `scripts/extract_graph.py` with network access, review the overlay at the three crossings, then
-  re-tune the scenario.
-- **Phone:** nothing has run on a phone or emulator: no dev build, no APK, no section 8.7
-  checklist, no Maestro run, no Hermes timing (budget 200 ms; Node: ~1 ms fixture, ~50 ms on a
-  3,900-node grid), no phone/console parity hash comparison (console and Node agree:
-  `a95cdcf0c94c84fd`). Hero screens are built but not reviewed or locked.
-- **Google Maps:** untested on both surfaces (no key); the labelled schematic fallback was tested.
-- **Docker image** for the API: compose config validates and the PostGIS container runs; the API
-  image build was not completed in the sandbox (proxy certificate).
-- **Event times were retuned** (14:06, 14:08, 14:09:30, 14:11, 14:13) to fit the fixture geometry;
-  see the demo script.
-- The hackathon's official judging criteria were not provided; `docs/PRD.md` maps assumed ones.
-
-Attribution: road data from the OSM extract is © OpenStreetMap contributors; map tiles © Google.
-Confirm that overlaying OSM-derived routes on Google Maps fits both providers' terms before any
-public release.
+Road data © OpenStreetMap contributors. Map tiles © Google. Check both providers' terms before
+putting OSM-based routes on Google Maps anywhere public.
