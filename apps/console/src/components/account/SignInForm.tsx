@@ -13,6 +13,8 @@ import { cn } from '@/lib/cn';
 const FIELD =
   'min-h-14 w-full rounded-button border border-control-border/40 bg-panel-sunken px-4 text-base text-ink placeholder:text-ink-subtle transition-colors hover:border-control-border focus-visible:border-accent focus-visible:bg-panel';
 const LABEL = 'text-body font-semibold text-ink';
+/** The two small buttons under the code form: wrap and centre their text instead of clipping it. */
+const SECONDARY = 'min-h-14 whitespace-normal px-3 text-center text-body leading-snug tabular';
 const DEFAULT_EXPIRY_MIN = 10;
 
 /** Two steps, email then code: a numbered dot each, the current one filled with the accent. */
@@ -344,12 +346,19 @@ export function SignInForm({
         >
           {busy ? t.account.verifying : t.account.verify}
         </Button>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => void requestCode()} disabled={busy || wait > 0}>
+        {/* Both labels may wrap and stay centred, and the countdown uses tabular figures so it never shifts as it ticks. */}
+        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+          <Button
+            variant="outline"
+            className={SECONDARY}
+            onClick={() => void requestCode()}
+            disabled={busy || wait > 0}
+          >
             {wait > 0 ? t.account.resendIn(wait) : t.account.resend}
           </Button>
           <Button
             variant="outline"
+            className={SECONDARY}
             onClick={() => {
               setStep('email');
               setError(null);

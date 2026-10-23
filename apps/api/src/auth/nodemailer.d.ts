@@ -5,6 +5,7 @@ declare module 'nodemailer' {
     to: string;
     subject: string;
     text: string;
+    html?: string;
   }
   export interface Transporter {
     sendMail(options: SendMailOptions): Promise<unknown>;

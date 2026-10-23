@@ -23,6 +23,8 @@ import { LiveRoute } from '@/components/account/LiveRoute';
 import { SignInForm } from '@/components/account/SignInForm';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
 import { Wordmark } from '@/components/shared/BrandMark';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { ViewMenu } from '@/components/shared/ViewMenu';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
@@ -136,6 +138,11 @@ function SignInLayout({ children }: { children: ReactNode }) {
         </ul>
       </aside>
       <main className="relative flex items-start justify-center overflow-hidden px-6 py-6 sm:px-10 lg:min-h-0 lg:items-center lg:px-14 lg:py-[clamp(0.75rem,3.5vh,3rem)]">
+        {/* Language and theme, so the page can be read and seen the way the person wants before signing in. */}
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-5">
+          <ViewMenu console={false} compact />
+          <ThemeToggle />
+        </div>
         <svg aria-hidden className="pointer-events-none absolute inset-0 size-full">
           <pattern id="vw-dots" width={26} height={26} patternUnits="userSpaceOnUse">
             <circle cx={2} cy={2} r={1.6} className="fill-control-border" opacity={0.28} />
