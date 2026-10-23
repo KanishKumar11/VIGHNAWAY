@@ -1,6 +1,6 @@
 import { DISPLAY_NAME_MAX, EmailSchema, OTP_LENGTH, isStaffRole, type MyStatsResponse } from '@vighnaway/contracts';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { ActivityIndicator, Alert, Platform, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
@@ -403,6 +403,15 @@ export function AccountScreen() {
                     <AppText variant="label" tone="muted">
                       {t('accountCodeLabel')}
                     </AppText>
+                    <View style={styles.codeRow}>
+                      {Array.from({ length: OTP_LENGTH }, (_, i) => (
+                        <View
+                          key={i}
+                          style={[styles.digit, focus === 'code' && i === Math.min(code.length, OTP_LENGTH - 1) && styles.digitActive, i < code.length && styles.digitFilled]}
+                        >
+                          <AppText style={styles.digitText}>{code[i] ?? ''}</AppText>
+                        </View>
+                      ))}
                     <TextInput
                       ref={codeRef}
                       value={code}
@@ -412,8 +421,7 @@ export function AccountScreen() {
                       }}
                       onFocus={() => setFocus('code')}
                       onBlur={() => setFocus(null)}
-                      placeholder={t('accountCodePlaceholder')}
-                      placeholderTextColor={tc.inkMuted}
+                      caretHidden
                       keyboardType="number-pad"
                       inputMode="numeric"
                       maxLength={OTP_LENGTH}
@@ -422,10 +430,11 @@ export function AccountScreen() {
                       autoCorrect={false}
                       returnKeyType="done"
                       onSubmitEditing={() => void verify()}
-                      style={[...input('code'), styles.codeInput]}
+                      style={styles.codeInput}
                       accessibilityLabel={t('accountCodeLabel')}
                       testID="account-code"
                     />
+                    </View>
                   </View>
                   <Button
                     label={busy === 'verify' ? t('accountVerifying') : t('accountVerify')}
@@ -434,16 +443,36 @@ export function AccountScreen() {
                     disabled={offline || code.length !== OTP_LENGTH}
                     testID="account-verify"
                   />
-                  <View style={styles.buttons}>
-                    <Button
-                      label={wait.left > 0 ? t('accountResendIn', { seconds: wait.left }) : t('accountResend')}
-                      kind="secondary"
+                  <View style={styles.links}>
+                    <Pressable
                       onPress={() => void sendCode()}
                       disabled={!canResend}
-                      style={styles.flex}
+                      hitSlop={spacing.xs}
+                      accessibilityRole="button"
+                      accessibilityLabel={wait.left > 0 ? t('accountResendIn', { seconds: wait.left }) : t('accountResend')}
+                      accessibilityState={{ disabled: !canResend }}
+                      style={[styles.link, !canResend && styles.linkOff]}
                       testID="account-resend"
-                    />
-                    <Button label={t('accountChangeEmail')} kind="ghost" onPress={changeEmail} style={styles.flex} testID="account-change-email" />
+                    >
+                      <AppText variant="label" style={{ color: tc.accentInk, textDecorationLine: 'underline' }}>
+                        {wait.left > 0 ? t('accountResendIn', { seconds: wait.left }) : t('accountResend')}
+                      </AppText>
+                    </Pressable>
+                    <AppText variant="meta" tone="muted">
+                      ·
+                    </AppText>
+                    <Pressable
+                      onPress={changeEmail}
+                      hitSlop={spacing.xs}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('accountChangeEmail')}
+                      style={styles.link}
+                      testID="account-change-email"
+                    >
+                      <AppText variant="label" style={{ color: tc.accentInk, textDecorationLine: 'underline' }}>
+                        {t('accountChangeEmail')}
+                      </AppText>
+                    </Pressable>
                   </View>
                 </>
               )}
@@ -476,6 +505,14 @@ const useStyles = createStyles((tc) => ({
   avatarLetter: { fontFamily: fontFamily.bold, fontSize: 22, lineHeight: 28, color: tc.onAccent },
   field: { gap: spacing.xxs },
   buttons: { flexDirection: 'row', gap: spacing.xs },
+  codeRow: { flexDirection: 'row', gap: spacing.xs },
+  digit: { flex: 1, height: layout.minTouch + spacing.sm, borderRadius: radius.button, borderWidth: 1.5, borderColor: tc.inkMuted, backgroundColor: tc.panel, alignItems: 'center', justifyContent: 'center' },
+  digitFilled: { borderColor: tc.accentInk },
+  digitActive: { borderColor: tc.accentInk, borderWidth: 2 },
+  digitText: { ...text.mono, fontSize: 24, lineHeight: 30, color: tc.ink },
+  links: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: spacing.sm },
+  link: { minHeight: layout.minTouch, justifyContent: 'center', paddingHorizontal: spacing.xs },
+  linkOff: { opacity: 0.5 },
   input: {
     ...text.body,
     color: tc.ink,
@@ -488,7 +525,7 @@ const useStyles = createStyles((tc) => ({
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },
   inputFocused: { borderColor: tc.focus, borderWidth: 2 },
-  codeInput: { ...text.mono, fontSize: 26, letterSpacing: spacing.sm, textAlign: 'center', minHeight: layout.minTouch + spacing.sm },
+  codeInput: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.02, color: 'transparent' },
   notice: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.card },
   noticeWarn: { backgroundColor: tc.warnSurface },
   noticeBad: { backgroundColor: tc.dangerSurface },
