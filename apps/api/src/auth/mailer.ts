@@ -2,9 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { AppConfig, SmtpSettings } from '../config';
 import type { Mailer } from './auth.types';
 
-const subject = 'Your VIGHNAWAY sign-in code';
-const text = (code: string, ttlMinutes: number): string =>
-  `Your VIGHNAWAY code is ${code}.\n\nIt works once and expires in ${ttlMinutes} minutes. If you did not ask for it, ignore this email.\n`;
+import { renderOtpEmail } from './otpEmail';
 
 /** Local development: no mail server, so the code goes to the API log. Never used in production. */
 export class LogMailer implements Mailer {
@@ -43,8 +41,9 @@ export class SmtpMailer implements Mailer {
       typeof s === 'string'
         ? nodemailer.createTransport(s, SMTP_TIMEOUTS)
         : nodemailer.createTransport({ host: s.host, port: s.port, secure: s.secure, ...(s.user ? { auth: { user: s.user, pass: s.pass } } : null), ...SMTP_TIMEOUTS });
+    const { subject, html, text } = renderOtpEmail(code, ttlMinutes);
     try {
-      await transport.sendMail({ from: this.from, to, subject, text: text(code, ttlMinutes) });
+      await transport.sendMail({ from: this.from, to, subject, html, text });
     } finally {
       transport.close();
     }

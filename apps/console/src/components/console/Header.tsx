@@ -18,7 +18,7 @@ import { useOperatorAccess } from '@/lib/credential';
 import { AccountMenu, useSessionRole } from '@/components/account/AccountMenu';
 import { usePrefs } from '@/stores/prefs';
 import { SimulatedBadge } from '@/components/shared/EvidenceChips';
-import { BrandMark } from '@/components/shared/BrandMark';
+import { BrandMark, Wordmark } from '@/components/shared/BrandMark';
 import { RollingText } from '@/components/motion/RollingText';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { ViewMenu } from '@/components/shared/ViewMenu';
@@ -164,11 +164,9 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
     <header className="vw-header vw-chrome relative z-30 grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 px-5">
       <div className="flex min-w-0 items-center gap-4">
         <Link href="/console" className="flex shrink-0 items-center gap-2.5" aria-label={t.app.name}>
-          <BrandMark className="size-8 shrink-0" />
-          <span className="flex flex-col leading-tight max-[1439px]:hidden">
-            <span className="text-body font-bold tracking-wordmark text-ink-on-shell">{t.app.name}</span>
-            <span className="text-meta text-ink-on-shell-muted">{t.app.controlRoom}</span>
-          </span>
+          <BrandMark className="size-9 shrink-0 min-[1440px]:hidden" />
+          <Wordmark plate className="h-12 max-[1439px]:hidden" />
+          <span className="text-meta text-ink-on-shell-muted max-[1439px]:hidden">{t.app.controlRoom}</span>
         </Link>
         <BarDivider />
         {ready && (

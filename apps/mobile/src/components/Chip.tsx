@@ -34,7 +34,7 @@ export function Chip({ label, selected, onPress, icon: Icon, leading, onShell, l
     >
       {leading}
       {Icon ? <Icon size={large ? 22 : 16} color={fgColor} strokeWidth={2} /> : null}
-      <AppText variant={large ? 'body' : 'meta'} tone={fgTone} numberOfLines={2} style={styles.label}>
+      <AppText variant={large ? 'body' : 'meta'} control tone={fgTone} numberOfLines={2} style={styles.label}>
         {label}
       </AppText>
     </View>

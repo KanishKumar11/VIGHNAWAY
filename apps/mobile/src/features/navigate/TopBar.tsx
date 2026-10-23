@@ -7,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { ModeBadge } from '@/components/EvidenceChips';
 import { Accessibility, Bike, Car, ChevronDown, Clock, Footprints, MapIcon, Menu, Radio, Search, ServerOff, SlidersHorizontal, WifiOff, type LucideIcon } from '@/components/icons';
 import { easing, PressScale } from '@/components/motion';
-import { Segmented } from '@/components/Segmented';
+import { ExpandingSegmented } from '@/components/ExpandingSegmented';
 import { t, type StringKey } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
 import { connectionMode, useConnection } from '@/stores/connection';
@@ -66,11 +66,11 @@ function StatusButton({ pill, expanded, onToggle }: { pill: StatusPill; expanded
           <View style={[styles.liveDot, pill.kind !== 'live' && styles.liveDotIdle]} />
         </View>
       )}
-      <AppText variant="label" style={{ color: warn ? tc.warnInk : tc.inkOnShell }} numberOfLines={1}>
+      <AppText variant="label" control style={{ color: warn ? tc.warnInk : tc.inkOnShell }} numberOfLines={1}>
         {pill.short}
       </AppText>
       {pill.more ? (
-        <AppText variant="label" tone="onShellMuted">
+        <AppText variant="label" control tone="onShellMuted">
           {pill.more}
         </AppText>
       ) : null}
@@ -172,12 +172,12 @@ export function TopBar({
         >
           <View style={styles.destText}>
             <View style={styles.destHead}>
-              <AppText variant="label" tone="onShellMuted">
+              <AppText variant="label" control tone="onShellMuted">
                 {t('destinationEyebrow')}
               </AppText>
               <ModeBadge compact />
             </View>
-            <AppText variant="body" tone="onShell" numberOfLines={1} style={styles.destName}>
+            <AppText variant="body" control tone="onShell" numberOfLines={1} style={styles.destName}>
               {dest?.name ?? t('searchPlaceholder')}
             </AppText>
           </View>
@@ -186,14 +186,13 @@ export function TopBar({
           </View>
         </PressScale>
       </View>
-      <Segmented
-        variant="shell"
+      {/* Only the chosen way of travel shows its name; the others shrink to their icon so no label is cut off. */}
+      <ExpandingSegmented
         dense
         accessibilityLabel={t('profileGroupLabel')}
         value={profile}
         onChange={(p) => useSettings.getState().setProfile(p)}
         options={PROFILES.map((p) => ({ value: p, label: t(PROFILE_META[p].label), icon: PROFILE_META[p].icon, testID: `profile-${p}` }))}
-        style={shadow('md')}
       />
       <View
         style={styles.statusRow}

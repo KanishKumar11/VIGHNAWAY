@@ -78,7 +78,7 @@ export default function FirstRun() {
           </View>
           {!last ? (
             <PressScale testID="first-run-skip" accessibilityRole="button" accessibilityLabel={t('storySkip')} haptic={null} onPress={finish} style={styles.skip}>
-              <AppText variant="title" style={styles.skipText}>
+              <AppText variant="body" control style={styles.skipText}>
                 {t('storySkip')}
               </AppText>
             </PressScale>
@@ -138,7 +138,7 @@ export default function FirstRun() {
             style={[styles.cta, glow(identity.lime, 0.9)]}
           >
             <View style={styles.ctaRow}>
-              <AppText variant="title" style={styles.ctaText}>
+              <AppText variant="body" control style={styles.ctaText}>
                 {last ? t('firstRunContinue') : t('storyNext')}
               </AppText>
               <ArrowRight size={20} color={identity.onLime} strokeWidth={2.5} />

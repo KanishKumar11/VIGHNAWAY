@@ -173,11 +173,6 @@
   ::selection {
     background: var(--vw-teal-glow);
   }
-  /* Theme switches cross-fade surfaces instead of snapping. */
-  html.vw-theme-anim:not(.vw-theme-wave),
-  html.vw-theme-anim:not(.vw-theme-wave) * {
-    transition: background-color 240ms var(--vw-ease-out), border-color 240ms var(--vw-ease-out), color 240ms var(--vw-ease-out), fill 240ms var(--vw-ease-out), stroke 240ms var(--vw-ease-out) !important;
-  }
 }
 
 @utility tabular {
@@ -355,14 +350,6 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Theme switch: the new theme washes over the old one as a wave (see stores/theme.ts). */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; clip-path: var(--vw-wave, inset(0)); }
 .vw-header {
   background: color-mix(in srgb, var(--vw-shell-raised) 88%, transparent);
   backdrop-filter: blur(var(--vw-space-md)) saturate(1.4);

@@ -41,6 +41,7 @@ import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { useHospitals } from '@/stores/hospitals';
 import { hospitalStateNote } from './hospitalState';
+import { useSheetAnimation } from './sheetAnimation';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, shadowUp, spacing, text, useColors, withAlpha } from '@/theme';
 
 interface Props {
@@ -120,6 +121,7 @@ const entryOf = (p: OnlinePlace | RecentPlace): SearchEntry => ({ id: p.id, name
 export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function DestinationSheet({ onChosen, onDismiss }, ref) {
   const tc = useColors();
   const styles = useStyles();
+  const sheetAnimation = useSheetAnimation();
   const insets = useSafeAreaInsets();
   const scenario = useScenario((s) => s.scenario);
   const region = useScenario((s) => s.region);
@@ -486,6 +488,7 @@ export const DestinationSheet = forwardRef<BottomSheetModal, Props>(function Des
   return (
     <BottomSheetModal
       ref={ref}
+      animationConfigs={sheetAnimation}
       snapPoints={['92%']}
       enableDynamicSizing={false}
       enablePanDownToClose

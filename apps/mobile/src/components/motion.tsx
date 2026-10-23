@@ -99,6 +99,7 @@ export function RollingText({
   unitVariant = 'title',
   tone = 'ink',
   unitTone = 'muted',
+  control,
   testID,
   style,
 }: {
@@ -107,6 +108,8 @@ export function RollingText({
   unitVariant?: AppTextProps['variant'];
   tone?: AppTextProps['tone'];
   unitTone?: AppTextProps['tone'];
+  /** Keep the designed size whatever the phone's text size is (see AppText). */
+  control?: boolean;
   testID?: string;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -133,7 +136,7 @@ export function RollingText({
                   entering={reduce ? undefined : (up ? FadeInDown : FadeInUp).duration(motion.statusUpgrade + 70).easing(easing)}
                   exiting={reduce ? undefined : (up ? FadeOutUp : FadeOutDown).duration(motion.statusUpgrade)}
                 >
-                  <AppText variant={variant} tone={tone}>
+                  <AppText variant={variant} tone={tone} control={control}>
                     {ch}
                   </AppText>
                 </Animated.View>
@@ -141,7 +144,7 @@ export function RollingText({
             );
           })
         ) : (
-          <AppText key={`u${ri}`} variant={unitVariant} tone={unitTone} style={styles.unit}>
+          <AppText key={`u${ri}`} variant={unitVariant} tone={unitTone} control={control} style={styles.unit}>
             {run.text}
           </AppText>
         ),

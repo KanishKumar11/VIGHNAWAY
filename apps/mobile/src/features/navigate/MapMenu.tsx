@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, Switch, useWindowDimensions, View } from 'react-native';
-import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Flag, List, LocateFixed, MapIcon, Settings } from '@/components/icons';
-import { easing } from '@/components/motion';
 import { Card, GUTTER, Row } from '@/components/ui';
 import { t } from '@/i18n/en';
 import { useReduceMotion } from '@/lib/motion';
@@ -46,7 +45,7 @@ export function MapMenu({
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityElementsHidden importantForAccessibility="no" testID="map-menu-backdrop" />
       <Animated.View
-        entering={reduce ? undefined : FadeInUp.duration(motion.banner).easing(easing)}
+        entering={reduce ? undefined : FadeIn.duration(motion.buttonPress + 40)}
         exiting={reduce ? undefined : FadeOut.duration(motion.buttonPress * 2)}
         style={[styles.panel, { top, right: insets.right + GUTTER, width: Math.min(MENU_MAX_W, width - insets.left - insets.right - GUTTER * 2) }]}
         accessibilityViewIsModal

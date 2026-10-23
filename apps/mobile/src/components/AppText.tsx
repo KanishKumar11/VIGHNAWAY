@@ -57,7 +57,16 @@ export function toneColor(tc: ThemeColors, _name: ThemeName, tone: TextTone): st
 export interface AppTextProps extends TextProps {
   variant?: TextVariant;
   tone?: TextTone;
+  /**
+   * Labels inside buttons, chips, pills and bars: they keep their designed size however large the phone's
+   * text size is, so a control never swells to cover the map. The in-app "Larger text" still applies.
+   */
+  control?: boolean;
 }
+
+/** The most the phone's text size may enlarge ordinary text, and the most it and "Larger text" may reach together. */
+const SYSTEM_CAP = 1.2;
+const TOTAL_CAP = 1.35;
 
 const DEVANAGARI = /[\u0900-\u097F]/;
 
@@ -66,19 +75,23 @@ const DEVANAGARI = /[\u0900-\u097F]/;
  * size, plus the in-app "Larger text" setting; Hindi and Marathi swap Manrope for Noto Sans
  * Devanagari at the same weight.
  */
-export function AppText({ variant = 'body', tone = 'ink', style, ...rest }: AppTextProps) {
+export function AppText({ variant = 'body', tone = 'ink', style, control, maxFontSizeMultiplier, ...props }: AppTextProps) {
+  const rest = props;
   const { colors, name } = useTheme();
   const larger = useSettings((s) => s.largerText);
   // Read on every render; the navigator remounts on a language change. A Devanagari string in the
   // English UI (the language names in Settings) gets the Devanagari face too.
   const devanagari = getLanguage() !== 'en' || (typeof rest.children === 'string' && DEVANAGARI.test(rest.children));
   const base: TextStyle = text[variant];
-  if (!larger && !devanagari) return <Text {...rest} style={[base, { color: toneColor(colors, name, tone) }, style]} />;
+  // "Larger text" multiplies the size itself, so the phone's own scaling gets less room, never stacking past TOTAL_CAP.
+  const cap = control ? 1 : Math.min(maxFontSizeMultiplier ?? SYSTEM_CAP, larger ? TOTAL_CAP / LARGER_TEXT : SYSTEM_CAP);
+  if (!larger && !devanagari) return <Text {...rest} maxFontSizeMultiplier={cap} style={[base, { color: toneColor(colors, name, tone) }, style]} />;
   const flat = StyleSheet.flatten([base, { color: toneColor(colors, name, tone) }, style]) as TextStyle;
   const k = larger ? LARGER_TEXT : 1;
   return (
     <Text
       {...rest}
+      maxFontSizeMultiplier={cap}
       style={{
         ...flat,
         fontFamily: devanagari ? devanagariFamily(flat.fontFamily) : flat.fontFamily,

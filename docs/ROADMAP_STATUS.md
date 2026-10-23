@@ -168,6 +168,7 @@ See docs/limitations.md. The main ones:
 - schematic road fixture;
 - place search covers the roads and places inside the bundled Andheri map and the cities, towns and villages along the Amritsar to Ambala corridor (no street numbers, no landmarks other than the scenario places; no hosted geocoder);
 - the Amritsar to Ambala map is roads only (motorway, trunk, primary, secondary, plus tertiary and unclassified streets around each city and town, from OpenStreetMap): real distances, but no incidents, alerts, simulation or live feed, and ETAs use typical speeds per road class, not live traffic. A start or end more than 15 km from a mapped road is refused, and a trip cannot cross between the two maps;
+- campus and local roads on the corridor map come from OpenStreetMap at the moment a trip is chosen, so they need a connection; offline the trip plans from the nearest mapped road as before. Their speed is a slow typical pace (car and two-wheeler 20 km/h, walking 4.5 km/h), not a measurement. Roundabouts are not given their own instruction (the turns around them are), and the voice is not tested on a device in all three languages;
 - bridges, tunnels and flyovers are not extracted for the corridor, so its route strip shows none;
 - no device run;
 - translations not reviewed by native speakers;
