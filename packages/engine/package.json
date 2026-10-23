@@ -21,7 +21,7 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "build": "node init && tsup src/index.ts --format esm,cjs --dts --clean",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "bench": "tsx --conditions=@vighnaway/source scripts/bench.ts",

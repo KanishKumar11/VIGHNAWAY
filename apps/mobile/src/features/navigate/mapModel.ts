@@ -20,6 +20,8 @@ export interface MapLine {
   width?: number;
   opacity?: number;
   zIndex: number;
+  /** A fixed dash pattern (the local road to the network), drawn as one plain line. */
+  dash?: readonly number[];
   casing: boolean;
   /**
    * Drawn fraction from the origin (launch reveal, route-change reveal). The Google layer slices

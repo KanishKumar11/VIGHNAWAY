@@ -1,6 +1,6 @@
 import { forwardRef, Fragment, memo, useEffect, useMemo, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type EdgePadding, type MapStyleElement, type Region } from 'react-native-maps';
+import MapView, { Circle, Marker, Polyline, PROVIDER_GOOGLE, type EdgePadding, type MapStyleElement, type Region } from 'react-native-maps';
 import type { Incident } from '@vighnaway/contracts';
 import { AppText } from '@/components/AppText';
 import { Hospital, MapPin as PinIcon, Navigation, X } from '@/components/icons';
@@ -29,6 +29,8 @@ interface Props {
   /** The phone's own position (Google's location dot with its accuracy circle); display only. */
   showsUserLocation?: boolean;
   onUserLocation?: (p: { lat: number; lng: number; accuracyM: number | null }) => void;
+  /** Where the phone is: one arrow (a dot while it stands still) and its accuracy circle, drawn instead of Google's dot. */
+  me?: { coordinate: { latitude: number; longitude: number }; headingDeg: number | null; accuracyM: number | null } | null;
   onReady: () => void;
   onIncidentPress: (incident: Incident) => void;
   onMapPress: () => void;
@@ -108,6 +110,39 @@ const RouteBubble = memo(function RouteBubble({ label, onPress }: { label: MapRo
   );
 });
 
+/** lucide's Navigation arrow points north-east; turned back a quarter so 0 degrees is north. */
+const ARROW_FIX = { transform: [{ rotate: '-45deg' }] } as const;
+
+/**
+ * The phone's own marker. One arrow head pointing the way the phone travels (GPS course, once per
+ * second); standing still it is a plain dot, because a direction is not known then. A flat marker, so
+ * it turns with the map. Display only.
+ */
+const MyLocation = memo(function MyLocation({ me }: { me: NonNullable<Props['me']> }) {
+  const tc = useColors();
+  const styles = useStyles();
+  const moving = me.headingDeg !== null;
+  const tracks = useTracksViewChanges(moving ? 'arrow' : 'dot');
+  return (
+    <>
+      {me.accuracyM !== null && me.accuracyM > 8 ? (
+        <Circle center={me.coordinate} radius={Math.min(me.accuracyM, 120)} fillColor={withOpacity(tc.routeRecommended, 0.12)} strokeColor={withOpacity(tc.routeRecommended, 0.3)} strokeWidth={1} zIndex={zIndex.vehicle - 1} />
+      ) : null}
+      <Marker coordinate={me.coordinate} anchor={{ x: 0.5, y: 0.5 }} flat rotation={me.headingDeg ?? 0} zIndex={zIndex.vehicle + 1} tracksViewChanges={tracks} tappable={false}>
+        {moving ? (
+          <View style={styles.meArrow}>
+            <Navigation size={22} color={tc.routeRecommendedCasing} fill={tc.routeRecommended} strokeWidth={1.5} style={ARROW_FIX} />
+          </View>
+        ) : (
+          <View style={styles.meDotRing}>
+            <View style={styles.meDot} />
+          </View>
+        )}
+      </Marker>
+    </>
+  );
+});
+
 const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
   useLanguage();
   const tc = useColors();
@@ -124,7 +159,7 @@ const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
         tracksViewChanges={tracks}
       >
         <View style={styles.vehicle}>
-          <Navigation size={18} color={tc.ink} fill={tc.routeRecommended} strokeWidth={2} />
+          <Navigation size={18} color={tc.ink} fill={tc.routeRecommended} strokeWidth={2} style={ARROW_FIX} />
         </View>
       </Marker>
     );
@@ -161,7 +196,8 @@ const Pin = memo(function Pin({ pin }: { pin: MapPin }) {
 function LineView({ line, onSelect }: { line: MapLine; onSelect?: (routeId: string) => void }) {
   const tc = useColors();
   const s = lineStyle(tc, line.style);
-  const dash = s.dash && Platform.OS === 'android' ? [...s.dash] : undefined;
+  const dashSrc = line.dash ?? s.dash;
+  const dash = dashSrc && Platform.OS === 'android' ? [...dashSrc] : undefined;
   const runs = useMemo(
     () => (line.reveal < 1 || !line.flow ? [sliceCoords(line.coords, line.reveal)] : line.flow.runs),
     [line.coords, line.reveal, line.flow],
@@ -266,6 +302,7 @@ export const GoogleMapLayer = forwardRef<MapView, Props>(function GoogleMapLayer
         <IncidentMarker key={m.incident.id} item={m} showAge={props.markers.length <= AGE_LABELS_MAX} onPress={props.onIncidentPress} />
       ))}
       {props.vehiclePin ? <Pin pin={props.vehiclePin} /> : null}
+      {props.me ? <MyLocation me={props.me} /> : null}
     </MapView>
   );
 });
@@ -316,6 +353,9 @@ const useStyles = createStyles((tc) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  meArrow: { width: spacing.xl, height: spacing.xl, alignItems: 'center', justifyContent: 'center' },
+  meDotRing: { width: spacing.lg, height: spacing.lg, borderRadius: spacing.sm, backgroundColor: tc.routeRecommendedCasing, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: tc.panelLine },
+  meDot: { width: spacing.md, height: spacing.md, borderRadius: spacing.sm, backgroundColor: tc.routeRecommended },
   originInner: { width: spacing.sm, height: spacing.sm, borderRadius: spacing.xs, backgroundColor: tc.routeRecommended },
   destination: {
     width: marker.size - spacing.xxs,

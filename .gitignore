@@ -11,6 +11,7 @@ coverage/
 .expo/
 android/
 ios/
+temp_auto_push.bat
 *.apk
 *.aab
 *.keystore
@@ -24,3 +25,5 @@ next-env.d.ts
 
 # Recorded demo videos are large: keep them out of git (see docs/demo/README.md)
 docs/demo/*.webm
+.gitignore
+branch_structure.json
