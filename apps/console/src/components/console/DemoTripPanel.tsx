@@ -95,11 +95,11 @@ function Evidence({ items, nowS }: { items: Incident[]; nowS: number }) {
         <li key={inc.id} className="flex items-start gap-3">
           <span
             className={cn(
-              'flex size-8 shrink-0 items-center justify-center rounded-button',
-              inc.status === 'verified' ? 'bg-danger text-white' : inc.status === 'resolved' || inc.status === 'dismissed' ? 'bg-panel-sunken text-resolved' : 'bg-warn-surface text-warn-ink',
+              'flex size-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-2',
+              inc.status === 'verified' ? 'ring-danger' : inc.status === 'resolved' || inc.status === 'dismissed' ? 'ring-resolved' : 'ring-warn',
             )}
           >
-            <IncidentGlyph type={inc.type} className="size-4.5" />
+            <IncidentGlyph type={inc.type} className="size-6" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-body font-semibold text-ink-on-shell">

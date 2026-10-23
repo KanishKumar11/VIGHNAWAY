@@ -219,6 +219,8 @@ export interface SchematicMapProps {
   /** Report page: tap to place the pin. */
   onPick?: (p: LatLng) => void;
   pick?: LatLng | null;
+  /** Numbered points (Close a road): every point tapped so far, in order. */
+  marks?: readonly LatLng[];
   /** Show "Map unavailable" (no key or Google failed). */
   unavailable?: boolean;
   compact?: boolean;
@@ -249,6 +251,7 @@ export function SchematicMap({
   onSelectIncident,
   onPick,
   pick = null,
+  marks = [],
   unavailable = true,
   compact = false,
   className,
@@ -460,6 +463,11 @@ export function SchematicMap({
               <VehicleMarker headingDeg={scene.vehicle.headingDeg} />
             </At>
           )}
+          {marks.map((m, i) => (
+            <At key={`mark-${i}`} proj={proj} point={m} z={12}>
+              <span className="grid size-7 place-items-center rounded-full border-2 border-shell bg-danger text-meta font-bold text-on-accent shadow-md" data-testid="map-mark">{i + 1}</span>
+            </At>
+          ))}
           {pick && (
             <At proj={proj} point={pick} anchor="bottom" z={11}>
               <motion.span className="block" initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', ...motionTokens.springSnappy }}>

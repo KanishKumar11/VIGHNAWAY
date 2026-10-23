@@ -1,6 +1,6 @@
 'use client';
 
-import type { Incident, IncidentStatus } from '@vighnaway/contracts';
+import type { Incident, IncidentReporter, IncidentStatus } from '@vighnaway/contracts';
 import { Clock, FlaskConical, Radio, Split, UserRound } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { t } from '@/i18n';
@@ -89,8 +89,11 @@ export function SimulatedBadge({ onShell = false, className }: { onShell?: boole
 }
 
 /** Source, status and age travel with every incident. */
-export function EvidenceChips({ incident, nowS }: { incident: Incident; nowS: number }) {
+export function EvidenceChips({ incident, nowS, reporters }: { incident: Incident; nowS: number; reporters?: readonly IncidentReporter[] }) {
   const f = incidentFacts(incident, nowS);
+  // A signed-in reporter is named (staff only: the list is empty for anyone else); the source is still a user report.
+  const first = reporters?.[0];
+  const source = incident.source === 'user_report' && first ? t.evidence.reportedBy(first.name?.trim() || first.email, reporters!.length - 1) : f.source;
   const SourceIcon = incident.source === 'live_feed' ? Radio : UserRound;
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -100,7 +103,7 @@ export function EvidenceChips({ incident, nowS }: { incident: Incident; nowS: nu
       ) : (
         <span className="inline-flex items-center gap-1.5 text-meta font-medium text-ink-on-shell">
           <SourceIcon aria-hidden className="size-3.5 text-ink-on-shell-muted" />
-          {f.source}
+          {source}
         </span>
       )}
       <span className="inline-flex items-center gap-1.5 text-meta font-medium text-ink-on-shell-muted tabular">

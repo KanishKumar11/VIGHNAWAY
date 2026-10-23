@@ -17,6 +17,7 @@ import {
   FeedStatusSchema,
   HistoryResponseSchema,
   HospitalStatesResponseSchema,
+  IncidentReportersResponseSchema,
   OffMapReportsResponseSchema,
   ScenarioListResponseSchema,
   ScenarioResponseSchema,
@@ -37,6 +38,7 @@ import {
   type FeedStatus,
   type HistoryResponse,
   type HospitalStatesResponse,
+  type IncidentReportersResponse,
   type OffMapReportsResponse,
   type HospitalStateValue,
   type HealthResponse,
@@ -229,6 +231,8 @@ export const api = {
   photoBlob: (id: string, reportId: string, token: string, o?: RequestOptions): Promise<Blob> =>
     requestBlob(API_PATHS.reportPhoto(id, reportId), { ...o, token }),
   /** Operator: live-mode reports saved off-map (no mapped road there), for triage. */
+  incidentReporters: (id: string, token: string, o?: RequestOptions): Promise<IncidentReportersResponse> =>
+    request(API_PATHS.incidentReporters(id), IncidentReportersResponseSchema, { ...o, token }),
   offmapReports: (id: string, token: string, o?: RequestOptions): Promise<OffMapReportsResponse> =>
     request(API_PATHS.offmapReports(id), OffMapReportsResponseSchema, { ...o, token }),
   sim: (id: string, o?: RequestOptions): Promise<SimResponse> => request(API_PATHS.sim(id), SimResponseSchema, o),

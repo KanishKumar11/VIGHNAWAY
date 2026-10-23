@@ -57,13 +57,15 @@ function TickGlyph({ tick, passed }: { tick: TimelineTick; passed: boolean }) {
     <span
       className={cn(
         'flex size-7 items-center justify-center rounded-chip border shadow-sm transition-colors duration-300',
-        passed
-          ? 'border-brand-from/30 bg-brand-from/10 text-brand-from'
-          : 'border-shell-line bg-shell-raised text-ink-on-shell-muted',
+        tick.kind === 'report' && tick.type && tick.type !== 'road_clear'
+          ? cn('bg-white', passed ? 'border-brand-from/60' : 'border-shell-line')
+          : passed
+            ? 'border-brand-from/30 bg-brand-from/10 text-brand-from'
+            : 'border-shell-line bg-shell-raised text-ink-on-shell-muted',
       )}
     >
       {tick.kind === 'report' && tick.type && tick.type !== 'road_clear' ? (
-        <IncidentGlyph type={tick.type} className="size-3.5" />
+        <IncidentGlyph type={tick.type} className="size-5" />
       ) : (
         <ShieldCheck aria-hidden className="size-3.5" />
       )}

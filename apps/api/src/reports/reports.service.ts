@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
-import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, sql, type SQL } from 'drizzle-orm';
 import {
   OBSERVED_AT_MAX_AGE_S,
   OFFMAP_REPORTS_LIMIT,
+  type IncidentReportersResponse,
   type OffMapReportsResponse,
   type CongestionLevel,
   type Depth,
@@ -20,7 +21,7 @@ import { saltedHash } from '../common/hash';
 import { plainText } from '../common/validation';
 import type { Db, Tx } from '../db/client';
 import { DB } from '../db/db.module';
-import { incidentReports, offmapReports } from '../db/schema';
+import { incidentReports, offmapReports, users } from '../db/schema';
 import { type IncidentChange, type IncidentDraft, IncidentsService, toIncident } from '../incidents/incidents.service';
 import { ScenariosService } from '../scenarios/scenarios.service';
 import { SimClockService } from '../scenarios/sim-clock.service';
@@ -295,6 +296,26 @@ export class ReportsService {
     });
     this.incidents.publish(changes);
     return response;
+  }
+
+  /**
+   * Operator: the signed-in people behind each incident's reports (name and email), oldest first. Anonymous reports
+   * have none. Staff only (the controller guards it); the public incident feed never carries this.
+   */
+  async listReporters(scenarioId: string): Promise<IncidentReportersResponse> {
+    const rows = await this.db
+      .select({ incidentId: incidentReports.incidentId, name: users.displayName, email: users.email, at: sql<number>`min(${incidentReports.receivedAtS})` })
+      .from(incidentReports)
+      .innerJoin(users, eq(users.id, incidentReports.userId))
+      .where(and(eq(incidentReports.scenarioId, scenarioId), isNotNull(incidentReports.incidentId), isNotNull(incidentReports.userId)))
+      .groupBy(incidentReports.incidentId, users.id, users.displayName, users.email)
+      .orderBy(asc(sql`min(${incidentReports.receivedAtS})`), asc(users.email));
+    const reporters: IncidentReportersResponse['reporters'] = {};
+    for (const r of rows) {
+      if (r.incidentId === null) continue;
+      (reporters[r.incidentId] ??= []).push({ name: r.name, email: r.email });
+    }
+    return { scenarioId, reporters };
   }
 
   /** Newest live-mode off-map reports (operator triage). No device or reporter identity leaves the server. */

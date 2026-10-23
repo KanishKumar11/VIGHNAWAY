@@ -52,17 +52,14 @@ export function RouteStrip({ route, compact = false }: { route: RouteEvaluation;
             key={h.incidentId}
             className={cn(
               'absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-chip border-2 shadow-sm',
-              compact ? 'size-6' : 'size-7',
-              h.effect === 'block'
-                ? 'border-danger bg-danger text-white'
-                : h.status === 'corroborated'
-                  ? 'border-corroborated bg-corroborated-surface text-corroborated-ink'
-                  : 'border-warn bg-warn-surface text-warn-ink',
+              compact ? 'size-7' : 'size-8',
+              'bg-white',
+              h.effect === 'block' ? 'border-danger' : h.status === 'corroborated' ? 'border-corroborated' : 'border-warn',
               h.status === 'unverified' && 'border-dashed',
             )}
             style={{ left: pct(h.positionM, total) }}
           >
-            <IncidentGlyph type={h.type} className={compact ? 'size-3.5' : 'size-4'} />
+            <IncidentGlyph type={h.type} className={compact ? 'size-4' : 'size-5'} />
           </span>
         ))}
       </div>

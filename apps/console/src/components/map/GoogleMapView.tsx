@@ -144,6 +144,8 @@ export interface GoogleMapViewProps {
   onSelectIncident?: (id: string) => void;
   onPick?: (p: LatLng) => void;
   pick?: LatLng | null;
+  /** Numbered points (Close a road): every point tapped so far, in order. */
+  marks?: readonly LatLng[];
   onFail: () => void;
   compact?: boolean;
   /** Space taken by floating panels: the camera fits the trip in the rest. */
@@ -216,6 +218,7 @@ export function GoogleMapView({
   onSelectIncident,
   onPick,
   pick = null,
+  marks = [],
   onFail,
   compact = false,
   insets,
@@ -276,6 +279,11 @@ export function GoogleMapView({
             <VehicleMarker headingDeg={scene.vehicle.headingDeg} />
           </HtmlOverlay>
         )}
+        {marks.map((m, i) => (
+          <HtmlOverlay key={`mark-${i}`} position={m} zIndex={12}>
+            <span className="grid size-7 place-items-center rounded-full border-2 border-shell bg-danger text-meta font-bold text-on-accent shadow-md" data-testid="map-mark">{i + 1}</span>
+          </HtmlOverlay>
+        ))}
         {pick && (
           <HtmlOverlay position={pick} zIndex={11} anchor="bottom">
             <MapPin aria-hidden className="size-10 fill-route-recommended text-shell" strokeWidth={1.5} />

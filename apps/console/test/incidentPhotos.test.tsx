@@ -155,6 +155,6 @@ describe('photos in the incident queue', () => {
     });
     expect(spy).not.toHaveBeenCalled();
     expect(screen.queryByRole('group', { name: 'Photos from reports' })).toBeNull();
-    expect(document.querySelector('img')).toBeNull();
+    expect(document.querySelector('img[src^="blob:"]')).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { type OffMapReportsResponse, ReportInputSchema, ReportPhotoInputSchema, type ReportPhotoResponse, type ReportResponse } from '@vighnaway/contracts';
+import { type IncidentReportersResponse, type OffMapReportsResponse, ReportInputSchema, ReportPhotoInputSchema, type ReportPhotoResponse, type ReportResponse } from '@vighnaway/contracts';
 import type { Request } from 'express';
 import { type AuthedRequest, optionalAuth } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
@@ -30,6 +30,15 @@ export class ReportsController {
     // Signing in is optional: an anonymous report, or a stale or unknown token, is still accepted.
     const who = await optionalAuth(this.auth, req as AuthedRequest);
     return this.reports.submit(id, input, { source: 'user_report', ip: req.ip ?? null, userId: who?.user.id ?? null });
+  }
+
+  /** Operator: who reported each incident (signed-in reporters only). Staff only: names are never in the public feed. */
+  @Get('incident-reporters')
+  @UseGuards(OperatorGuard)
+  async reporters(@Param('id') rawId: string): Promise<IncidentReportersResponse> {
+    const id = parseIdOr404(rawId, 'scenario');
+    await this.scenarios.requireRow(id);
+    return this.reports.listReporters(id);
   }
 
   /** Operator: live-mode reports saved off-map (no mapped road nearby), newest first. Triage only. */

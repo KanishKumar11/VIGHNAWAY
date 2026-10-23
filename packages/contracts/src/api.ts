@@ -25,6 +25,7 @@ export const API_PATHS = {
   clearAudience: (id: string) => `/scenarios/${encodeURIComponent(id)}/audience/clear`,
   closures: (id: string) => `/scenarios/${encodeURIComponent(id)}/closures`,
   offmapReports: (id: string) => `/scenarios/${encodeURIComponent(id)}/offmap-reports`,
+  incidentReporters: (id: string) => `/scenarios/${encodeURIComponent(id)}/incident-reporters`,
   alertFeed: (id: string) => `/scenarios/${encodeURIComponent(id)}/alerts`,
   hospitals: (id: string) => `/scenarios/${encodeURIComponent(id)}/hospitals`,
   hospital: (id: string, placeId: string) => `/scenarios/${encodeURIComponent(id)}/hospitals/${encodeURIComponent(placeId)}`,

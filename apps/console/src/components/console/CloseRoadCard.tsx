@@ -3,8 +3,8 @@
 import type { ClosureResponse, LatLng } from '@vighnaway/contracts';
 import { CLOSURE_MAX_POINTS } from '@vighnaway/contracts';
 import { colors, routeStyles, zIndex } from '@vighnaway/tokens';
-import { Ban, Undo2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Ban, RotateCcw, Undo2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapPanel } from '@/components/map/MapPanel';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -30,10 +30,14 @@ const line = (key: string, coords: [number, number][], width: number, dash: read
   fade: false,
 });
 
+/** Pause after a tap before asking the server which road the line follows, so a run of taps makes one request. */
+const PREVIEW_DELAY_MS = 350;
+
 /**
- * Operator tool (P2-6): "Close a road". Tap along the road on the map; the console asks the server which road
- * segments the line follows (a preview, nothing created), and a second step confirms one Verified closure with
- * the source "Control room". The route engine then treats it like any other Verified closure.
+ * Operator tool (P2-6): "Close a road". Tap two or more points along the road; every point is shown numbered. Once
+ * there are two, the console asks the server which road segments the line follows (a preview, nothing created) and
+ * draws them in red. "Close these roads" then confirms one Verified closure with the source "Control room". The
+ * route engine treats it like any other Verified closure.
  */
 export function CloseRoadCard() {
   const access = useOperatorAccess();
@@ -42,7 +46,23 @@ export function CloseRoadCard() {
   const [points, setPoints] = useState<LatLng[]>([]);
   const [preview, setPreview] = useState<ClosureResponse['preview'] | null>(null);
   const [note, setNote] = useState('');
-  const mutation = useCloseRoad();
+  // Two calls: the preview (nothing created) runs by itself as points are added; the confirm creates the closure.
+  const previewCall = useCloseRoad();
+  const confirmCall = useCloseRoad();
+  const previewMutate = previewCall.mutate;
+  const previewReset = previewCall.reset;
+
+  const pointsKey = points.map((p) => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`).join(';');
+  useEffect(() => {
+    setPreview(null);
+    previewReset();
+    if (points.length < 2) return;
+    const polyline = points;
+    const id = setTimeout(() => previewMutate({ polyline, confirm: false }, { onSuccess: (r) => setPreview(r.preview) }), PREVIEW_DELAY_MS);
+    return () => clearTimeout(id);
+    // pointsKey stands for `points` (a new array on every tap).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointsKey, previewMutate, previewReset]);
 
   const scene = useMemo(() => {
     const base = buildScene(tripEnv(scenarioId), GRAPH_FILE, null, { phase: 'idle', flashOn: false, change: null });
@@ -64,9 +84,18 @@ export function CloseRoadCard() {
     setPoints([]);
     setPreview(null);
     setNote('');
-    mutation.reset();
+    previewCall.reset();
+    confirmCall.reset();
   };
-  const body = { polyline: points, confirm: false, ...(note.trim() ? { note: note.trim() } : {}) };
+  const error = confirmCall.error ?? previewCall.error;
+  const step =
+    points.length < 2
+      ? t.closeRoad.tapMore(points.length)
+      : preview
+        ? t.closeRoad.points(points.length)
+        : previewCall.error
+          ? t.closeRoad.needTwo
+          : t.closeRoad.finding;
 
   return (
     <>
@@ -90,16 +119,15 @@ export function CloseRoadCard() {
             <MapPanel
               scene={scene}
               compact
-              pick={points[points.length - 1] ?? null}
+              marks={points}
               onPick={(p) => {
                 if (points.length >= CLOSURE_MAX_POINTS) return;
-                setPreview(null);
                 setPoints((cur) => [...cur, p]);
               }}
             />
           </div>
-          <p className="mt-2 text-meta text-ink-muted" aria-live="polite">
-            {points.length < 2 ? t.closeRoad.tapMore(points.length) : t.closeRoad.points(points.length)}
+          <p className="mt-3 text-body font-semibold text-ink" aria-live="polite" data-testid="close-road-step">
+            {step}
           </p>
           {preview && (
             <div role="status" className="mt-2 rounded-card border border-warn bg-warn-surface px-4 py-3 text-body text-warn-ink" data-testid="close-road-preview">
@@ -107,9 +135,9 @@ export function CloseRoadCard() {
               <p className="mt-1">{t.closeRoad.consequence}</p>
             </div>
           )}
-          {mutation.error && (
+          {error && (
             <p role="alert" className="mt-2 text-body font-semibold text-danger-ink">
-              {errorMessage(mutation.error)}
+              {errorMessage(error)}
             </p>
           )}
           <label className="mt-3 flex flex-col gap-1">
@@ -122,37 +150,34 @@ export function CloseRoadCard() {
             />
           </label>
           <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-            <Button variant="outline" disabled={points.length === 0} onClick={() => (setPoints((p) => p.slice(0, -1)), setPreview(null))}>
+            <Button variant="outline" disabled={points.length === 0 || confirmCall.isPending} onClick={() => setPoints((p) => p.slice(0, -1))} data-testid="close-road-undo">
               <Undo2 aria-hidden className="size-5" />
               {t.closeRoad.undo}
             </Button>
-            {!preview ? (
-              <Button
-                disabled={points.length < 2 || mutation.isPending}
-                onClick={() => mutation.mutate(body, { onSuccess: (r) => setPreview(r.preview) })}
-                data-testid="close-road-preview-btn"
-              >
-                {t.closeRoad.preview}
-              </Button>
-            ) : (
-              <Button
-                disabled={mutation.isPending}
-                onClick={() =>
-                  mutation.mutate(
-                    { ...body, confirm: true },
-                    {
-                      onSuccess: () => {
-                        setOpen(false);
-                        reset();
-                      },
+            <Button variant="outline" disabled={points.length === 0 || confirmCall.isPending} onClick={reset} data-testid="close-road-clear">
+              <RotateCcw aria-hidden className="size-5" />
+              {t.closeRoad.clear}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={!preview || confirmCall.isPending}
+              title={preview ? undefined : t.closeRoad.needTwo}
+              onClick={() =>
+                confirmCall.mutate(
+                  { polyline: points, confirm: true, ...(note.trim() ? { note: note.trim() } : {}) },
+                  {
+                    onSuccess: () => {
+                      setOpen(false);
+                      reset();
                     },
-                  )
-                }
-                data-testid="close-road-confirm"
-              >
-                {t.closeRoad.confirm}
-              </Button>
-            )}
+                  },
+                )
+              }
+              data-testid="close-road-confirm"
+            >
+              <Ban aria-hidden className="size-5" />
+              {t.closeRoad.confirm}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

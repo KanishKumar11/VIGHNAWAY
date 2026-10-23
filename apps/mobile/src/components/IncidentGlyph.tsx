@@ -1,30 +1,35 @@
-import Svg, { Path } from 'react-native-svg';
-import { incidentIcons, incidentIconStyle, type IncidentIconKey } from '@vighnaway/tokens';
+import { Image, View, type ImageSourcePropType } from 'react-native';
+import type { IncidentIconKey } from '@vighnaway/tokens';
+import { useColors } from '@/theme';
+
+/** The picture for each incident and report type: the illustrations from the report screen, used on every screen. */
+export const INCIDENT_IMAGE: Record<IncidentIconKey, ImageSourcePropType> = {
+  flood: require('../../assets/report/flood.png'),
+  closure: require('../../assets/report/closure.png'),
+  congestion: require('../../assets/report/congestion.png'),
+  debris: require('../../assets/report/debris.png'),
+  accident: require('../../assets/report/accident.png'),
+  walking_concern: require('../../assets/report/walking_concern.png'),
+  road_clear: require('../../assets/report/road_clear.png'),
+};
 
 /**
- * The incident pictograms (docs/DESIGN.md section 4): bold, two-tone, filled shapes from the shared
- * set in @vighnaway/tokens, drawn in the colour the surface passes. `road_clear` is the tick disc
- * used for "road clear" reports.
+ * The incident picture on a white disc, the way the report screen shows it, so a flood looks the same on the map,
+ * in the lists, in the evidence sheet and when reporting. `size` is the nominal glyph size callers already pass; the
+ * disc is a little larger so the picture reads. The colour callers used to pass is no longer needed (the pictures
+ * carry their own colours) and is ignored.
  */
-export function IncidentGlyph({ type, size = 20, color }: { type: IncidentIconKey; size?: number; color: string }) {
-  const { softOpacity, strokeWidth, roundStrokeWidth, viewBox } = incidentIconStyle;
+export function IncidentGlyph({ type, size = 20 }: { type: IncidentIconKey; size?: number; color?: string }) {
+  const tc = useColors();
+  const disc = Math.round(size * 1.9);
+  const image = Math.round(size * 1.5);
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${viewBox} ${viewBox}`} accessible={false}>
-      {incidentIcons[type].map((layer, i) => {
-        const opacity = layer.tone === 'soft' ? softOpacity : 1;
-        return layer.paint === 'stroke' ? (
-          <Path key={i} d={layer.d} fill="none" stroke={color} strokeOpacity={opacity} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
-        ) : (
-          <Path
-            key={i}
-            d={layer.d}
-            fill={color}
-            fillOpacity={opacity}
-            fillRule="evenodd"
-            {...(layer.round ? { stroke: color, strokeOpacity: opacity, strokeWidth: roundStrokeWidth, strokeLinejoin: 'round' as const } : null)}
-          />
-        );
-      })}
-    </Svg>
+    <View
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: disc, height: disc, borderRadius: disc / 2, backgroundColor: tc.white, alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Image source={INCIDENT_IMAGE[type]} style={{ width: image, height: image }} resizeMode="contain" accessible={false} />
+    </View>
   );
 }

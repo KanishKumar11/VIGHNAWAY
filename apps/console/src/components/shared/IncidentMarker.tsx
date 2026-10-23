@@ -80,8 +80,8 @@ export function IncidentMarker({
         transition={spring}
         className={cn('relative block rounded-chip', COMPACT, COMPACT_OFFSET)}
       >
-        <span ref={ref} className={cn('absolute inset-0 flex items-center justify-center rounded-chip shadow-sm', s === 'verified' ? 'bg-danger text-white' : 'bg-shell-raised text-warn')}>
-          <IncidentGlyph type={incident.type} className="size-3" />
+        <span ref={ref} className="absolute inset-0 flex items-center justify-center rounded-chip bg-white shadow-sm">
+          <IncidentGlyph type={incident.type} className="size-4" />
         </span>
         <StatusRing status={s} size={22} />
       </motion.button>
@@ -101,11 +101,11 @@ export function IncidentMarker({
       <span ref={ref} className={cn('relative block size-9 rounded-chip', selected && 'outline-2 outline-offset-2 outline-focus')}>
         <span
           className={cn(
-            'absolute inset-0 flex items-center justify-center rounded-chip shadow-sm',
-            s === 'verified' ? 'bg-danger text-white' : closed ? 'bg-shell-raised text-resolved' : 'bg-shell-raised text-warn',
+            'absolute inset-0 flex items-center justify-center rounded-chip bg-white shadow-sm',
+            closed && 'opacity-80',
           )}
         >
-          <IncidentGlyph type={incident.type} className="size-5" />
+          <IncidentGlyph type={incident.type} className="size-6.5" />
         </span>
         <AnimatePresence initial={false}>
           <motion.span

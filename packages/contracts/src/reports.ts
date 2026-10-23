@@ -176,3 +176,21 @@ export const PhotoListResponseSchema = z.object({
   ),
 });
 export type PhotoListResponse = z.infer<typeof PhotoListResponseSchema>;
+
+/**
+ * GET /scenarios/:id/incident-reporters (operator only): who reported each incident, for reports sent while signed in.
+ * An anonymous report has no entry. Shown to staff in the queue in place of the bare "User report"; never in the
+ * public incident feed, and never evidence or an input to routing.
+ */
+export const IncidentReporterSchema = z.object({
+  /** The name the person gave, or null if they gave none. */
+  name: z.string().nullable(),
+  email: z.string(),
+});
+export type IncidentReporter = z.infer<typeof IncidentReporterSchema>;
+export const IncidentReportersResponseSchema = z.object({
+  scenarioId: IdSchema,
+  /** Incident id to its signed-in reporters, oldest first. */
+  reporters: z.record(z.string(), z.array(IncidentReporterSchema)),
+});
+export type IncidentReportersResponse = z.infer<typeof IncidentReportersResponseSchema>;

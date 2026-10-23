@@ -1,6 +1,6 @@
 'use client';
 
-import type { Incident, OperatorAction } from '@vighnaway/contracts';
+import type { Incident, IncidentReporter, OperatorAction } from '@vighnaway/contracts';
 import { formatSimClock } from '@vighnaway/contracts';
 import {
   alertContext,
@@ -54,6 +54,7 @@ import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
 import { IncidentPhotos } from '@/components/console/IncidentPhotos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIncidentPhotos, type IncidentPhoto } from '@/hooks/useIncidentPhotos';
+import { useIncidentReporters } from '@/hooks/useIncidentReporters';
 
 const GROUP_RING: Record<QueueGroup, Incident['status']> = {
   corroborated: 'corroborated',
@@ -138,6 +139,7 @@ function IncidentRow({
   selected,
   readOnly,
   photos,
+  reporters,
   onSelect,
   onAction,
 }: {
@@ -148,6 +150,8 @@ function IncidentRow({
   readOnly: boolean;
   /** Citizen photos for this incident; empty when the controls are locked. */
   photos: readonly IncidentPhoto[];
+  /** The signed-in people who reported it (staff only; empty when locked or all anonymous). */
+  reporters?: readonly IncidentReporter[];
   onSelect: (id: string) => void;
   onAction: (incident: Incident, action: OperatorAction) => void;
 }) {
@@ -185,11 +189,10 @@ function IncidentRow({
       >
         <span
           className={cn(
-            'relative flex size-10 shrink-0 items-center justify-center rounded-button',
-            GROUP_TONE[groupOf(incident)].chip,
+            'relative flex size-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm',
           )}
         >
-          <IncidentGlyph type={incident.type} className="size-5.5" />
+          <IncidentGlyph type={incident.type} className="size-8" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
           <span
@@ -206,7 +209,7 @@ function IncidentRow({
         </span>
       </button>
       <div className="mt-3.5 flex flex-col gap-2.5">
-        <EvidenceChips incident={incident} nowS={nowS} />
+        <EvidenceChips incident={incident} nowS={nowS} reporters={reporters} />
         {photos.length > 0 && <IncidentPhotos photos={photos} nowS={nowS} />}
         <div className="divide-y divide-shell-hairline overflow-hidden rounded-card border border-shell-hairline bg-shell-raised/60 text-meta">
           {incident.feed ? (
@@ -512,6 +515,7 @@ export function IncidentQueue({
   const action = useIncidentAction();
   // Photo reports belong to the live run: a replayed moment (incidents given) shows none.
   const photos = useIncidentPhotos(!given);
+  const reporterMap = useIncidentReporters(!given);
   const liveIncidents = useMemo(
     () => displayIncidents({ sync, optimistic, confirmed }),
     [sync, optimistic, confirmed],
@@ -658,6 +662,7 @@ export function IncidentQueue({
                         selected={selectedId === inc.id}
                         readOnly={readOnly}
                         photos={photos.get(inc.id) ?? NO_PHOTOS}
+                        reporters={reporterMap.get(inc.id)}
                         onSelect={onSelect}
                         onAction={onAction}
                       />
