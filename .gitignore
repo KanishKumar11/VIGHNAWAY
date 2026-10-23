@@ -24,3 +24,6 @@ next-env.d.ts
 
 # Project docs, pitch decks and demo recordings are kept locally, not in git
 docs/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
