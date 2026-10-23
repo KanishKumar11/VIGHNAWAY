@@ -25,8 +25,10 @@ import { ViewMenu } from '@/components/shared/ViewMenu';
 
 /**
  * Width tiers for the command bar (nothing ever wraps; lower-priority items collapse instead):
- * below 1440px the wordmark, the connection word and nav labels are hidden; 1900px and up also
- * shows the clock's context (simulation label and rain alert) and the nav labels.
+ * below 1440px the wordmark, the connection word and nav labels are hidden; 1900px and up shows
+ * the nav labels; 2100px and up also shows the clock's context (simulation label and rain alert).
+ * The side columns never shrink below their content, so a crowded bar nudges the clock off-centre
+ * instead of letting the groups overlap it.
  */
 
 /** Thin vertical rule between groups in the bar. */
@@ -102,7 +104,7 @@ function ScenarioSwitch() {
   );
 }
 
-/** The clock is the bar's focal point; its context (what it is, the rain alert) joins from 1900px. */
+/** The clock is the bar's focal point; its context (what it is, the rain alert) joins from 2100px. */
 function SimClock({ replayAtS }: { replayAtS: number | null }) {
   const scenario = useActiveScenario();
   const live = isLiveScenario(scenario);
@@ -119,7 +121,7 @@ function SimClock({ replayAtS }: { replayAtS: number | null }) {
         </p>
         <span className="tech text-ink-on-shell-muted">{timezoneLabel(scenario.timezone, t.sim.tz)}</span>
       </div>
-      <div className="hidden items-center gap-3 min-[1900px]:flex">
+      <div className="hidden items-center gap-3 min-[2100px]:flex">
         <span aria-hidden className="h-5 w-px bg-shell-line" />
         <span className="text-meta font-medium text-ink-on-shell-muted">{replayAtS !== null ? t.replay.replaying('') : live ? t.sim.wallClock : t.sim.eyebrow}</span>
         {!live &&
@@ -161,7 +163,7 @@ export function Header({ replayAtS = null }: { replayAtS?: number | null }) {
   const speech = usePrefs((s) => s.speech);
   const setPref = usePrefs((s) => s.set);
   return (
-    <header className="vw-header vw-chrome relative z-30 grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 px-5">
+    <header className="vw-header vw-chrome relative z-30 grid h-16 shrink-0 grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] items-center gap-6 px-5">
       <div className="flex min-w-0 items-center gap-4">
         <Link href="/console" className="flex shrink-0 items-center gap-2.5" aria-label={t.app.name}>
           <BrandMark className="size-9 shrink-0 min-[1440px]:hidden" />
