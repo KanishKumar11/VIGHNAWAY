@@ -1,8 +1,7 @@
-import { Platform, StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
+import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 import {
   fontFamily,
   phoneBrand,
-  phoneElevation as elevation,
   phoneGoogleMapStyles as googleMapStyles,
   phoneRadius as radius,
   layout,
@@ -188,26 +187,45 @@ export const LARGER_TEXT = 1.25;
 /** Hairline used for dividers and outlines. */
 export const hairline = 1;
 
-/** Native shadows on Android/iOS; the same levels as CSS box-shadows on the web preview. Cast in deep blue. */
-export function shadow(level: 'sm' | 'md' | 'lg'): ViewStyle {
-  if (Platform.OS === 'web') return { boxShadow: elevation.web[level] } as ViewStyle;
-  return elevation.native[level];
-}
-
-/** The same blue shadow cast upward, for a surface that rises from the bottom edge (the sheet). */
-export function shadowUp(level: 'sm' | 'md' | 'lg'): ViewStyle {
-  if (Platform.OS === 'web') return { boxShadow: elevation.web[level].replace(/(d+px) (d+px)/, (_m, _x, y) => `0 -${y}`) } as ViewStyle;
-  const s = elevation.native[level];
-  return { ...s, shadowOffset: { width: 0, height: -s.shadowOffset.height } };
-}
-
 /**
- * Light cast under a brand surface (a primary button, the selected tile): the surface's own hue,
- * not a grey shadow. `color` is an opaque brand colour; `strength` 1 is a button, 0.6 a small tile.
+ * Surfaces are flat: no drop shadows, glows or elevation anywhere on the phone. Layers are told apart by
+ * their `panelLine` hairline edge and by colour (DESIGN.md 16). On Android an elevation under a
+ * see-through tint also drew a box behind the text, so none is used. The three helpers stay so
+ * call sites keep their shape; they return an empty style.
  */
-export function glow(color: string, strength = 1): ViewStyle {
-  if (Platform.OS === 'web') return { boxShadow: `0 ${Math.round(10 * strength)}px ${Math.round(24 * strength)}px -6px ${withAlpha(color, 0.55)}` } as ViewStyle;
-  return { shadowColor: color, shadowOpacity: 0.45 * strength + 0.05, shadowRadius: 16 * strength, shadowOffset: { width: 0, height: 8 * strength }, elevation: Math.round(8 * strength) };
+const FLAT: ViewStyle = {};
+
+export function shadow(_level: 'sm' | 'md' | 'lg'): ViewStyle {
+  void _level;
+  return FLAT;
+}
+
+export function shadowUp(_level: 'sm' | 'md' | 'lg'): ViewStyle {
+  void _level;
+  return FLAT;
+}
+
+export function glow(_color: string, _strength = 1): ViewStyle {
+  void _color;
+  void _strength;
+  return FLAT;
+}
+
+/** `color` laid over an opaque `base` at `alpha`, as one solid colour (a tint that nothing shows through). */
+export function solidTint(color: string, base: string, alpha: number): string {
+  const rgb = (c: string) => {
+    if (c.startsWith('#') && c.length === 7) {
+      const n = parseInt(c.slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const m = /^rgba?\(([^)]+)\)$/.exec(c);
+    return m ? m[1]!.split(',').slice(0, 3).map((x) => Number(x.trim())) : null;
+  };
+  const a = rgb(color);
+  const b = rgb(base);
+  if (!a || !b) return base;
+  const mix = (i: number) => Math.round(a[i]! * alpha + b[i]! * (1 - alpha));
+  return `rgb(${mix(0)}, ${mix(1)}, ${mix(2)})`;
 }
 
 /** Ease-out curve from tokens, for Reanimated's Easing.bezier. */

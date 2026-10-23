@@ -11,7 +11,7 @@ import { currentLang, t } from '@/i18n';
 import { bannerBody, routeLabel, rt } from '@/i18n/engineText';
 import { cn } from '@/lib/cn';
 import { currentEtaS, recommendedRoute, type TripChange, type TripState } from '@/lib/demoTrip';
-import { placeById } from '@/lib/scenario';
+import { placeById } from '@/lib/scenarios';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
 import { incidentList } from '@/lib/sync';
 import { useLiveStore } from '@/stores/live';

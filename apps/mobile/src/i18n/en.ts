@@ -365,6 +365,7 @@ export const en = {
   discardTitle: 'Discard this report?',
   discardKeep: 'Keep editing',
   discardConfirm: 'Discard',
+  discardBody: 'Nothing you entered will be sent.',
   reportSimulatedNote: 'Reports join the simulated scenario: Andheri, Mumbai.',
   reportLiveNote: 'Reports join live data for Andheri, Mumbai, and show as Unverified at first.',
 
@@ -576,8 +577,8 @@ export const en = {
   vehicleA11y: 'Your vehicle',
 
   // v4: speech
-  speakChanges: 'Speak route changes',
-  speakChangesHint: 'During a trip, route changes are read aloud, in your language when the phone has that voice.',
+  speakChanges: 'Speak turns and route changes',
+  speakChangesHint: 'During a trip, turns and route changes are read aloud, in your language when the phone has that voice.',
 
   // v4: larger text
   largerText: 'Larger text',
@@ -634,6 +635,10 @@ export const en = {
   settingsAccount: 'Account',
   accountRowSignedOut: 'Optional: link your reports to you',
   accountSubtitle: 'Optional. Signing in links your reports to your account.',
+  signInTitle: 'Sign in',
+  signInBody: 'Enter your email and we will send you a 6-digit code. No password needed.',
+  signInSkip: 'Continue without an account',
+  signInSkipHint: 'You can navigate and report without an account. Sign in any time from Account in the menu.',
   accountSignedOutTitle: 'Sign in with email',
   accountSignedOutBody: 'You do not need an account to navigate or report. Signing in links your reports to you and shows a thank-you count. Routes never depend on who reported.',
   accountEmailLabel: 'Email',
@@ -702,6 +707,36 @@ export const en = {
   accountVerifiedOne: '1 report is in an incident an operator later verified.',
   accountVerifiedMany: '{n} reports are in incidents an operator later verified.',
   accountPrivacyNote: 'Reports are counted only as a thank-you. They do not change routes or an incident’s status; only an operator verifies an incident.',
+
+  // Turn-by-turn guidance
+  guideDepart: 'Head {dir}',
+  guideDepartOn: 'Head {dir} on {road}',
+  guideLeft: 'Turn left',
+  guideRight: 'Turn right',
+  guideSlightLeft: 'Bear left',
+  guideSlightRight: 'Bear right',
+  guideSharpLeft: 'Turn sharp left',
+  guideSharpRight: 'Turn sharp right',
+  guideUturn: 'Make a U-turn',
+  guideArrive: 'You have arrived',
+  guideOnto: '{turn} onto {road}',
+  guideIn: 'In {dist}, {turn}',
+  guideThen: 'Then {turn}',
+  guideOffRoute: 'You are off the planned road. Head back to the line on the map.',
+  guideBannerA11y: 'Next: {text}',
+  dirNorth: 'north',
+  dirNortheast: 'north-east',
+  dirEast: 'east',
+  dirSoutheast: 'south-east',
+  dirSouth: 'south',
+  dirSouthwest: 'south-west',
+  dirWest: 'west',
+  dirNorthwest: 'north-west',
+  guideLocalNoteStart: 'Includes {dist} on local roads from your start to the main road. Their speed is a slow typical pace; there is no traffic data for them.',
+  guideLocalNoteEnd: 'Includes {dist} on local roads at the end of the trip. Their speed is a slow typical pace; there is no traffic data for them.',
+  guideLocalNoteBoth: 'Includes {from} on local roads at the start and {to} at the end. Their speed is a slow typical pace; there is no traffic data for them.',
+  guideLocalLoading: 'Finding the local roads from your start…',
+  guideLocalFailed: 'Local roads could not be loaded, so the first stretch is not shown. Check your connection.',
 } as const;
 
 export type Strings = typeof en;

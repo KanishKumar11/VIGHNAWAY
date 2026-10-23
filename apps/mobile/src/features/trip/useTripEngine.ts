@@ -28,7 +28,8 @@ export function useTripEngine(): void {
       if (s.profile !== prev.profile || s.preferLit !== prev.preferLit) {
         // A different profile is a different graph: a running trip restarts from planning.
         if (useTrip.getState().mode !== 'planning') useTrip.getState().endTrip();
-        schedulePlan({ showEvaluating: true, delayMs: 0 });
+        // A beat after the tap, so the chosen option repaints before the engine holds the JS thread.
+        schedulePlan({ showEvaluating: true, delayMs: 60 });
       }
     });
     const unsubSim = useSim.subscribe((s, prev) => {

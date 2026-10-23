@@ -15,7 +15,13 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./andheri/*.json": "./andheri/*.json"
+    "./andheri/*.json": "./andheri/*.json",
+    "./scenarios": {
+      "@vighnaway/source": "./src/scenarios.ts",
+      "types": "./dist/scenarios.d.ts",
+      "import": "./dist/scenarios.js",
+      "require": "./dist/scenarios.cjs"
+    }
   },
   "files": [
     "dist",
@@ -23,7 +29,7 @@
     "andheri"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "build": "tsup src/index.ts src/scenarios.ts --format esm,cjs --dts --clean",
     "build:fixture": "tsx --conditions=@vighnaway/source scripts/build-fixture.ts",
     "tune": "tsx --conditions=@vighnaway/source scripts/tune.ts",
     "hashes": "tsx --conditions=@vighnaway/source scripts/hashes.ts",

@@ -1,24 +1,15 @@
 import type { Graph } from '@vighnaway/engine';
 import { loadGraph } from '@vighnaway/engine';
-import type { GraphFile, Place, Profile, Scenario } from '@vighnaway/contracts';
-import { andheriGraph, andheriLiveScenario, andheriScenario, graphAttribution } from '@vighnaway/scenario-data';
+import type { GraphFile, Profile } from '@vighnaway/contracts';
+import { andheriGraph } from '@vighnaway/scenario-data';
 
 /**
- * The bundled scenarios: the console plans on the same graph version as the phone.
- * - andheri-monsoon: the scripted, simulated demo (everything labelled Simulated);
- * - andheri-live: live mode (user reports, operators and the TomTom feed; wall clock).
- * SCENARIO is the simulated demo, the default and the one /debug hashes.
+ * The scenarios plus the road graph. Importing this pulls the whole graph (about 10 MB) into the page, so
+ * only code that really plans or draws roads should: everything else imports lib/scenarios.ts.
  */
-export const SCENARIO: Scenario = andheriScenario;
-export const LIVE_SCENARIO: Scenario = andheriLiveScenario;
-export const SCENARIOS: Readonly<Record<string, Scenario>> = { [SCENARIO.id]: SCENARIO, [LIVE_SCENARIO.id]: LIVE_SCENARIO };
-export const GRAPH_FILE: GraphFile = andheriGraph;
-export const SCENARIO_ID = SCENARIO.id;
-export const ATTRIBUTION = graphAttribution(GRAPH_FILE);
+export * from './scenarios';
 
-/** A known scenario id, or the simulated demo. */
-export const scenarioFor = (id: string | null | undefined): Scenario => (id && SCENARIOS[id]) || SCENARIO;
-export const isLiveScenario = (s: Pick<Scenario, 'mode'>): boolean => s.mode === 'live';
+export const GRAPH_FILE: GraphFile = andheriGraph;
 
 const graphs = new Map<Profile, Graph>();
 /** Built once per profile and reused (the engine never mutates it). */
@@ -30,5 +21,3 @@ export function graphFor(profile: Profile): Graph {
   }
   return g;
 }
-
-export const placeById = (id: string, scenario: Scenario = SCENARIO): Place | undefined => scenario.places.find((p) => p.id === id);

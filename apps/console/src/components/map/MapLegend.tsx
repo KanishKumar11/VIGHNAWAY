@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import type { Insets } from '@/lib/projection';
-import { ATTRIBUTION } from '@/lib/scenario';
+import { ATTRIBUTION } from '@/lib/scenarios';
 import { themeVar } from '@/lib/theme';
 import { usePrefs } from '@/stores/prefs';
 import { CoverageSwatch } from '@/components/console/CoverageChip';

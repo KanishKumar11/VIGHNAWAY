@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Scenario } from '@vighnaway/contracts';
-import { SCENARIO_ID, scenarioFor, SCENARIOS } from '@/lib/scenario';
+import { SCENARIO_ID, scenarioFor, SCENARIOS } from '@/lib/scenarios';
 
 /**
  * The scenario the console is showing: the simulated demo or live mode. It comes from the

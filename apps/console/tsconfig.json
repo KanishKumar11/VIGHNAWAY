@@ -29,12 +29,13 @@
     }
   },
   "include": [
+    ".next-e2e/types/**/*.ts",
+    ".next-test/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "src",
     "test",
-    "vitest.config.ts",
-    ".next-e2e/types/**/*.ts"
+    "vitest.config.ts"
   ],
   "exclude": [
     "node_modules",

@@ -260,6 +260,7 @@ export const mr: Strings = {
     },
   },
   map: {
+    loading: 'नकाशा लोड होत आहे…',
     unavailable: 'नकाशा उपलब्ध नाही: Google Maps की किंवा नेटवर्क तपासा',
     schematicLabel: 'रस्ते ग्राफचे आराखडा दृश्य (नकाशा नाही)',
     schematicChip: 'आराखडा दृश्य, नकाशा नाही',
@@ -721,7 +722,7 @@ export const mr: Strings = {
     openReport: 'घटनेची नोंद करा',
   },
   gate: {
-    loading: 'तुमचे साइन-इन तपासत आहे…',
+    loading: 'लोड होत आहे…',
     title: 'कंट्रोल रूम साइन-इन',
     intro: 'कंट्रोल रूम चालवण्यासाठी ऑपरेटर किंवा अॅडमिन खात्याने साइन इन करा.',
     demoAccess: 'डेमो अॅक्सेस (ऑपरेटर टोकन)',

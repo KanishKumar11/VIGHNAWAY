@@ -1,8 +1,9 @@
 import type { HistoryResponse, Incident, PlanResult, Profile, Scenario } from '@vighnaway/contracts';
 import { incidentsAtSeq, PROFILES } from '@vighnaway/contracts';
-import type { PlanTripInput, Receipt, ReceiptVerification } from '@vighnaway/engine';
-import { buildReceipt, decodeReceipt, encodeReceipt, planTrip, verifyReceipt } from '@vighnaway/engine';
+import type { PlanTripInput, Receipt } from '@vighnaway/engine';
+import { buildReceipt, encodeReceipt, planTrip, verifyReceipt } from '@vighnaway/engine';
 import { graphFor, SCENARIOS } from './scenario';
+import type { VerifyOutcome } from './receiptParse';
 
 /**
  * Decision receipts for the console (docs/TASKS.md P1-2). A receipt is made from the live incident
@@ -40,19 +41,7 @@ export function makeReceipt(scenario: Scenario, incidents: readonly Incident[], 
   return { receipt, token: encodeReceipt(receipt), plan };
 }
 
-/** A receipt token from a bare token, a /verify link or a query string. */
-export function tokenFromText(text: string): string {
-  const s = text.trim();
-  const m = /[?&]r=([A-Za-z0-9_-]+)/.exec(s);
-  return m ? m[1]! : s;
-}
-
-export type VerifyOutcome =
-  | { kind: 'invalid' }
-  | { kind: 'unknown_scenario'; receipt: Receipt }
-  | { kind: 'checked'; receipt: Receipt; scenario: Scenario; verification: ReceiptVerification; incidentCount: number };
-
-export const parseReceipt = (token: string): Receipt | null => decodeReceipt(tokenFromText(token));
+export { parseReceipt, tokenFromText, type VerifyOutcome } from './receiptParse';
 
 /** Re-runs a receipt's decision from the recorded history. Pure: the caller fetches `history`. */
 export function verifyAgainstHistory(receipt: Receipt, history: HistoryResponse): VerifyOutcome {

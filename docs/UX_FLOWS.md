@@ -8,6 +8,7 @@ Owners: Mobile and Console. Every string below is the exact copy; apps keep them
 ```text
 Root Stack (headerShown false)
 ├── first-run            shown once (stored flag), then replaced by (drawer)
+├── sign-in              after first-run while signed out and not skipped; again after signing out
 ├── (drawer)             Drawer, type front, width min(320, 80%), swipe disabled on Navigate
 │   ├── index            Navigate: map + persistent bottom sheet (peek / half / full)
 │   ├── activity         Journey-relevant changes
@@ -38,6 +39,18 @@ Copy: title "VIGHNAWAY"; badge "Simulated flood scenario: Andheri, Mumbai"; body
 compares routes against reported hazards and the evidence behind them, recommends a viable one and
 tells you why."; button "Continue". No permission prompts here.
 
+## 2a. Sign-in (launch)
+
+Shown after first-run when the phone has no account and the person has not chosen to go on without one, and again after
+signing out or deleting the account. Signing in stays optional (CONTRACTS.md): an account is never needed to navigate
+or report. Layout: the brand hero (mark, wordmark, tagline), the title, the email-and-code form shared with Account
+(step 1: email and optional name, "Send code"; step 2: six digit boxes, "Sign in", resend countdown, "Use a different
+email"), then the skip button and its hint at the bottom. A staff account is refused on the phone.
+
+Copy: title "Sign in"; body "Enter your email and we will send you a 6-digit code. No password needed."; button
+"Continue without an account" (remembered on this phone); hint "You can navigate and report without an account. Sign in
+any time from Account in the menu."
+
 ## 3. Navigate
 
 ```text
@@ -65,6 +78,10 @@ tells you why."; button "Continue". No permission prompts here.
 **Search card (start and destination).** Tapping the card opens one search sheet. At the top, a route card: a start dot and a destination pin joined by a dotted line, **From** above **To** (each its own input), and a swap button; under it a **My location** pill and a close button. The keyboard opens on To. As you type, the list shows (1) **Recent**, the last six places you picked, kept on the phone, when nothing is typed; (2) **Saved places**, the built-in Andheri places and roads and the corridor cities, instant and offline; (3) **Places**, live results from a Photon server (OpenStreetMap data) with real names and addresses (street, area, city, state) and an icon per type (city, station, airport, hospital, shop, school, landmark, road). The live lookup waits 350 ms after the last keystroke, needs two letters, cancels an older request when you keep typing, caches answers, is limited to India and biased toward the other field's area (rounded to about 10 km). With no connection, or when the service fails, the sheet says so and keeps the built-in places. A result somewhere the app has no road map (anywhere but Andheri and the Amritsar to Ambala corridor) carries a "No road map yet" chip; tapping it says "There is no road map for {place} yet. Routes work in Andheri and from Amritsar to Ambala." and changes nothing. The footer discloses that what you type and a rough area are sent to the search service. Picking a place fills that input and moves to the other; when both are set the trip is planned and the sheet closes. The start cannot be changed during a trip (To still can), and a start equal to the destination is refused. Searched places stay on the phone: their trips are not published to the console.
 
 **Two maps.** The app has two road maps: Andheri (scenario, incidents, simulation, live feed) and the Amritsar to Ambala corridor (real OpenStreetMap roads only). A trip lives on one map. Picking a place on the other map empties the other input and says "Now choose a start / destination in the same area", so the pair is always routable; for example, "My location" in Amritsar followed by Ambala. On the corridor map the sheet shows the real road distance beside the route name ("247.6 km  Via Grand Trunk Road (NH44)"), the ETA at typical speeds per road class, and a note that this area has roads only: no incident or live traffic data, no evidence section and no data-gap questions. When the start or end is more than 500 m from a mapped road the note says how far; that distance is not in the route. A place more than 15 km from any mapped road, or outside both maps, is refused with a plain message.
+
+**Campus and local roads, turn-by-turn.** On the corridor map, when the start or destination is 80 m or more from a mapped road (a campus, a housing society), the app fetches the roads around it from OpenStreetMap and draws the way along them to the road network as a dashed line. The sheet says how much of the trip is on local roads (a slow typical pace, no traffic data) and adds that time to the ETA; while it loads it says so, and if it cannot load it says that too and plans as before. During a trip a card above the sheet shows the next turn (arrow, distance, "Turn left onto Ram Tirath Road", and the turn after it when close) and the same words are spoken when "Speak turns and route changes" is on: once about 250 m ahead and once about 70 m ahead. Off the planned road it says so instead. Drive mode shows the same card. Guidance runs with live data and on the corridor map; the simulated Andheri demo keeps its own screens.
+
+**Location button.** In live mode the map shows one marker for the phone: a dot while it stands still and an arrow head, pointing along its direction of travel (GPS course, once a second), while it moves. During a trip the arrow replaces the snapped vehicle. The location button cycles like Google Maps: first tap centres the map north-up, second turns the map to the phone's heading, third straightens it again; dragging the map frees it. Phones with no usable compass give a direction only while moving.
 
 **Choosing a route (like Google Maps).** Every route the engine returns is drawn: the recommended one in blue on top, the alternatives as clear grey lines with an outline underneath. Each carries a time bubble: the blue route its total time, an alternative the time it adds or saves ("+3 min", "−2 min"), placed where it leaves the blue route and kept clear of the other bubbles; an alternative that is the same line as the blue one (almost all shared road) gets no bubble but is still in the list. Tap an alternative's line or bubble, or its card in the opened sheet, to choose it: it turns blue, the card shows "Your choice", and a note says how much it adds or saves compared with the recommended route, with a "Use recommended" button. The engine still labels and explains every route; the choice only says which one the trip follows. It lasts for that trip plan and clears when the trip starts or the places change. A running trip ignores taps on routes.
 
@@ -123,7 +140,7 @@ KeyboardStickyView.
 | Not on a road (422) | "That point is not on a known road. Move the pin onto a road." A queued report the API rejects later raises a toast and an Activity entry ("Report not accepted: …"); it is never dropped silently. |
 | Rate limited (429) | "Too many reports from this device. Try again in a minute." |
 | Offline | Toast "Saved. Pending send when you are back online."; activity shows "Pending send" |
-| Discard | Alert "Discard this report?" buttons "Keep editing" / "Discard" |
+| Discard | Themed dialog "Discard this report?" ("Nothing you entered will be sent.") buttons "Keep editing" / "Discard" |
 
 ## 6. Activity
 

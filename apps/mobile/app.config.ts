@@ -60,7 +60,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-build-properties',
       {
-        android: useCleartext ? { usesCleartextTraffic: true } : {},
+        android: {
+          ...(useCleartext ? { usesCleartextTraffic: true } : {}),
+          // Release builds run R8. WorkManager (pulled in by expo-notifications) creates its Room database by
+          // reflection, and R8 renamed it away: the release APK crashed at launch with "Failed to create an
+          // instance of class androidx.work.impl.WorkDatabase". Keep Room databases and their generated classes.
+          extraProguardRules: [
+            '-keep class * extends androidx.room.RoomDatabase { *; }',
+            '-keep class androidx.work.impl.** { *; }',
+            '-keep class androidx.room.** { *; }',
+            '-dontwarn androidx.room.paging.**',
+          ].join('\n'),
+        },
       },
     ],
     [
@@ -97,7 +108,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         backgroundColor: colors.shell,
         image: './assets/images/splash-icon.png',
-        imageWidth: 160,
+        imageWidth: 200,
         resizeMode: 'contain',
       },
     ],

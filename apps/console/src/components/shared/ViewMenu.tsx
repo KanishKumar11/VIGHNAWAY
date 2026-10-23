@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, SlidersHorizontal } from 'lucide-react';
+import { Check, Languages, SlidersHorizontal } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { LANGS, t, type Lang } from '@/i18n';
@@ -69,6 +69,13 @@ export function ViewMenu({ console: inConsole = true, compact = false, bare = fa
       >
         <SlidersHorizontal aria-hidden className="size-4" />
         {!compact && t.view.menu}
+        {/* The language is set inside this menu; its code shows here so it can be found without opening it. */}
+        {!compact && !bare ? (
+          <span aria-hidden lang={lang} className="ml-1 inline-flex items-center gap-1 border-l border-panel-line pl-2 text-meta font-semibold text-ink-muted">
+            <Languages className="size-3.5" />
+            {lang.toUpperCase()}
+          </span>
+        ) : null}
       </button>
       <AnimatePresence>
         {open && (

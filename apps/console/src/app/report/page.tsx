@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { consoleThemes as themes } from '@vighnaway/tokens';
 import { t } from '@/i18n';
-import { ATTRIBUTION, isLiveScenario, scenarioFor } from '@/lib/scenario';
+import { ATTRIBUTION, isLiveScenario, scenarioFor } from '@/lib/scenarios';
 import { parseAsk } from '@/lib/ask';
 import { AskForm } from '@/components/report/AskForm';
 import { ReportAccount } from '@/components/account/ReportAccount';

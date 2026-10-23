@@ -23,11 +23,14 @@ import { LiveRoute } from '@/components/account/LiveRoute';
 import { SignInForm } from '@/components/account/SignInForm';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
 import { Wordmark } from '@/components/shared/BrandMark';
+import { ScreenLoading } from '@/components/shared/ScreenLoading';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { ViewMenu } from '@/components/shared/ViewMenu';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
 /** The loading and citizen states: one centred card on the page. */
-function Frame({ children }: { children: ReactNode }) {
+export function Frame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-shell p-6 text-ink-on-shell">
       <main className="flex w-full max-w-[calc(var(--spacing)*140)] flex-col gap-6 rounded-sheet border border-panel-line bg-panel p-8 text-ink shadow-lg">
@@ -136,6 +139,11 @@ function SignInLayout({ children }: { children: ReactNode }) {
         </ul>
       </aside>
       <main className="relative flex items-start justify-center overflow-hidden px-6 py-6 sm:px-10 lg:min-h-0 lg:items-center lg:px-14 lg:py-[clamp(0.75rem,3.5vh,3rem)]">
+        {/* Language and theme, so the page can be read and seen the way the person wants before signing in. */}
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-5">
+          <ViewMenu console={false} compact />
+          <ThemeToggle />
+        </div>
         <svg aria-hidden className="pointer-events-none absolute inset-0 size-full">
           <pattern id="vw-dots" width={26} height={26} patternUnits="userSpaceOnUse">
             <circle cx={2} cy={2} r={1.6} className="fill-control-border" opacity={0.28} />
@@ -185,15 +193,7 @@ export function ConsoleGate({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  if (!ready) {
-    return (
-      <Frame>
-        <p role="status" className="text-base text-ink-muted">
-          {t.gate.loading}
-        </p>
-      </Frame>
-    );
-  }
+  if (!ready) return <ScreenLoading full />;
 
   if (access) return <>{children}</>;
 
@@ -220,6 +220,14 @@ export function ConsoleGate({ children }: { children: ReactNode }) {
     );
   }
 
+  return <SignedOutView />;
+}
+
+/**
+ * The sign-in page: the brand panel with its animation on the left, the sign-in card on the right. The one
+ * signed-out screen, used by the control room's gate and by /login, so signing out always lands on the same page.
+ */
+export function SignedOutView() {
   return (
     <SignInLayout>
       <SignInForm showSteps />

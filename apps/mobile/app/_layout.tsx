@@ -19,6 +19,8 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { startLiveMode } from '@/features/live/mode';
 import { startLiveSync } from '@/features/live/liveSync';
 import { useTripEngine } from '@/features/trip/useTripEngine';
+import { useGuidanceEngine } from '@/features/guidance/useGuidanceEngine';
+import { DialogHost } from '@/components/DialogHost';
 import { configureNotifications } from '@/lib/notifications';
 import { startAuth } from '@/stores/auth';
 import { devanagari, fontFamily, useTheme } from '@/theme';
@@ -48,6 +50,7 @@ export default function RootLayout() {
     [devanagari.bold]: NotoSansDevanagari_700Bold,
   });
   useTripEngine();
+  useGuidanceEngine();
   const theme = useTheme();
   const navTheme = useMemo(() => navThemeFor(theme.name), [theme.name]);
 
@@ -78,11 +81,13 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(drawer)" />
                 <Stack.Screen name="first-run" options={{ animation: 'fade' }} />
+                <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
                 <Stack.Screen name="report" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="relay" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="drive" options={{ animation: 'fade' }} />
                 <Stack.Screen name="map-list" options={{ animation: 'slide_from_right' }} />
               </Stack>
+              <DialogHost />
             </ThemeProvider>
           </BottomSheetModalProvider>
         </QueryClientProvider>

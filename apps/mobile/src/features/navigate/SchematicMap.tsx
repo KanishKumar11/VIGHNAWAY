@@ -369,6 +369,9 @@ const RouteLine = memo(function RouteLine({ line, project }: { line: MapLine; pr
     // Step 2: the affected segment is briefly emphasised.
     return <Path d={d} stroke={tc.danger} strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" fill="none" />;
   }
+  if (line.dash) {
+    return <Path d={d} stroke={color} strokeWidth={width} strokeDasharray={[...line.dash]} strokeLinecap="butt" strokeLinejoin="round" fill="none" />;
+  }
   if (old) {
     return <AnimatedPath d={runsD} stroke={tc.routeMuted} strokeWidth={routeStyles.alternative.width} strokeDasharray={[6, 6]} animatedProps={sinkProps} strokeLinecap="butt" fill="none" />;
   }

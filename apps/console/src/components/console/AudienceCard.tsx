@@ -8,7 +8,7 @@ import { t } from '@/i18n';
 import { audienceIncidents, audienceLadder, newestAudienceIncident, type LadderState } from '@/lib/audience';
 import { cn } from '@/lib/cn';
 import { isLocalOnlyUrl, reportUrl } from '@/lib/env';
-import { SCENARIO_ID } from '@/lib/scenario';
+import { SCENARIO_ID } from '@/lib/scenarios';
 import { useClearAudience } from '@/hooks/useOperatorActions';
 import { displayIncidents, useLiveStore } from '@/stores/live';
 import { useScenarioStore } from '@/stores/scenario';
