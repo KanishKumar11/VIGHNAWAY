@@ -1,4 +1,5 @@
 import { formatSimClock } from '@vighnaway/contracts';
+import { DEFAULT_API_URL } from '@/config/env';
 import { t } from '@/i18n/en';
 import { fmtAge } from '@/i18n/format';
 
@@ -73,7 +74,9 @@ export function statusPill(p: StatusInput): StatusPill {
         : cached
           ? t('unreachableBar', params)
           : t('unreachableBarNoCache', params);
-    notices.push({ key: p.mode, text, tone: 'warn' });
+    // A server address typed into Settings outlives app updates: say how to go back to the standard one.
+    const custom = p.mode === 'unreachable' && p.apiUrl !== DEFAULT_API_URL;
+    notices.push({ key: p.mode, text, tone: 'warn', ...(custom ? { sub: t('unreachableCustomServer') } : null) });
   }
   if (p.live?.scenarioMissing && !p.fixture) notices.push({ key: 'liveMissing', text: t('liveScenarioMissing'), tone: 'warn' });
   if (p.localClock && !p.fixture && !p.live) notices.push({ key: 'localClock', text: t('localClock'), tone: 'warn' });

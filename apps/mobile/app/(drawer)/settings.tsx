@@ -16,10 +16,10 @@ import { switchDataMode } from '@/features/live/mode';
 import { useInstantValue } from '@/hooks/useInstantValue';
 import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { Segmented } from '@/components/Segmented';
-import { appVersion } from '@/config/env';
+import { appVersion, DEFAULT_API_URL } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { LANGUAGES, type Language } from '@/i18n/lang';
-import { api } from '@/lib/api';
+import { api, ApiRequestError } from '@/lib/api';
 import { KEYS, storage } from '@/lib/storage';
 import { useCommute } from '@/features/commute/commute';
 import { useActivity } from '@/stores/activity';
@@ -111,8 +111,9 @@ export default function SettingsScreen() {
   const commute = useCommute((s) => s.saved);
   const signedIn = useAuth(selectSignedIn);
   const accountEmail = useAuth((s) => s.user?.email ?? null);
-  // Offer Live only when this server lists a live scenario (the API may not have it yet).
-  const [liveOffered, setLiveOffered] = useState<'checking' | 'yes' | 'no'>('checking');
+  // Offer Live when this server lists a live scenario. A server that cannot be reached has not said "no": Live stays
+  // offered then, so switching to Simulated never strands the phone without a way back.
+  const [liveOffered, setLiveOffered] = useState<'checking' | 'yes' | 'no' | 'unreachable'>('checking');
   const profile = useSettings((s) => s.profile);
   const apiUrl = useSettings((s) => s.apiUrl);
   const cachedAtSimS = useIncidents((s) => s.cachedAtSimS);
@@ -134,7 +135,7 @@ export default function SettingsScreen() {
     api
       .scenarios(apiUrl)
       .then((r) => alive && setLiveOffered(r.scenarios.some((sc) => sc.mode === 'live') ? 'yes' : 'no'))
-      .catch(() => alive && setLiveOffered('no'));
+      .catch((e) => alive && setLiveOffered(e instanceof ApiRequestError && e.status !== 0 ? 'no' : 'unreachable'));
     return () => {
       alive = false;
     };
@@ -236,9 +237,22 @@ export default function SettingsScreen() {
     }
   };
 
-  const modes: DataMode[] = liveOffered === 'yes' || dataMode === 'live' ? ['simulated', 'live'] : ['simulated'];
+  const modes: DataMode[] = liveOffered === 'yes' || liveOffered === 'unreachable' || dataMode === 'live' ? ['simulated', 'live'] : ['simulated'];
 
-  const liveHint = modes.length === 1 && dataMode !== 'live' ? t(liveOffered === 'checking' ? 'modeChecking' : 'modeLiveUnavailable') : null;
+  const liveHint =
+    liveOffered === 'unreachable'
+      ? t('modeServerUnreachable', { url: apiUrl })
+      : modes.length === 1 && dataMode !== 'live'
+        ? t(liveOffered === 'checking' ? 'modeChecking' : 'modeLiveUnavailable')
+        : null;
+  // A server address typed in Settings outlives app updates; one tap goes back to the address this build ships with.
+  const customServer = apiUrl !== DEFAULT_API_URL;
+  const useDefaultServer = () => {
+    useSettings.getState().setApiUrl(DEFAULT_API_URL);
+    setDraftUrl(DEFAULT_API_URL);
+    setTestResult(null);
+    useToast.getState().show(t('serverResetToast', { url: DEFAULT_API_URL }), 'positive');
+  };
 
   return (
     <View style={styles.root}>
@@ -293,9 +307,12 @@ export default function SettingsScreen() {
               </AppText>
               <View style={styles.badgeRow}>{dataMode === 'live' ? <LiveBadge onShell={false} compact /> : <SimulatedBadge onShell={false} compact />}</View>
               {liveHint ? (
-                <AppText variant="meta" tone="muted">
+                <AppText variant="meta" tone={liveOffered === 'unreachable' ? 'warn' : 'muted'} testID="mode-hint">
                   {liveHint}
                 </AppText>
+              ) : null}
+              {liveOffered === 'unreachable' && customServer ? (
+                <Button label={t('serverUseDefault')} kind="secondary" icon={Server} onPress={useDefaultServer} testID="server-use-default-data" />
               ) : null}
             </View>
           </Card>
@@ -395,6 +412,14 @@ export default function SettingsScreen() {
                     <Button label={t('serverSave')} onPress={save} style={styles.flex} />
                     <Button label={testing ? t('serverTesting') : t('serverTest')} kind="secondary" loading={testing} onPress={() => void test()} style={styles.flex} />
                   </View>
+                  {customServer ? (
+                    <>
+                      <Button label={t('serverUseDefault')} kind="ghost" icon={Server} onPress={useDefaultServer} testID="server-use-default" />
+                      <AppText variant="meta" tone="muted">
+                        {t('serverDefaultHint', { url: DEFAULT_API_URL })}
+                      </AppText>
+                    </>
+                  ) : null}
                   {testResult ? (
                     <View style={[styles.result, testResult.ok ? styles.resultOk : styles.resultBad]} accessibilityLiveRegion="polite">
                       {testResult.ok ? <CircleCheck size={16} color={tc.positiveInk} /> : <ServerOff size={16} color={tc.dangerInk} />}
