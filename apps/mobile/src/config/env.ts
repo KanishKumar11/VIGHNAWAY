@@ -10,6 +10,7 @@ export const CONSOLE_URL = (process.env.EXPO_PUBLIC_CONSOLE_URL ?? '').trim().re
 interface Extra {
   googleMapsConfigured?: { android?: boolean; ios?: boolean };
   usesCleartextTraffic?: boolean;
+  buildTime?: string;
 }
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
@@ -28,6 +29,9 @@ const geocoder = (process.env.EXPO_PUBLIC_GEOCODER_URL ?? '').trim().replace(/\/
 export const GEOCODER_URL: string = geocoder.toLowerCase() === 'off' ? '' : geocoder || 'https://photon.komoot.io';
 
 export const appVersion: string = Constants.expoConfig?.version ?? '0.0.0';
+
+/** When this build was made, or null if the build did not record it. */
+export const buildTime: Date | null = extra.buildTime && !Number.isNaN(Date.parse(extra.buildTime)) ? new Date(extra.buildTime) : null;
 
 /** Milliseconds to wait for the map's onMapReady before showing the fallback. */
 export const MAP_READY_TIMEOUT_MS = 8000;

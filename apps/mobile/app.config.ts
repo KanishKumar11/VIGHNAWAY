@@ -126,5 +126,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ios: iosMapsKey.length > 0,
     },
     usesCleartextTraffic: useCleartext,
+    /** When this build was made (ISO, UTC). The menu shows it, so a phone can be told apart from an older install. */
+    buildTime: new Date().toISOString(),
   },
 });

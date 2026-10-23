@@ -7,7 +7,7 @@ import { ModeBadge } from '@/components/EvidenceChips';
 import { Activity, BookOpen, Bug, ChevronRight, Navigation, Settings, UserRound, type LucideIcon } from '@/components/icons';
 import { Mark } from '@/components/Mark';
 import { PressScale } from '@/components/motion';
-import { appVersion } from '@/config/env';
+import { appVersion, buildTime } from '@/config/env';
 import { t, type StringKey } from '@/i18n/en';
 import { connectionMode, useConnection } from '@/stores/connection';
 import { useIncidents } from '@/stores/incidents';
@@ -91,7 +91,9 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           </AppText>
         </View>
         <AppText variant="label" tone="muted" style={styles.version}>
-          {t('drawerFooterVersion', { version: appVersion })}
+          {buildTime
+            ? t('drawerFooterBuild', { version: appVersion, time: buildTime.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })
+            : t('drawerFooterVersion', { version: appVersion })}
         </AppText>
       </View>
     </View>

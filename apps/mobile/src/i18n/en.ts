@@ -28,6 +28,7 @@ export const en = {
   drawerDebug: 'Debug',
   drawerOpen: 'Open menu',
   drawerFooterVersion: 'Version {version}',
+  drawerFooterBuild: 'Version {version} · built {time}',
   locationApproximatePermission: 'Precise location is off, so this point may be up to 2 km away. Turn on Precise location for VIGHNAWAY in your phone settings, or move the map to the spot.',
   locationApproximate: 'Your location is approximate (about {m} m). Move the map to the exact spot if needed.',
   myLocationApproximatePermission: 'Precise location is off, so your start may be up to 2 km away. Turn on Precise location for VIGHNAWAY in your phone settings.',

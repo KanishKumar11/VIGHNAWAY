@@ -21,6 +21,7 @@ export const mr: Dictionary = {
   drawerDebug: "डीबग",
   drawerOpen: "मेनू उघडा",
   drawerFooterVersion: "आवृत्ती {version}",
+  drawerFooterBuild: "आवृत्ती {version} · बनवले {time}",
   locationApproximatePermission: "अचूक लोकेशन बंद आहे, त्यामुळे हे ठिकाण 2 किमीपर्यंत दूर असू शकते. फोनच्या सेटिंग्जमध्ये VIGHNAWAY साठी अचूक लोकेशन चालू करा, किंवा नकाशा योग्य ठिकाणी हलवा.",
   locationApproximate: "तुमचे लोकेशन अंदाजे आहे (सुमारे {m} मी). गरज असल्यास नकाशा योग्य ठिकाणी हलवा.",
   myLocationApproximatePermission: "अचूक लोकेशन बंद आहे, त्यामुळे तुमची सुरुवात 2 किमीपर्यंत दूर असू शकते. फोनच्या सेटिंग्जमध्ये VIGHNAWAY साठी अचूक लोकेशन चालू करा.",
