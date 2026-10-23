@@ -1,10 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import {
   type AdminUser,
   type AuthSessionResponse,
   type AuthUser,
   type Client,
+  type MyReport,
   type MyStatsResponse,
+  MY_REPORTS_LIMIT,
+  isStaffRole,
   type OtpRequestResponse,
   type OtpVerifyBody,
   type Role,
@@ -43,8 +46,8 @@ export class AuthService {
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(AUTH_REPO) private readonly repo: AuthRepo,
     @Inject(MAILER) private readonly mailer: Mailer,
-    /** Overridable so tests control time. */
-    private readonly clock: () => Date = () => new Date(),
+    /** Overridable so tests control time. Not a Nest provider, so DI must skip it. */
+    @Optional() private readonly clock: () => Date = () => new Date(),
   ) {}
 
   private get a() {
@@ -158,6 +161,23 @@ export class AuthService {
 
   stats(userId: string): Promise<MyStatsResponse> {
     return this.repo.reportStats(userId);
+  }
+
+  myReports(userId: string): Promise<MyReport[]> {
+    return this.repo.myReports(userId, MY_REPORTS_LIMIT);
+  }
+
+  /** The person changes the name shown on their own account (or removes it). */
+  async updateDisplayName(userId: string, displayName: string | null): Promise<AuthUser> {
+    const user = await this.repo.updateUser(userId, { displayName: displayName === null ? null : plainText(displayName) });
+    if (!user) throw new ApiException('NOT_FOUND', 'Account not found');
+    return toAuthUser(user);
+  }
+
+  /** A person removes their own citizen account. Staff accounts are managed by an admin, so they cannot do it here. */
+  async deleteOwnAccount(user: UserEntity): Promise<void> {
+    if (isStaffRole(user.role)) throw new ApiException('FORBIDDEN', 'Staff accounts are removed by an admin', { reason: 'staff' });
+    await this.repo.deleteAccount(user.id, user.email);
   }
 
   async listUsers(): Promise<AdminUser[]> {

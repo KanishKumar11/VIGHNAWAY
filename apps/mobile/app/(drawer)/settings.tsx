@@ -13,6 +13,7 @@ import { LiveBadge, SimulatedBadge } from '@/components/EvidenceChips';
 import { PressScale } from '@/components/motion';
 import { Card, GUTTER, Row, ScreenHeader, Section, StatusBarScrim } from '@/components/ui';
 import { switchDataMode } from '@/features/live/mode';
+import { useInstantValue } from '@/hooks/useInstantValue';
 import { usePausePlanning } from '@/hooks/usePausePlanning';
 import { Segmented } from '@/components/Segmented';
 import { appVersion } from '@/config/env';
@@ -40,6 +41,7 @@ const LANG_ENGLISH: Record<Language, StringKey> = { en: 'languageEnglish', hi: '
 /** A switch row: icon tile, label and its explanation, the switch on the right. */
 function SwitchRow({ icon, label, hint, value, onChange, testID, first }: { icon: LucideIcon; label: string; hint: string; value: boolean; onChange: (v: boolean) => void; testID?: string; first?: boolean }) {
   const tc = useColors();
+  const [shown, change] = useInstantValue(value, onChange);
   return (
     <Row
       icon={icon}
@@ -48,8 +50,8 @@ function SwitchRow({ icon, label, hint, value, onChange, testID, first }: { icon
       first={first}
       trailing={
         <Switch
-          value={value}
-          onValueChange={onChange}
+          value={shown}
+          onValueChange={change}
           accessibilityLabel={label}
           accessibilityHint={hint}
           trackColor={{ true: tc.accent, false: tc.controlBorder }}
@@ -121,6 +123,10 @@ export default function SettingsScreen() {
   const [focused, setFocused] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const taps = useRef(0);
+  // Each choice answers in the frame it is touched; the setting itself is applied just after (hooks/useInstantValue.ts).
+  const [shownProfile, chooseProfile] = useInstantValue(profile, (p: Profile) => useSettings.getState().setProfile(p));
+  const [shownAppearance, chooseAppearance] = useInstantValue(appearance, (a: Appearance) => useSettings.getState().setAppearance(a));
+  const [shownLanguage, chooseLanguage] = useInstantValue(language, (l: Language) => useSettings.getState().setLanguage(l));
 
   useEffect(() => {
     let alive = true;
@@ -258,12 +264,12 @@ export default function SettingsScreen() {
               </AppText>
               <ChoiceGrid
                 accessibilityLabel={t('settingsTravel')}
-                value={profile}
-                onChange={(p: Profile) => useSettings.getState().setProfile(p)}
+                value={shownProfile}
+                onChange={chooseProfile}
                 options={PROFILES.map((p) => ({ value: p, label: t(PROFILE_LABEL[p]), icon: PROFILE_ICON[p], testID: `settings-profile-${p}` }))}
               />
             </View>
-            {profile === 'foot' ? (
+            {shownProfile === 'foot' ? (
               <>
                 <View style={styles.rule} />
                 <SwitchRow first icon={Lightbulb} label={t('preferLitLabel')} hint={t('preferLitHint')} value={preferLit} onChange={(v) => useSettings.getState().setPreferLit(v)} testID="prefer-lit" />
@@ -304,8 +310,8 @@ export default function SettingsScreen() {
               </AppText>
               <Segmented
                 accessibilityLabel={t('settingsAppearance')}
-                value={appearance}
-                onChange={(a: Appearance) => useSettings.getState().setAppearance(a)}
+                value={shownAppearance}
+                onChange={chooseAppearance}
                 options={[
                   { value: 'system', label: t('appearanceSystem'), icon: Smartphone, testID: 'appearance-system' },
                   { value: 'light', label: t('appearanceLight'), icon: Sun, testID: 'appearance-light' },
@@ -320,8 +326,8 @@ export default function SettingsScreen() {
               </AppText>
               <Segmented
                 accessibilityLabel={t('settingsLanguage')}
-                value={language}
-                onChange={(l: Language) => useSettings.getState().setLanguage(l)}
+                value={shownLanguage}
+                onChange={chooseLanguage}
                 options={LANGUAGES.map((l) => ({ value: l, label: t(LANG_NATIVE[l]), testID: `language-${l}` }))}
               />
               <AppText variant="meta" tone="muted">

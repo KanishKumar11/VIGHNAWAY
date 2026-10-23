@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Client, MyStatsResponse, Role } from '@vighnaway/contracts';
+import type { Client, MyReport, MyStatsResponse, Role } from '@vighnaway/contracts';
 import { and, asc, count, desc, eq, gte, isNull, sql } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { DB } from '../db/db.module';
@@ -115,5 +115,31 @@ export class DrizzleAuthRepo implements AuthRepo {
       .innerJoin(incidents, eq(incidents.id, incidentReports.incidentId))
       .where(and(eq(incidentReports.userId, userId), sql`${incidents.verifiedAtS} is not null`));
     return { reports: Number(total?.n ?? 0), inVerifiedIncidents: Number(verified?.n ?? 0) };
+  }
+
+  async myReports(userId: string, limit: number): Promise<MyReport[]> {
+    const rows = await this.db
+      .select({
+        id: incidentReports.id,
+        type: incidentReports.type,
+        receivedAtS: incidentReports.receivedAtS,
+        status: incidents.status,
+        roadName: incidents.roadName,
+      })
+      .from(incidentReports)
+      .leftJoin(incidents, eq(incidents.id, incidentReports.incidentId))
+      .where(eq(incidentReports.userId, userId))
+      .orderBy(desc(incidentReports.receivedAtS), desc(incidentReports.id))
+      .limit(limit);
+    return rows as MyReport[];
+  }
+
+  async deleteAccount(userId: string, email: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      await tx.update(incidentReports).set({ userId: null }).where(eq(incidentReports.userId, userId));
+      await tx.delete(authSessions).where(eq(authSessions.userId, userId));
+      await tx.delete(authOtps).where(eq(authOtps.email, email));
+      await tx.delete(users).where(eq(users.id, userId));
+    });
   }
 }

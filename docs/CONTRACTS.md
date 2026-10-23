@@ -29,6 +29,9 @@ seconds** (`…S` fields) assigned by the server.
 | `POST /auth/otp/verify` | none | `{ email, code, client, displayName? }` | `AuthSessionResponse { token, expiresAt, user }`; 401 for any bad, expired, used or locked code; 403 for a disabled account or a role that may not sign in on that client (`error.details.reason` is `disabled` or `wrong_client`); the hourly 429s carry `details.retryAfterS` too |
 | `GET /auth/me` | session | | `MeResponse { user, client }` |
 | `POST /auth/logout` | session | | `204` |
+| `PATCH /me` | session | `{ displayName: string(1..60) | null }` | `UpdateMeResponse { user }`: the person renames their own account; nothing else about an account can be edited here |
+| `DELETE /me` | session | | `204`: the person removes their own citizen account (sessions, codes and the user row go; their reports stay with `user_id` cleared); 403 `details.reason: 'staff'` for an operator or admin |
+| `GET /me/reports` | session | | `MyReportsResponse { reports: { id, type, status | null, roadName | null, receivedAtS }[] }`: the person's newest 30 reports and the status of the incident each joined (history only) |
 | `GET /me/stats` | session | | `MyStatsResponse { reports, inVerifiedIncidents }` (counts for a thank-you; read by nothing else) |
 | `GET /admin/users` | admin session | | `AdminUsersResponse { users }` |
 | `POST /admin/users` | admin session | `{ email, role }` | `201 AdminUserResponse`; 409 if the email exists |
@@ -151,11 +154,13 @@ Sign-in is two calls. `otp/request` emails a 6-digit code (10 min, one use, 5 wr
 requests, 5 per email and 30 per network per hour); only an HMAC of email + code under `AUTH_SECRET` is stored.
 `otp/verify` creates a citizen account on first sign-in (or an admin, for an email in `ADMIN_EMAILS`), and returns an
 opaque session token (web 12 h, phone 30 days). Only its sha256 is stored; send it as `Authorization: Bearer`.
-Operators are added by an admin (`POST /admin/users`) before their first sign-in. Without `SMTP_URL` the code is
-written to the API log in development, and sign-in emails are refused when `NODE_ENV=production`.
+Operators are added by an admin (`POST /admin/users`) before their first sign-in. The mail server is set with
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` (nothing to URL-encode) or, as before, one `SMTP_URL`; the
+separate settings win when `SMTP_HOST` is set. Connecting gives up after 10 seconds. With neither, the code is written to the
+API log in development, and sign-in emails are refused when `NODE_ENV=production`.
 
 An account never feeds routing or corroboration. A signed-in report stores `user_id` for history and for the
-reporter's own counts (`/me/stats`); incidents stay the only state that drives routing, and only an operator action
+reporter's own counts (`/me/stats`) and list (`/me/reports`); incidents stay the only state that drives routing, and only an operator action
 sets Verified. Signing in is optional for reporting.
 
 ## Operator auth

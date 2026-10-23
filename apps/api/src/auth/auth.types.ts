@@ -1,4 +1,4 @@
-import type { Client, MyStatsResponse, Role } from '@vighnaway/contracts';
+import type { Client, MyReport, MyStatsResponse, Role } from '@vighnaway/contracts';
 
 export interface UserEntity {
   id: string;
@@ -56,6 +56,13 @@ export interface AuthRepo {
   revokeUserSessions(userId: string, at: Date): Promise<void>;
 
   reportStats(userId: string): Promise<MyStatsResponse>;
+  /** The person's newest reports with the status of the incident each joined. */
+  myReports(userId: string, limit: number): Promise<MyReport[]>;
+  /**
+   * Removes the account: sessions and sign-in codes go, the user row goes, and the person's reports stay (incidents are
+   * built from them) with the link to the person cleared.
+   */
+  deleteAccount(userId: string, email: string): Promise<void>;
 }
 
 export const AUTH_REPO = Symbol('AUTH_REPO');

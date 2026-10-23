@@ -291,3 +291,35 @@ describe('optional identity for reports', () => {
     expect((await optionalAuth(s.auth, req(`Bearer ${res.token}`)))?.user.email).toBe('asha@example.com');
   });
 });
+
+describe('own account (name, reports, removal)', () => {
+  it('changes and clears the display name, as plain text', async () => {
+    const s = setup();
+    const res = await signIn(s, 'asha@example.com', 'mobile', 'Asha');
+    expect((await s.auth.updateDisplayName(res.user.id, '  Asha K  ')).displayName).toBe('Asha K');
+    expect((await s.auth.updateDisplayName(res.user.id, null)).displayName).toBeNull();
+    await rejects(s.auth.updateDisplayName('nobody', 'X'), 'NOT_FOUND');
+  });
+
+  it('lists the person\'s own reports through the repo, at most the contract limit', async () => {
+    const s = setup();
+    const res = await signIn(s, 'asha@example.com', 'mobile');
+    s.repo.reports = Array.from({ length: 40 }, (_, i) => ({ id: `r${i}`, type: 'flood' as const, status: i % 2 ? ('verified' as const) : null, roadName: null, receivedAtS: 100 - i }));
+    expect((await s.auth.myReports(res.user.id)).length).toBe(30);
+  });
+
+  it('removes a citizen account: it can no longer sign in with the old token, and staff cannot remove theirs here', async () => {
+    const s = setup();
+    const res = await signIn(s, 'asha@example.com', 'mobile');
+    const ctx = await s.auth.authenticate(res.token);
+    await s.auth.deleteOwnAccount(ctx!.user);
+    expect(await s.auth.authenticate(res.token)).toBeNull();
+    expect(await s.repo.findUserByEmail('asha@example.com')).toBeNull();
+
+    const admin = await signIn(s, ADMIN, 'web');
+    const actx = await s.auth.authenticate(admin.token);
+    const err = await rejects(s.auth.deleteOwnAccount(actx!.user), 'FORBIDDEN');
+    expect(err.details).toMatchObject({ reason: 'staff' });
+    expect(await s.repo.findUserByEmail(ADMIN)).not.toBeNull();
+  });
+});

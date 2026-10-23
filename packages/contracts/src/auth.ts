@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IncidentStatusSchema, ReportTypeSchema } from './incidents';
 
 /**
  * Accounts (email one-time code). Signing in is optional for citizens and required for operators
@@ -84,6 +85,32 @@ export const MyStatsResponseSchema = z.object({
   inVerifiedIncidents: z.number().int().min(0),
 });
 export type MyStatsResponse = z.infer<typeof MyStatsResponseSchema>;
+
+/** PATCH /me: changes the name shown on the account. null removes it. Nothing else about an account can be edited here. */
+export const UpdateMeBodySchema = z.object({ displayName: z.string().trim().min(1).max(DISPLAY_NAME_MAX).nullable() }).strict();
+export type UpdateMeBody = z.infer<typeof UpdateMeBodySchema>;
+export const UpdateMeResponseSchema = z.object({ user: AuthUserSchema });
+export type UpdateMeResponse = z.infer<typeof UpdateMeResponseSchema>;
+
+/** GET /me/reports: how many reports are listed at most. */
+export const MY_REPORTS_LIMIT = 30;
+
+/**
+ * GET /me/reports: the signed-in reporter's own recent reports, newest first, with what became of each. `status` is the
+ * status of the incident the report joined, or null when it joined none (a Road clear report with nothing open nearby).
+ * A history for the person only: it is not a score and nothing reads it when planning a route.
+ */
+export const MyReportSchema = z.object({
+  id: z.string(),
+  type: ReportTypeSchema,
+  status: IncidentStatusSchema.nullable(),
+  roadName: z.string().nullable(),
+  /** Simulated seconds, the server's clock (display with formatSimClock). */
+  receivedAtS: z.number().int().min(0),
+});
+export type MyReport = z.infer<typeof MyReportSchema>;
+export const MyReportsResponseSchema = z.object({ reports: z.array(MyReportSchema).max(MY_REPORTS_LIMIT) });
+export type MyReportsResponse = z.infer<typeof MyReportsResponseSchema>;
 
 export const AdminUserSchema = AuthUserSchema.extend({
   disabled: z.boolean(),

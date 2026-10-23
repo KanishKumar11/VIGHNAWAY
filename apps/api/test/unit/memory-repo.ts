@@ -1,4 +1,4 @@
-import type { MyStatsResponse } from '@vighnaway/contracts';
+import type { MyReport, MyStatsResponse } from '@vighnaway/contracts';
 import type { AuthRepo, Mailer, OtpEntity, SessionEntity, UserEntity } from '../../src/auth/auth.types';
 
 /** In-memory AuthRepo with the same atomic semantics the SQL one provides. */
@@ -68,6 +68,15 @@ export class MemoryAuthRepo implements AuthRepo {
   }
   async reportStats() {
     return this.stats;
+  }
+  reports: MyReport[] = [];
+  async myReports(_userId: string, limit: number) {
+    return this.reports.slice(0, limit);
+  }
+  async deleteAccount(userId: string, email: string) {
+    for (const [id, s] of this.sessions) if (s.userId === userId) this.sessions.delete(id);
+    this.otps = this.otps.filter((o) => o.email !== email);
+    this.users.delete(userId);
   }
 }
 

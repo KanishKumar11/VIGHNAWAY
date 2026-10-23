@@ -27,4 +27,5 @@ USER node
 HEALTHCHECK --interval=10s --timeout=5s --start-period=45s --retries=15 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 # Migrations and the seed are idempotent, so every start brings the database up to date.
-CMD ["sh", "-c", "node dist/db/migrate.js && node dist/db/seed.js && node dist/main.js"]
+# scripts/boot.cjs answers health checks while that runs, then starts the API.
+CMD ["node", "scripts/boot.cjs"]

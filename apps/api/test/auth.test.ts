@@ -4,9 +4,11 @@ import {
   AdminUsersResponseSchema,
   AuthSessionResponseSchema,
   MeResponseSchema,
+  MyReportsResponseSchema,
   MyStatsResponseSchema,
   OtpRequestResponseSchema,
   ReportResponseSchema,
+  UpdateMeResponseSchema,
   type Client,
 } from '@vighnaway/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -148,5 +150,31 @@ describe('reports and thanks', () => {
     expect(stats.reports).toBe(1);
     expect(stats.inVerifiedIncidents).toBe(0);
     expect((await t.http().get('/me/stats')).status).toBe(401);
+  });
+});
+
+describe('own account', () => {
+  it('renames, lists its reports with their status, and removes itself while the reports stay', async () => {
+    const citizen = await signIn('erase@example.com', 'mobile');
+    const me = t.http();
+    const renamed = UpdateMeResponseSchema.parse((await me.patch('/me').set(citizen.bearer).send({ displayName: '  Erin  ' })).body);
+    expect(renamed.user.displayName).toBe('Erin');
+    expect((await me.patch('/me').set(citizen.bearer).send({ displayName: '' })).status).toBe(400);
+    expect((await me.patch('/me').send({ displayName: 'X' })).status).toBe(401);
+
+    expect((await t.http().post(`/scenarios/${SID}/reports`).set(citizen.bearer).send(report({ deviceId: 'device-erase-1' }))).status).toBe(201);
+    const mine = MyReportsResponseSchema.parse((await t.http().get('/me/reports').set(citizen.bearer)).body);
+    expect(mine.reports).toHaveLength(1);
+    expect((await t.http().get('/me/reports')).status).toBe(401);
+
+    expect((await t.http().delete('/me').set(citizen.bearer)).status).toBe(204);
+    expect((await t.http().get('/auth/me').set(citizen.bearer)).status).toBe(401);
+    // The report is still there for routing; it just points at nobody.
+    const rows = await h.sql`SELECT user_id FROM incident_reports WHERE id = ${mine.reports[0]!.id}`;
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.user_id).toBeNull();
+
+    const admin = await signIn(ADMIN, 'web');
+    expect((await t.http().delete('/me').set(admin.bearer)).status).toBe(403);
   });
 });

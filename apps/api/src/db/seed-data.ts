@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { and, count, eq, notInArray, sql } from 'drizzle-orm';
 import { GraphFileSchema, ScenarioSchema } from '@vighnaway/contracts';
 import { scenarios as bundles } from '@vighnaway/scenario-data';
@@ -38,6 +39,15 @@ export async function seedAll(db: Db, log: (line: string) => void = () => {}): P
     const [have] = await db.select({ n: count() }).from(roadEdges).where(eq(roadEdges.graphVersion, graph.graphVersion));
     const edgesCurrent = Number(have?.n ?? 0) === graph.edges.length;
     log(edgesCurrent ? `${id}: ${graph.edges.length} road edges already stored for ${graph.graphVersion}, skipping` : `${id}: storing ${graph.edges.length} road edges for ${graph.graphVersion} (first load can take a minute)`);
+    if (edgesCurrent) {
+      // Nothing to write when the stored definition matches: skipping avoids taking row locks at every boot.
+      const [row] = await db.select({ definition: scenarios.definition }).from(scenarios).where(eq(scenarios.id, scenario.id));
+      if (row && isDeepStrictEqual(row.definition, JSON.parse(JSON.stringify(scenario)))) {
+        log(`${id}: definition unchanged, nothing to write`);
+        out.push({ scenarioId: scenario.id, graphVersion: graph.graphVersion, edges: graph.edges.length, places: scenario.places.length });
+        continue;
+      }
+    }
     await db.transaction(async (tx) => {
       const rows = edgesCurrent ? [] : graph.edges.map((e) => ({
         id: e.id,

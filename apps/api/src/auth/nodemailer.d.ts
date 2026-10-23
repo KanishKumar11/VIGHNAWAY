@@ -9,6 +9,18 @@ declare module 'nodemailer' {
   }
   export interface Transporter {
     sendMail(options: SendMailOptions): Promise<unknown>;
+    close(): void;
   }
-  export function createTransport(url: string): Transporter;
+  export interface TransportOptions {
+    connectionTimeout?: number;
+    greetingTimeout?: number;
+    socketTimeout?: number;
+  }
+  export interface SmtpConfig extends TransportOptions {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth?: { user: string; pass: string };
+  }
+  export function createTransport(config: string | SmtpConfig, defaults?: TransportOptions): Transporter;
 }
