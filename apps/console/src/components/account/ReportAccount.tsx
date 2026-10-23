@@ -61,7 +61,7 @@ export function ReportAccount() {
 
   if (user) {
     return (
-      <section aria-label={t.account.menuLabel} className="mx-5 mt-6 flex flex-col gap-2 rounded-card border border-control-border bg-panel-sunken px-4 py-3">
+      <section aria-label={t.account.menuLabel} className="mx-4 mb-6 flex flex-col gap-2 rounded-card border border-panel-line bg-panel px-4 py-3 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="min-w-0 text-body font-semibold break-all text-ink">{t.account.signedInAs(user.email)}</p>
           <Button size="sm" variant="outline" onClick={() => void signOut()}>
@@ -74,9 +74,9 @@ export function ReportAccount() {
   }
 
   return (
-    <section aria-label={t.account.menuLabel} className="mx-5 mt-6 flex flex-col gap-3">
+    <section aria-label={t.account.menuLabel} className="mx-4 mb-6 flex flex-col gap-3">
       {open ? (
-        <div id={panelId} className="flex flex-col gap-3 rounded-card border border-control-border bg-panel-sunken p-4">
+        <div id={panelId} className="flex flex-col gap-3 rounded-card border border-panel-line bg-panel p-4 shadow-sm">
           <SignInForm />
           <Button size="sm" variant="outline" className="self-start" onClick={() => setOpen(false)}>
             {t.reportAccount.hide}

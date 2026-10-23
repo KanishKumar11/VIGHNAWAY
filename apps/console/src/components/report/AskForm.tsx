@@ -65,7 +65,7 @@ export function AskForm({ scenarioId, link }: { scenarioId: string; link: AskLin
   const sending = phase === 'sending';
 
   return (
-    <section aria-labelledby="ask-title" className="flex flex-col gap-5 px-5 py-6">
+    <section aria-labelledby="ask-title" className="mx-4 flex flex-col gap-5 rounded-card border border-panel-line bg-panel p-5 shadow-sm">
       <p className="text-meta font-semibold tracking-eyebrow text-ink-muted uppercase">{t.report.ask.eyebrow}</p>
       <h2 id="ask-title" className="text-console-title font-semibold">
         {t.report.ask.question(link.road ?? t.report.ask.unnamedRoad)}

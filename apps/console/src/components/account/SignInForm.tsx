@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState, type ClipboardEvent, type FormEvent
 import { t } from '@/i18n';
 import { api, ApiError } from '@/lib/api';
 import { API_URL } from '@/lib/env';
+import { markNameAsked, nameAlreadyAsked } from '@/lib/storage';
 import { useSession } from '@/stores/session';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -109,6 +110,7 @@ export function SignInForm({
   const nameId = `${ids}-name`;
   const errorId = `${ids}-error`;
   const wait = secondsLeft(resendAt, now);
+  const askName = step === 'code' && !nameAlreadyAsked(email);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -183,6 +185,8 @@ export function SignInForm({
       const displayName = name.trim();
       const resp = await api.otpVerify({ email, code, ...(displayName ? { displayName } : {}) });
       setSignedIn(true);
+      // The name is only used when a sign-in creates the account: never ask this browser for it again.
+      markNameAsked(email);
       useSession.getState().setSession(resp);
       setCode('');
       onSignedIn?.();
@@ -319,26 +323,28 @@ export function SignInForm({
           {...errorProps}
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor={nameId} className={LABEL}>
-          {t.account.nameLabel}
-        </label>
-        <input
-          id={nameId}
-          name="displayName"
-          type="text"
-          autoComplete="name"
-          placeholder={t.account.namePlaceholder}
-          maxLength={DISPLAY_NAME_MAX}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={FIELD}
-          aria-describedby={`${nameId}-hint`}
-        />
-        <p id={`${nameId}-hint`} className="text-meta text-ink-muted">
-          {t.account.nameHint}
-        </p>
-      </div>
+      {askName ? (
+        <div className="flex flex-col gap-2">
+          <label htmlFor={nameId} className={LABEL}>
+            {t.account.nameLabel}
+          </label>
+          <input
+            id={nameId}
+            name="displayName"
+            type="text"
+            autoComplete="name"
+            placeholder={t.account.namePlaceholder}
+            maxLength={DISPLAY_NAME_MAX}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={FIELD}
+            aria-describedby={`${nameId}-hint`}
+          />
+          <p id={`${nameId}-hint`} className="text-meta text-ink-muted">
+            {t.account.nameHint}
+          </p>
+        </div>
+      ) : null}
       {errorLine}
       <div className="flex flex-col gap-3">
         <Button

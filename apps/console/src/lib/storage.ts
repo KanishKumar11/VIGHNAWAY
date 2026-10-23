@@ -54,3 +54,23 @@ export function getDeviceId(): string {
   writeStorage('local', DEVICE_KEY, id);
   return id;
 }
+
+/**
+ * Whether the optional name has been asked for on this email in this browser. It is only used when a sign-in creates
+ * the account, so it is asked at most once per email, not at every sign-in. Nothing here is secret.
+ */
+const nameKey = (email: string) => `vw.nameAsked.${email.trim().toLowerCase()}`;
+export function nameAlreadyAsked(email: string): boolean {
+  try {
+    return localStorage.getItem(nameKey(email)) === '1';
+  } catch {
+    return false;
+  }
+}
+export function markNameAsked(email: string): void {
+  try {
+    localStorage.setItem(nameKey(email), '1');
+  } catch {
+    /* private mode: it will simply be asked again */
+  }
+}

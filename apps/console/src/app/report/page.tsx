@@ -7,6 +7,7 @@ import { AskForm } from '@/components/report/AskForm';
 import { ReportAccount } from '@/components/account/ReportAccount';
 import { ReportForm } from '@/components/report/ReportForm';
 import { ReportFooter, ReportHeader } from '@/components/report/ReportHeader';
+import { ReportShell } from '@/components/report/ReportShell';
 
 export const metadata: Metadata = { title: `${t.app.name} · ${t.report.title}` };
 export const viewport: Viewport = {
@@ -33,13 +34,13 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   const askLink = parseAsk(params);
   const live = isLiveScenario(scenario);
   return (
-    <div className="min-h-dvh bg-shell text-ink">
+    <ReportShell>
       <ReportHeader live={live} />
-      <main className="relative mx-auto flex min-h-[calc(100dvh-var(--spacing)*36)] max-w-[calc(var(--spacing)*130)] flex-col border-t border-shell-line bg-panel">
+      <main className="relative mx-auto flex min-h-[calc(100dvh-var(--spacing)*36)] max-w-[calc(var(--spacing)*130)] flex-col">
         <ReportAccount />
         {askLink ? <AskForm scenarioId={scenario.id} link={askLink} /> : <ReportForm scenarioId={scenario.id} audience={audience} />}
         <ReportFooter attribution={ATTRIBUTION} />
       </main>
-    </div>
+    </ReportShell>
   );
 }

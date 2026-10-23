@@ -4,7 +4,7 @@ import type { CongestionLevel, Depth, LatLng, ReportInput, ReportType, Severity,
 import { REPORT_DESCRIPTION_MAX, REPORT_TYPES, ReportInputSchema } from '@vighnaway/contracts';
 import { humanSilhouette, motion as motionTokens } from '@vighnaway/tokens';
 import successAnimation from '@vighnaway/tokens/lottie/success.json';
-import { CircleAlert, LocateFixed, MapPin, Send } from 'lucide-react';
+import { Check, CircleAlert, Eye, LocateFixed, MapPin, Send, TriangleAlert } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { t } from '@/i18n';
@@ -16,7 +16,6 @@ import { getDeviceId } from '@/lib/storage';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import dynamic from 'next/dynamic';
 import type { ReportGraph } from './reportGraph';
-import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
 import { LottiePlayer } from '@/components/motion/LottiePlayer';
 import { toast } from '@/components/ui/toast';
 
@@ -100,12 +99,15 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
   );
 }
 
-function Section({ eyebrow, label, error, children, id }: { eyebrow: string; label: string; error?: string; children: ReactNode; id: string }) {
+/** A numbered step like the phone's report screen: a lime number and the title, then its controls on a white card. */
+function Step({ index, label, error, children, id, bare = false }: { index: number; label: string; error?: string; children: ReactNode; id: string; bare?: boolean }) {
   return (
     <fieldset id={id} className="flex scroll-mt-6 flex-col gap-3" aria-describedby={error ? `${id}-err` : undefined} aria-invalid={error ? true : undefined}>
-      <legend className="mb-3 flex flex-col gap-0.5">
-        <span className="text-meta font-medium text-ink-muted">{eyebrow}</span>
-        <span className="text-title font-semibold text-ink">{label}</span>
+      <legend className="mb-3 flex items-center gap-3 px-1">
+        <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-meta font-bold text-on-accent">
+          {index}
+        </span>
+        <span className="text-title font-bold text-ink">{label}</span>
       </legend>
       <AnimatePresence>
         {error && (
@@ -115,14 +117,14 @@ function Section({ eyebrow, label, error, children, id }: { eyebrow: string; lab
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="-mt-2 flex items-center gap-2 text-body font-semibold text-danger-ink"
+            className="-mt-2 flex items-center gap-2 px-1 text-body font-semibold text-danger-ink"
           >
-            <CircleAlert aria-hidden className="size-4.5 shrink-0" />
+            <TriangleAlert aria-hidden className="size-4 shrink-0" />
             {error}
           </motion.p>
         )}
       </AnimatePresence>
-      {children}
+      {bare ? children : <div className="flex flex-col gap-3 rounded-card border border-panel-line bg-panel p-4 shadow-sm">{children}</div>}
     </fieldset>
   );
 }
@@ -310,8 +312,11 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
 
   const types = REPORT_TYPES;
   const fieldErrors = (['type', 'congestion', 'description', 'point'] as const).filter((k) => errors[k]).length;
+  // The detail step (depth, severity, ...) takes number 2 when the type has one; the rest follow it.
+  const hasDetail = type === 'flood' || type === 'congestion' || type === 'debris' || type === 'accident' || type === 'walking_concern';
+  const locIndex = hasDetail ? 3 : 2;
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-9 px-5 pt-6">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-6 px-4 pt-1">
       {audience && (
         <p data-testid="audience-note" className="-mb-3 rounded-card border border-control-border bg-panel-sunken px-4 py-2.5 text-meta font-semibold text-ink">
           {t.report.audienceNote}
@@ -319,43 +324,48 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
       )}
       <p className="text-body text-ink-muted">{t.report.intro}</p>
 
-      <Section eyebrow={t.report.step(1, 3)} label={t.report.typeLabel} error={errors.type} id={`${ids}-type`}>
-        <LayoutGroup id="types">
-          <div className="grid grid-cols-3 gap-2.5">
-            {types.map((kind) => {
-              const on = type === kind;
-              return (
-                <motion.button
-                  key={kind}
-                  type="button"
-                  aria-pressed={on}
-                  whileTap={{ scale: motionTokens.buttonPressScale }}
-                  onClick={() => {
-                    setType(kind);
-                    setErrors((e) => ({ ...e, type: undefined, congestion: undefined, concern: undefined }));
-                    setConcern(null);
-                  }}
-                  className={cn(
-                    'relative flex aspect-square flex-col items-center justify-center gap-2 rounded-card border p-2 text-center text-meta font-semibold text-ink',
-                    on ? 'border-transparent' : errors.type ? 'border-danger bg-panel-raised' : 'border-control-border bg-panel-raised',
-                  )}
-                >
-                  {on && <motion.span layoutId="type-bg" className="absolute inset-0 rounded-card border-2 border-accent bg-recommended-surface" transition={snappy} />}
-                  <span className={cn('relative flex size-11 items-center justify-center rounded-chip', on ? 'bg-accent text-on-accent' : kind === 'road_clear' ? 'bg-positive-soft text-positive-ink' : 'bg-panel-sunken text-ink')}>
-                    <IncidentGlyph type={kind} className="size-6" />
-                  </span>
-                  <span className={cn('relative leading-tight', on && 'text-recommended-ink')}>{t.report.types[kind]}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </LayoutGroup>
-      </Section>
+      <Step index={1} label={t.report.typeLabel} error={errors.type} id={`${ids}-type`} bare>
+        <div role="radiogroup" aria-label={t.report.typeLabel} className="grid grid-cols-2 gap-2">
+          {types.map((kind) => {
+            const on = type === kind;
+            return (
+              <motion.button
+                key={kind}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                data-testid={`type-${kind}`}
+                whileTap={{ scale: motionTokens.buttonPressScale }}
+                onClick={() => {
+                  setType(kind);
+                  setErrors((e) => ({ ...e, type: undefined, congestion: undefined, concern: undefined }));
+                  setConcern(null);
+                }}
+                className={cn(
+                  // Always 2 px, so picking a card never nudges its neighbours. The picked one is the deep brand surface with a lime edge.
+                  'relative flex min-h-[4.5rem] items-center gap-2.5 rounded-sheet border-2 px-2.5 py-3 text-left transition-colors',
+                  on ? 'border-accent bg-chrome-bg text-chrome-ink' : errors.type ? 'border-danger bg-panel text-ink' : 'border-panel-line bg-panel text-ink shadow-sm',
+                )}
+              >
+                <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-full', on ? 'bg-white' : 'bg-panel-sunken')}>
+                  <img src={`/report/${kind}.png`} alt="" width={28} height={28} draggable={false} className="size-7 object-contain" />
+                </span>
+                <span className="min-w-0 flex-1 text-body leading-tight font-semibold">{t.report.types[kind]}</span>
+                {on && (
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={snappy} className="absolute top-1.5 right-1.5 grid size-[18px] place-items-center rounded-full bg-accent text-on-accent">
+                    <Check aria-hidden className="size-3" strokeWidth={3.5} />
+                  </motion.span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      </Step>
 
       <AnimatePresence mode="popLayout" initial={false}>
         {type === 'flood' && (
           <motion.div key="depth" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <Section eyebrow={t.report.detailEyebrow} label={t.report.depthLabel} id={`${ids}-depth`}>
+            <Step index={2} label={t.report.depthLabel} id={`${ids}-depth`}>
               <div className="flex items-stretch gap-4">
                 <DepthFigure depth={depth} />
                 <LayoutGroup id="depth">
@@ -380,13 +390,13 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                   </div>
                 </LayoutGroup>
               </div>
-            </Section>
+            </Step>
           </motion.div>
         )}
 
         {type === 'congestion' && (
           <motion.div key="cong" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <Section eyebrow={t.report.detailEyebrow} label={t.report.congestionLabel} error={errors.congestion} id={`${ids}-cong`}>
+            <Step index={2} label={t.report.congestionLabel} error={errors.congestion} id={`${ids}-cong`}>
               <Segmented
                 id="congestion"
                 options={['moderate', 'heavy', 'standstill'] as const}
@@ -397,13 +407,13 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                   setErrors((e) => ({ ...e, congestion: undefined }));
                 }}
               />
-            </Section>
+            </Step>
           </motion.div>
         )}
 
         {type === 'walking_concern' && (
           <motion.div key="concern" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <Section eyebrow={t.report.detailEyebrow} label={t.report.concernLabel} error={errors.concern} id={`${ids}-concern`}>
+            <Step index={2} label={t.report.concernLabel} error={errors.concern} id={`${ids}-concern`}>
               <Segmented
                 id="concern"
                 options={['poorly_lit', 'isolated'] as const}
@@ -415,22 +425,22 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
                 }}
               />
               <p className="text-meta text-ink-muted">{t.report.concernHint}</p>
-            </Section>
+            </Step>
           </motion.div>
         )}
 
         {(type === 'debris' || type === 'accident') && (
           <motion.div key="sev" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <Section eyebrow={t.report.detailEyebrow} label={t.report.severityLabel} id={`${ids}-sev`}>
+            <Step index={2} label={t.report.severityLabel} id={`${ids}-sev`}>
               <Segmented id="severity" options={['low', 'medium', 'high'] as const} value={severity} labels={t.report.severity} onChange={setSeverity} />
               <Switch checked={impassable} onChange={setImpassable} label={t.report.impassable} />
-            </Section>
+            </Step>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <Section eyebrow={t.report.step(2, 3)} label={t.report.locationLabel} error={errors.point} id={`${ids}-loc`}>
-        <div className={cn('overflow-hidden rounded-card border bg-panel-raised', errors.point ? 'border-2 border-danger' : 'border-control-border')}>
+      <Step index={locIndex} label={t.report.locationLabel} error={errors.point} id={`${ids}-loc`} bare>
+        <div className={cn('overflow-hidden rounded-card border bg-panel shadow-sm', errors.point ? 'border-2 border-danger' : 'border-panel-line')}>
           <div className="relative h-64">
             {graph ? (
               <MapPanel
@@ -451,7 +461,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
               type="button"
               onClick={locateMe}
               disabled={locating}
-              className="vw-press absolute top-2 right-2 z-30 inline-flex h-10 items-center gap-2 rounded-button border border-control-border bg-panel-raised px-3.5 text-meta font-semibold text-ink disabled:opacity-60"
+              className="vw-press absolute top-2 right-2 z-30 inline-flex h-11 items-center gap-2 rounded-button border border-panel-line bg-panel px-3.5 text-meta font-semibold text-ink shadow-md disabled:opacity-60"
             >
               <LocateFixed aria-hidden className="size-4" />
               {locating ? t.report.locating : t.report.useLocation}
@@ -481,49 +491,49 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
           </div>
         </div>
         {locationMsg && <p className="text-body text-warn-ink">{locationMsg}</p>}
-      </Section>
+      </Step>
 
       {type !== 'walking_concern' && (
-      <div id={`${ids}-notewrap`} className="flex flex-col gap-2">
-        <label htmlFor={`${ids}-note`} className="flex flex-col gap-0.5">
-          <span className="text-meta font-medium text-ink-muted">{t.report.step(3, 3)}</span>
-          <span className="text-title font-semibold text-ink">{t.report.noteLabel}</span>
-        </label>
-        <textarea
-          id={`${ids}-note`}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={3}
-          placeholder={t.report.notePlaceholder}
-          aria-invalid={noteTooLong || undefined}
-          className={cn(
-            'mt-1 rounded-card border bg-panel-raised p-4 text-body text-ink outline-none placeholder:text-ink-muted focus:outline-2 focus:outline-offset-2 focus:outline-focus',
-            noteTooLong ? 'border-2 border-danger' : 'border-control-border',
+        <Step index={locIndex + 1} label={t.report.noteLabel} id={`${ids}-notewrap`}>
+          <textarea
+            id={`${ids}-note`}
+            aria-label={t.report.noteLabel}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder={t.report.notePlaceholder}
+            aria-invalid={noteTooLong || undefined}
+            className={cn(
+              'min-h-24 w-full resize-none rounded-card border-2 bg-transparent p-2 text-body text-ink outline-none placeholder:text-ink-muted',
+              noteTooLong ? 'border-danger' : 'border-transparent focus:border-focus',
+            )}
+          />
+          <div className="flex items-center gap-3">
+            <span className="h-1 flex-1 overflow-hidden rounded-chip bg-panel-line">
+              <motion.span
+                className={cn('block h-full w-full origin-left rounded-chip', noteTooLong ? 'bg-danger' : 'bg-ink-muted')}
+                animate={{ scaleX: Math.min(1, noteLen / REPORT_DESCRIPTION_MAX) }}
+                transition={{ duration: 0.2 }}
+              />
+            </span>
+            <p className={cn('text-meta tabular', noteTooLong ? 'font-semibold text-danger-ink' : 'text-ink-muted')}>{t.report.counter(noteLen, REPORT_DESCRIPTION_MAX)}</p>
+          </div>
+          {errors.description && (
+            <p role="alert" className="flex items-center gap-2 text-body font-semibold text-danger-ink">
+              <CircleAlert aria-hidden className="size-4.5 shrink-0" />
+              {errors.description}
+            </p>
           )}
-        />
-        <div className="flex items-center gap-3">
-          <span className="h-1 flex-1 overflow-hidden rounded-chip bg-panel-line">
-            <motion.span
-              className={cn('block h-full w-full origin-left rounded-chip', noteTooLong ? 'bg-danger' : 'bg-ink-muted')}
-              animate={{ scaleX: Math.min(1, noteLen / REPORT_DESCRIPTION_MAX) }}
-              transition={{ duration: 0.2 }}
-            />
-          </span>
-          <p className={cn('text-meta tabular', noteTooLong ? 'font-semibold text-danger-ink' : 'text-ink-muted')}>{t.report.counter(noteLen, REPORT_DESCRIPTION_MAX)}</p>
-        </div>
-        {errors.description && (
-          <p role="alert" className="flex items-center gap-2 text-body font-semibold text-danger-ink">
-            <CircleAlert aria-hidden className="size-4.5 shrink-0" />
-            {errors.description}
-          </p>
-        )}
-      </div>
+        </Step>
       )}
 
-      <div className="flex flex-col gap-1 rounded-card bg-panel-sunken px-4 py-2">
-        <Switch checked={observed} onChange={setObserved} label={t.report.observed} />
+      <div className="flex items-center gap-3 rounded-card border border-panel-line bg-panel px-4 py-1 shadow-sm">
+        <Eye aria-hidden className="size-5 shrink-0 text-ink-muted" />
+        <div className="min-w-0 flex-1">
+          <Switch checked={observed} onChange={setObserved} label={t.report.observed} />
+        </div>
       </div>
-      <p className="-mt-6 text-meta text-ink-muted">{t.report.deviceNote}</p>
+      <p className="-mt-3 px-1 text-meta text-ink-muted">{t.report.deviceNote}</p>
 
       {errors.form && (
         <p role="alert" className="flex items-start gap-2.5 rounded-card border border-danger bg-danger-surface p-4 text-body font-semibold text-danger-ink">
@@ -532,7 +542,7 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
         </p>
       )}
 
-      <div className="sticky bottom-0 z-40 -mx-5 flex flex-col items-center gap-2 border-t border-panel-line bg-panel px-5 pt-3 pb-[max(var(--vw-space-md),env(safe-area-inset-bottom))]">
+      <div className="sticky bottom-0 z-40 -mx-4 flex flex-col items-center gap-2 rounded-t-sheet border border-b-0 border-panel-line bg-panel px-4 pt-3 pb-[max(var(--vw-space-md),env(safe-area-inset-bottom))] shadow-lg">
         {fieldErrors > 0 && (
           <p className="flex w-full items-center gap-2 text-meta font-semibold text-danger-ink">
             <CircleAlert aria-hidden className="size-4 shrink-0" />
