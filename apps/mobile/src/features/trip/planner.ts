@@ -14,6 +14,7 @@ import { useActivity } from '@/stores/activity';
 import { useIncidents } from '@/stores/incidents';
 import { isCustomPlaceId, placeById, registerCustomPlace, useScenario } from '@/stores/scenario';
 import { useSettings } from '@/stores/settings';
+import { entryNodeFor } from '@/features/guidance/access';
 import { usePlanGate } from './planGate';
 import { useSim } from '@/stores/sim';
 import { useToast } from '@/stores/toast';
@@ -28,7 +29,9 @@ import { motion } from '@/theme';
 export function planContextKey(): string {
   const { profile } = useSettings.getState();
   const { originId, destinationId } = useTrip.getState();
-  return `${profile}|${originId}|${destinationId ?? 'none'}`;
+  // The nodes a local road joins the network at are part of the trip: finding them is a new plan, not a route change.
+  const joins = `${entryNodeFor('from') ?? ''}/${entryNodeFor('to') ?? ''}`;
+  return `${profile}|${originId}|${destinationId ?? 'none'}${joins === '/' ? '' : `|${joins}`}`;
 }
 
 export interface PlanOutcome {
@@ -53,8 +56,9 @@ export function computePlan(): PlanOutcome | null {
   const origin = placeById(scenario, trip.originId);
   const dest = placeById(scenario, trip.destinationId);
   if (!origin || !dest) return null;
-  const originNode = nodeFor(graph, origin);
-  const destNode = nodeFor(graph, dest);
+  // A local road found from the start (or to the destination) says where on the network the trip joins it.
+  const originNode = entryNodeFor('from') ?? nodeFor(graph, origin);
+  const destNode = entryNodeFor('to') ?? nodeFor(graph, dest);
   const conditions = {
     incidents,
     nowS,
