@@ -1,21 +1,18 @@
 import { useRef } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, { ZoomIn } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useReduceMotion } from '@/lib/motion';
 import { useDialog, type DialogAction, type DialogSpec } from '@/stores/dialog';
 import { createStyles, hairline, layout, radius, shadow, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
 import { Button } from './Button';
 import { CircleAlert, Info, TriangleAlert } from './icons';
-import { springEntry } from './motion';
 
 /**
  * Themed confirmation dialog: a centred card on the theme's scrim, an icon tile in the tone's
  * colour, the title and message, then full-width buttons (stacked so long Hindi or Marathi labels
  * never clip). Mounted once at the root; screens call `showDialog` from stores/dialog.
- * Android Back and a tap on the scrim close it without choosing anything.
+ * It appears at once, with no fade or bounce. Android Back and a tap on the scrim close it without choosing anything.
  */
 export function DialogHost() {
   const current = useDialog((s) => s.current);
@@ -24,7 +21,7 @@ export function DialogHost() {
     <Modal
       visible={!!current}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={close}
       statusBarTranslucent
       navigationBarTranslucent
@@ -45,7 +42,6 @@ function DialogBody() {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const reduce = useReduceMotion();
   const current = useDialog((s) => s.current);
   const close = useDialog((s) => s.close);
   // Keep the last dialog's content while the Modal fades out, so the card does not empty first.
@@ -88,9 +84,8 @@ function DialogBody() {
         accessibilityElementsHidden
       />
       {spec ? (
-        <Animated.View
+        <View
           key={spec.title}
-          entering={reduce ? undefined : springEntry(ZoomIn)}
           style={[styles.card, shadow('lg')]}
           accessibilityViewIsModal
           accessibilityRole="alert"
@@ -125,7 +120,7 @@ function DialogBody() {
               />
             ))}
           </View>
-        </Animated.View>
+        </View>
       ) : null}
     </View>
   );

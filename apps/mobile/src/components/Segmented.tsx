@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { haptic } from '@/lib/feedback';
 import { useReduceMotion } from '@/lib/motion';
 import { useSettings } from '@/stores/settings';
 import { createStyles, fontFamily, glow, LARGER_TEXT, hairline, layout, motion, radius, shadow, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
 import type { LucideIcon } from './icons';
+import { easing } from './motion';
 
 export interface SegmentOption<T extends string> {
   value: T;
@@ -44,7 +45,8 @@ export function Segmented<T extends string>({ options, value, onChange, variant 
   const x = useSharedValue(0);
   useEffect(() => {
     const target = index * segW;
-    x.value = reduce || segW === 0 ? target : withSpring(target, motion.springSnappy);
+    // A short tween, not a spring: the pill lands with the label colour instead of wobbling after it.
+    x.value = reduce || segW === 0 ? target : withTiming(target, { duration: motion.statusUpgrade - 100, easing });
   }, [index, segW, reduce, x]);
   const indicator = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   const shell = variant === 'shell';
@@ -84,7 +86,7 @@ export function Segmented<T extends string>({ options, value, onChange, variant 
             style={[styles.segment, dense && styles.segmentDense]}
           >
             {Icon && showIcons ? <Icon size={16} color={fg} strokeWidth={2} /> : null}
-            <AppText variant="meta" numberOfLines={scale > 1.2 ? 2 : 1} style={[styles.label, { color: fg }, selected && styles.labelSelected]}>
+            <AppText variant="meta" control numberOfLines={scale > 1.2 ? 2 : 1} style={[styles.label, { color: fg }, selected && styles.labelSelected]}>
               {o.label}
             </AppText>
           </Pressable>

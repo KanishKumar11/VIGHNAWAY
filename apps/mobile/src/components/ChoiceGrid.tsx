@@ -52,7 +52,7 @@ export function ChoiceGrid<T extends string>({
             style={[styles.tile, selected ? styles.tileOn : styles.tileOff]}
           >
             {Icon ? <Icon size={20} color={fg} strokeWidth={2.25} /> : null}
-            <AppText style={[styles.label, { color: fg }]} numberOfLines={2}>
+            <AppText control style={[styles.label, { color: fg }]} numberOfLines={2}>
               {o.label}
             </AppText>
           </PressScale>

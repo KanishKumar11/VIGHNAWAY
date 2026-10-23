@@ -15,6 +15,7 @@ import { hazardText, incidentA11y, sourceText } from '@/i18n/engineText';
 import { fmtAge, fmtDuration } from '@/i18n/format';
 import { useReduceMotion } from '@/lib/motion';
 import { useFeed } from '@/stores/feed';
+import { useSheetAnimation } from './sheetAnimation';
 import { createStyles, fontFamily, hairline, motion, radius, spacing, text, useColors } from '@/theme';
 
 /** "Effect on routes", from the current plan's evaluation of this incident. */
@@ -170,6 +171,7 @@ export const EvidenceSheet = forwardRef<BottomSheetModal, Props>(function Eviden
   const tc = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
+  const sheetAnimation = useSheetAnimation();
   const backdrop = useCallback(
     (p: BottomSheetBackdropProps) => <BottomSheetBackdrop {...p} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />,
     [],
@@ -178,6 +180,7 @@ export const EvidenceSheet = forwardRef<BottomSheetModal, Props>(function Eviden
   return (
     <BottomSheetModal
       ref={ref}
+      animationConfigs={sheetAnimation}
       enableDynamicSizing
       enablePanDownToClose
       onDismiss={onDismiss}

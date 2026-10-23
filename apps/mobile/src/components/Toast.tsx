@@ -1,13 +1,12 @@
 import { View } from 'react-native';
-import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useReduceMotion } from '@/lib/motion';
 import { useToast } from '@/stores/toast';
 import { createStyles, hairline, motion, radius, shadow, spacing, useColors } from '@/theme';
 import { AppText } from './AppText';
-import { springEntry } from './motion';
 import { CircleCheck, Info, TriangleAlert } from './icons';
 
-/** Calm toast that springs in from the top. Rendered by the screen that owns the area (Navigate and Report). */
+/** Calm toast that appears in place with a short fade (no spring, no slide). Rendered by the screen that owns the area (Navigate and Report). */
 export function ToastHost({ top }: { top: number }) {
   const tc = useColors();
   const styles = useStyles();
@@ -20,8 +19,8 @@ export function ToastHost({ top }: { top: number }) {
     <View pointerEvents="none" style={[styles.wrap, { top }]}>
       <Animated.View
         key={toast.id}
-        entering={reduce ? undefined : springEntry(FadeInUp)}
-        exiting={reduce ? undefined : FadeOutUp.duration(motion.banner)}
+        entering={reduce ? undefined : FadeIn.duration(motion.buttonPress + 40)}
+        exiting={reduce ? undefined : FadeOut.duration(motion.buttonPress + 40)}
         style={[styles.toast, warn && styles.warn, shadow('md')]}
         accessibilityLiveRegion="polite"
         accessibilityRole="alert"

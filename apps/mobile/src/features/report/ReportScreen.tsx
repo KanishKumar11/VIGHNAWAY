@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Switch, TextInput, View, type TextInputInstance } from 'react-native';
+import { Image, Platform, StyleSheet, Switch, TextInput, View, type ImageSourcePropType, type TextInputInstance } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from 'react-native-maps';
 import Animated, { FadeIn, FadeOut, ZoomIn, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
@@ -15,7 +15,6 @@ import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { Button } from '@/components/Button';
 import { ModeBadge } from '@/components/EvidenceChips';
 import { Check, Crosshair, Eye, LocateFixed, MapPin, Trash, TriangleAlert, X } from '@/components/icons';
-import { IncidentGlyph } from '@/components/IncidentGlyph';
 import { Lottie } from '@/components/Lottie';
 import { MapField } from '@/components/MapField';
 import { easing, enterUp, PressScale } from '@/components/motion';
@@ -35,7 +34,7 @@ import { useSettings } from '@/stores/settings';
 import { useToast } from '@/stores/toast';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
-import { createStyles, fontFamily, solidTint, useTheme, hairline, layout, motion, radius, spacing, text, useColors, type ThemeColors } from '@/theme';
+import { createStyles, fontFamily, useBrand, useTheme, hairline, layout, motion, radius, spacing, text, useColors } from '@/theme';
 import { DepthSelector } from './DepthSelector';
 import { MapPicker } from './MapPicker';
 import { PhotoField } from './PhotoField';
@@ -52,9 +51,16 @@ const TYPES: { type: ReportType; label: StringKey }[] = [
   { type: 'road_clear', label: 'typeRoadClear' },
 ];
 
-/** One hue per report type, so each choice is recognisable before it is read. */
-const typeColor = (tc: ThemeColors, type: ReportType): string =>
-  ({ flood: tc.floodProneSolid, closure: tc.inkMuted, congestion: tc.warn, debris: tc.brandAlt, accident: tc.danger, walking_concern: tc.brand, road_clear: tc.positive })[type];
+/** The picture for each report type (assets/report, trimmed to the same square so they line up). */
+const TYPE_IMAGE: Record<ReportType, ImageSourcePropType> = {
+  flood: require('../../../assets/report/flood.png'),
+  closure: require('../../../assets/report/closure.png'),
+  congestion: require('../../../assets/report/congestion.png'),
+  debris: require('../../../assets/report/debris.png'),
+  accident: require('../../../assets/report/accident.png'),
+  walking_concern: require('../../../assets/report/walking_concern.png'),
+  road_clear: require('../../../assets/report/road_clear.png'),
+};
 
 /** A labelled group of controls, with the field's error underneath. */
 function Step({ title, error, index, bare, children }: { title: string; error?: string; index: number; bare?: boolean; children: React.ReactNode }) {
@@ -101,9 +107,9 @@ function TypeCard({ type, label, selected, onPress }: { type: ReportType; label:
     if (selected && !reduce) pop.value = withSequence(withTiming(0.95, { duration: motion.buttonPress }), withSpring(1, motion.springSnappy));
   }, [selected, reduce, pop]);
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
-  const hue = typeColor(tc, type);
-  // Solid colours only: a see-through tint lets whatever sits behind the card show through as a box.
-  const cardBg = selected ? solidTint(hue, tc.panel, 0.12) : tc.panel;
+  // The picked card is the deep brand surface with a lime edge and tick; the picture sits on a white disc so it reads on both.
+  const brand = useBrand();
+  const cardBg = selected ? brand.hero : tc.panel;
   return (
     <Animated.View style={[styles.typeWrap, popStyle]}>
       <PressScale
@@ -113,17 +119,17 @@ function TypeCard({ type, label, selected, onPress }: { type: ReportType; label:
         accessibilityRole="radio"
         accessibilityLabel={label}
         accessibilityState={{ selected }}
-        style={[styles.type, { backgroundColor: cardBg, borderColor: selected ? hue : tc.panelLine }]}
+        style={[styles.type, { backgroundColor: cardBg, borderColor: selected ? tc.accent : tc.panelLine }]}
       >
-        <View style={[styles.typeDisc, { backgroundColor: solidTint(hue, cardBg, selected ? 0.22 : 0.14) }]}>
-          <IncidentGlyph type={type} size={26} color={hue} />
+        <View style={[styles.typeDisc, { backgroundColor: selected ? tc.white : tc.panelSunken }]}>
+          <Image source={TYPE_IMAGE[type]} style={styles.typeImage} resizeMode="contain" accessible={false} />
         </View>
-        <AppText variant="label" numberOfLines={2} style={[styles.typeLabel, selected && styles.strong]}>
+        <AppText variant="label" control numberOfLines={2} style={[styles.typeLabel, selected && [styles.strong, { color: brand.onHero }]]}>
           {label}
         </AppText>
         {selected ? (
-          <Animated.View entering={reduce ? undefined : ZoomIn.duration(motion.statusUpgrade)} style={[styles.tick, { backgroundColor: hue }]}>
-            <Check size={12} color={tc.white} strokeWidth={3} />
+          <Animated.View entering={reduce ? undefined : ZoomIn.duration(motion.statusUpgrade)} style={[styles.tick, { backgroundColor: tc.accent }]}>
+            <Check size={12} color={tc.onAccent} strokeWidth={3} />
           </Animated.View>
         ) : null}
       </PressScale>
@@ -189,7 +195,6 @@ export function ReportScreen() {
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [photo, setPhoto] = useState<CapturedPhoto | null>(null);
   const [noteFocused, setNoteFocused] = useState(false);
-  const [headerH, setHeaderH] = useState(insets.top + layout.minTouch + spacing.xl);
 
   // Default point: the map centre when it is on a mapped road, else the vehicle, else the trip
   // start, so the form opens on a spot that can be sent (the map may be showing somewhere else).
@@ -319,29 +324,26 @@ export function ReportScreen() {
     <View style={styles.root}>
       <ThemedStatusBar />
       <StatusBarScrim />
-      {/* Android draws the modal edge to edge: the header clears the status bar and side insets. */}
-      <View
-        style={[styles.header, { paddingTop: insets.top + spacing.xs, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER }]}
-        onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
-      >
-        <View style={styles.headerBar}>
-          <ModeBadge onShell={false} compact />
-          <RoundButton icon={X} label={t('reportClose')} onPress={() => router.dismiss()} testID="report-close" />
-        </View>
-        <AppText variant="headline" accessibilityRole="header">
-          {t('reportTitle')}
-        </AppText>
-        <AppText tone="muted">{t(liveMode ? 'reportLiveNote' : 'reportSimulatedNote')}</AppText>
-      </View>
       <KeyboardAwareScrollView
         bottomOffset={spacing.lg}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: layout.minTouch + spacing.xl + insets.bottom, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER },
+          { paddingTop: insets.top + spacing.xs, paddingBottom: layout.minTouch + spacing.xl + insets.bottom, paddingLeft: insets.left + GUTTER, paddingRight: insets.right + GUTTER },
         ]}
       >
+        {/* Android draws the modal edge to edge: the header scrolls with the form and starts below the status bar. */}
+        <View style={styles.header}>
+          <View style={styles.headerBar}>
+            <ModeBadge onShell={false} compact />
+            <RoundButton icon={X} label={t('reportClose')} onPress={() => router.dismiss()} testID="report-close" />
+          </View>
+          <AppText style={styles.pageTitle} accessibilityRole="header">
+            {t('reportTitle')}
+          </AppText>
+          <AppText tone="muted">{t(liveMode ? 'reportLiveNote' : 'reportSimulatedNote')}</AppText>
+        </View>
         <Step title={t('reportTypeLabel')} error={errors.type} index={0} bare>
           <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel={t('reportTypeLabel')}>
             {TYPES.map((it) => (
@@ -555,7 +557,7 @@ export function ReportScreen() {
         }}
       />
       {/* Toasts open under the header, never over the title or the status bar. */}
-      <ToastHost top={headerH + spacing.xs} />
+      <ToastHost top={insets.top + spacing.xs} />
     </View>
   );
 }
@@ -564,7 +566,8 @@ const useStyles = createStyles((tc) => ({
   root: { flex: 1, backgroundColor: tc.shell },
   flex: { flex: 1 },
   strong: { fontFamily: fontFamily.bold },
-  header: { gap: spacing.xxs, paddingBottom: spacing.md, backgroundColor: tc.shell },
+  header: { gap: spacing.xxs },
+  pageTitle: { fontFamily: fontFamily.bold, fontSize: spacing.lg, lineHeight: spacing.xl - 2, letterSpacing: -0.4, color: tc.ink },
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: layout.minTouch - spacing.xxs, marginBottom: spacing.sm },
   content: { paddingTop: spacing.xs, gap: spacing.lg },
   step: { gap: spacing.sm },
@@ -587,6 +590,7 @@ const useStyles = createStyles((tc) => ({
     borderWidth: 2,
   },
   typeDisc: { width: spacing.xl + spacing.xs, height: spacing.xl + spacing.xs, borderRadius: radius.chip, alignItems: 'center', justifyContent: 'center' },
+  typeImage: { width: spacing.xl - spacing.xxs, height: spacing.xl - spacing.xxs },
   typeLabel: { flex: 1, fontFamily: fontFamily.semibold },
   tick: {
     position: 'absolute',

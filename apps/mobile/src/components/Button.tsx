@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, View, type StyleProp, type ViewStyle } from 'react-native';
-import { createStyles, glow, hairline, layout, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
+import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
 import { AppText, type TextTone } from './AppText';
 import type { LucideIcon } from './icons';
 import { PressScale } from './motion';
@@ -69,7 +69,7 @@ export function Button({ label, onPress, kind = 'primary', icon: Icon, iconOnly,
       <View style={styles.row}>
         {loading ? <ActivityIndicator color={p.fg} /> : Icon ? <Icon size={20} color={p.fg} strokeWidth={2.25} /> : null}
         {iconOnly ? null : (
-          <AppText variant="title" tone={p.tone} style={[styles.label, { color: p.fg }]} numberOfLines={2}>
+          <AppText variant="body" control tone={p.tone} style={[styles.label, { color: p.fg }]} numberOfLines={2}>
             {label}
           </AppText>
         )}
@@ -82,17 +82,17 @@ export function Button({ label, onPress, kind = 'primary', icon: Icon, iconOnly,
 
 const useStyles = createStyles((tc) => ({
   base: {
-    minHeight: layout.minTouch + spacing.xs,
+    minHeight: layout.minTouch,
     borderRadius: radius.button,
-    paddingHorizontal: spacing.md + spacing.xxs,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xxs,
     justifyContent: 'center',
     overflow: 'visible',
   },
-  iconOnly: { width: layout.minTouch + spacing.xs, paddingHorizontal: 0, alignItems: 'center' },
+  iconOnly: { width: layout.minTouch, paddingHorizontal: 0, alignItems: 'center' },
   // A soft edge in the page's blue, not the heavy 3:1 outline: the label carries the meaning.
   secondary: { borderWidth: hairline, borderColor: tc.panelLine },
   outlineShell: { borderWidth: hairline, borderColor: tc.shellHairlineStrong },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
-  label: { textAlign: 'center', flexShrink: 1 },
+  label: { textAlign: 'center', flexShrink: 1, fontFamily: fontFamily.semibold },
 }));

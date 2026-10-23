@@ -1,4 +1,4 @@
-import BottomSheet, { BottomSheetScrollView, useBottomSheetSpringConfigs, type BottomSheetModal } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetScrollView, type BottomSheetModal } from '@gorhom/bottom-sheet';
 import { router, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Linking, useWindowDimensions, View } from 'react-native';
@@ -41,6 +41,7 @@ import { useToast } from '@/stores/toast';
 import { activeRoute, recommendedRoute, useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { useActiveProfile } from '@/features/trip/planGate';
+import { useSheetAnimation } from './sheetAnimation';
 import { createStyles, fontFamily, hairline, layout, motion, radius, shadow, shadowUp, spacing, useColors, withAlpha } from '@/theme';
 import { DestinationSheet } from './DestinationSheet';
 import { EvidenceSheet } from './EvidenceSheet';
@@ -393,7 +394,7 @@ export function NavigateScreen() {
   const halfMax = Math.min(container * 0.68, winH - headerBottom - spacing.sm);
   const half = Math.round(Math.min(halfMax, Math.max(container * 0.5, peek + compareH + spacing.md)));
   const snapPoints = useMemo(() => [peek, Math.max(half, peek + spacing.xl), layout.sheetSnapFull], [peek, half]);
-  const springConfig = useBottomSheetSpringConfigs(motion.spring);
+  const sheetAnimation = useSheetAnimation();
 
   // Ask for notification permission once, after the first route is on screen (never at launch).
   const hasRoute = useTrip((s) => !!s.plan?.recommendedRouteId);
@@ -555,7 +556,7 @@ export function NavigateScreen() {
             ) : null}
             <PressScale onPress={openReport} style={[styles.fab, shadow('md')]} accessibilityRole="button" accessibilityLabel={t('reportButtonLabel')} testID="open-report">
               <Flag size={18} color={tc.ink} strokeWidth={2.25} />
-              <AppText variant="body" style={styles.fabLabel}>
+              <AppText variant="body" control style={styles.fabLabel}>
                 {t('reportButton')}
               </AppText>
             </PressScale>
@@ -582,7 +583,7 @@ export function NavigateScreen() {
         enableDynamicSizing={false}
         topInset={insets.top}
         animatedPosition={animatedPosition}
-        animationConfigs={springConfig}
+        animationConfigs={sheetAnimation}
         onAnimate={() => Keyboard.dismiss()}
         onChange={(index, position) => {
           setSheetIndex(index);

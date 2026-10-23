@@ -290,7 +290,7 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, chosen, o
     >
       <View style={styles.miniText}>
         <View style={styles.etaLine}>
-          <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="display" unitVariant="title" testID="peek-eta" style={styles.flexShrink} />
+          <RollingText value={enRoute ? t('etaLeft', { eta }) : eta} variant="eta" unitVariant="body" control testID="peek-eta" style={[styles.flexShrink, styles.etaRoll]} />
           {/* The road distance of the recommended route: exact for the mapped roads, never a guess. */}
           <View style={styles.distancePill}>
             <AppText variant="label" tone="accent" numberOfLines={1} style={styles.noShrink} testID="peek-distance">
@@ -783,11 +783,13 @@ const useStyles = createStyles((tc) => ({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minWidth: 0 },
   noShrink: { flexShrink: 0 },
   etaLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  // "15 min" stays on one line; the number is never pushed above its unit.
+  etaRoll: { flexWrap: 'nowrap' },
   // The road distance sits in a small solid-tint pill so it reads as a fact, apart from the route name.
   distancePill: { flexShrink: 0, paddingHorizontal: spacing.xs + 2, paddingVertical: 2, borderRadius: radius.chip, backgroundColor: tc.tealSoft },
   roadsOnly: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: tc.panelSunken },
   roadsOnlyText: { flex: 1, gap: spacing.xxs },
-  miniButton: { flexShrink: 0, paddingHorizontal: spacing.md, minHeight: layout.minTouch + spacing.sm },
+  miniButton: { flexShrink: 0, paddingHorizontal: spacing.md, minHeight: layout.minTouch },
   miniChange: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, paddingLeft: spacing.sm, paddingRight: spacing.xs, minHeight: layout.minTouch - spacing.xs },
   miniChangeMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: layout.minTouch - spacing.xs },
   more: { gap: spacing.sm, paddingTop: spacing.xs },

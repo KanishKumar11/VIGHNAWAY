@@ -76,7 +76,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
                 <View style={[styles.iconTile, focused && styles.iconTileFocused]}>
                   <Icon size={19} color={focused ? tc.onAccent : tc.accentInk} strokeWidth={2.25} />
                 </View>
-                <AppText style={[styles.label, focused && styles.labelFocused]}>{t(it.label)}</AppText>
+                <AppText control style={[styles.label, focused && styles.labelFocused]}>{t(it.label)}</AppText>
                 <ChevronRight size={16} color={focused ? tc.accentInk : tc.inkSubtle} />
               </PressScale>
             );
