@@ -10,7 +10,7 @@ import { t } from '@/i18n';
 import { routeLabel } from '@/i18n/engineText';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { parseReceipt, tokenFromText, verifyAgainstHistory, type VerifyOutcome } from '@/lib/receipt';
+import { parseReceipt, tokenFromText, type VerifyOutcome } from '@/lib/receiptParse';
 
 type State = { phase: 'idle' } | { phase: 'loading' } | { phase: 'error'; message: string } | { phase: 'done'; outcome: VerifyOutcome };
 
@@ -30,6 +30,8 @@ export function VerifyContent() {
     setState({ phase: 'loading' });
     try {
       const history = await api.history(receipt.scenarioId);
+      // Re-running the decision needs the road graph: it downloads now, not with the page.
+      const { verifyAgainstHistory } = await import('@/lib/receipt');
       setState({ phase: 'done', outcome: verifyAgainstHistory(receipt, history) });
     } catch (err) {
       setState({ phase: 'error', message: err instanceof Error ? err.message : String(err) });

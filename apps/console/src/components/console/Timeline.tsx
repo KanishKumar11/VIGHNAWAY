@@ -19,7 +19,7 @@ import { useCallback, useMemo, useRef, type KeyboardEvent, type PointerEvent } f
 import { t } from '@/i18n';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { isLiveScenario } from '@/lib/scenario';
+import { isLiveScenario } from '@/lib/scenarios';
 import { activeScenario, useActiveScenario } from '@/stores/scenario';
 import { feedLine, useFeedStatus } from '@/hooks/useFeedStatus';
 import {

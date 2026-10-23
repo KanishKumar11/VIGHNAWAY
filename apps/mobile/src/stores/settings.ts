@@ -28,6 +28,8 @@ interface Persisted {
   speakChanges: boolean;
   /** "Prefer well-lit roads" (P2-9): a walking preference, ranking only, off by default. */
   preferLit: boolean;
+  /** The launch sign-in screen was dismissed with "Continue without an account" (signing in stays optional). */
+  signInSkipped: boolean;
 }
 
 interface SettingsState extends Persisted {
@@ -46,6 +48,8 @@ interface SettingsState extends Persisted {
   setLargerText: (on: boolean) => void;
   setSpeakChanges: (on: boolean) => void;
   setPreferLit: (on: boolean) => void;
+  /** true: the launch sign-in screen stays away; false: it shows again (after signing out). */
+  setSignInSkipped: (skipped: boolean) => void;
 }
 
 const defaults: Persisted = {
@@ -61,6 +65,7 @@ const defaults: Persisted = {
   largerText: false,
   speakChanges: true,
   preferLit: false,
+  signInSkipped: false,
 };
 
 function deviceLanguage(): Language {
@@ -78,8 +83,8 @@ setLanguage(initialLanguage);
 
 export const useSettings = create<SettingsState>()((set, get) => {
   const persist = () => {
-    const { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit } = get();
-    storage.setJSON(KEYS.settings, { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit });
+    const { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit, signInSkipped } = get();
+    storage.setJSON(KEYS.settings, { apiUrl, firstRunDone, notificationsAsked, debugUnlocked, profile, dataMode, googleTraffic, appearance, language, largerText, speakChanges, preferLit, signInSkipped });
   };
   const update = (patch: Partial<SettingsState>) => {
     set(patch);
@@ -106,6 +111,7 @@ export const useSettings = create<SettingsState>()((set, get) => {
     setLargerText: (largerText) => update({ largerText }),
     setSpeakChanges: (speakChanges) => update({ speakChanges }),
     setPreferLit: (preferLit) => update({ preferLit }),
+    setSignInSkipped: (signInSkipped) => update({ signInSkipped }),
   };
 });
 

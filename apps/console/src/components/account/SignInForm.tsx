@@ -8,6 +8,7 @@ import { api, ApiError } from '@/lib/api';
 import { API_URL } from '@/lib/env';
 import { useSession } from '@/stores/session';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/cn';
 
 const FIELD =
@@ -94,6 +95,8 @@ export function SignInForm({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // True from a correct code until this form goes away, so the button keeps turning instead of springing back.
+  const [signedIn, setSignedIn] = useState(false);
   const [expiresInS, setExpiresInS] = useState(DEFAULT_EXPIRY_MIN * 60);
   // Resend countdown: a deadline plus a ticking "now", so it stays right if the tab sleeps.
   const [resendAt, setResendAt] = useState(0);
@@ -179,6 +182,7 @@ export function SignInForm({
     try {
       const displayName = name.trim();
       const resp = await api.otpVerify({ email, code, ...(displayName ? { displayName } : {}) });
+      setSignedIn(true);
       useSession.getState().setSession(resp);
       setCode('');
       onSignedIn?.();
@@ -265,7 +269,7 @@ export function SignInForm({
             className="w-full shadow-md"
           >
             {busy ? t.account.sending : wait > 0 ? t.account.resendIn(wait) : t.account.sendCode}
-            <ArrowRight aria-hidden className="size-5" />
+            {busy ? <Spinner /> : <ArrowRight aria-hidden className="size-5" />}
           </Button>
           <Button
             variant="outline"
@@ -341,10 +345,12 @@ export function SignInForm({
           type="submit"
           variant="primary"
           size="lg"
-          disabled={busy}
+          disabled={busy || signedIn}
+          aria-busy={busy || signedIn}
           className="w-full shadow-md"
         >
-          {busy ? t.account.verifying : t.account.verify}
+          {busy || signedIn ? t.account.verifying : t.account.verify}
+          {busy || signedIn ? <Spinner /> : null}
         </Button>
         {/* Both labels may wrap and stay centred, and the countdown uses tabular figures so it never shifts as it ticks. */}
         <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">

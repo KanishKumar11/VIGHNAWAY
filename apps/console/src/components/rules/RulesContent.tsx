@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { currentLang, t } from '@/i18n';
 import { cn } from '@/lib/cn';
-import { ATTRIBUTION } from '@/lib/scenario';
+import { ATTRIBUTION } from '@/lib/scenarios';
 import { Reveal } from '@/components/motion/Reveal';
 import { PageShell } from '@/components/shared/PageShell';
 

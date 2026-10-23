@@ -588,6 +588,30 @@
   animation: vw-radar 9s linear infinite;
 }
 
+/* Waiting: a ring that turns, and a halo that breathes behind the brand tile. */
+@keyframes vw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes vw-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.vw-spin {
+  animation: vw-spin 800ms linear infinite;
+}
+.vw-breathe {
+  animation: vw-breathe 1800ms ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -605,6 +629,8 @@
   }
   .vw-route-flow { animation: none !important; }
   .vw-radar { animation: none !important; }
+  /* A turning ring is the one cue that something is happening: keep it, slowly. */
+  .vw-spin { animation: vw-spin 2.4s linear infinite !important; }
   .vw-comet { display: none; }
 }
 

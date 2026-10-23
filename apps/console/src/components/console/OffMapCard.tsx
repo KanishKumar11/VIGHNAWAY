@@ -9,7 +9,7 @@ import { errorMessage, useOffMapReports } from '@/hooks/useOperatorActions';
 import { t } from '@/i18n';
 import { useOperatorAccess } from '@/lib/credential';
 import { clusterOffMap } from '@/lib/offmap';
-import { LIVE_SCENARIO } from '@/lib/scenario';
+import { LIVE_SCENARIO } from '@/lib/scenarios';
 
 /**
  * Off-map reports (live mode). A person reported something where there is no mapped road, so it created no incident and

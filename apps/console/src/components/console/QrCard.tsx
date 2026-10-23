@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { isLocalOnlyUrl, reportUrl } from '@/lib/env';
-import { SCENARIO_ID } from '@/lib/scenario';
+import { SCENARIO_ID } from '@/lib/scenarios';
 import { useScenarioStore } from '@/stores/scenario';
 
 /** QR for /report as a small floating card that expands (DESIGN.md 11.4). */

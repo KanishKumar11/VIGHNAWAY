@@ -3,14 +3,19 @@ import { Drawer } from 'expo-router/drawer';
 import { useWindowDimensions } from 'react-native';
 import { DrawerContent } from '@/components/DrawerContent';
 import { t } from '@/i18n/en';
+import { selectSignedIn, useAuth } from '@/stores/auth';
 import { useSettings } from '@/stores/settings';
 import { layout, useColors } from '@/theme';
 
 export default function DrawerLayout() {
   const tc = useColors();
   const firstRunDone = useSettings((s) => s.firstRunDone);
+  const signInSkipped = useSettings((s) => s.signInSkipped);
+  const signedIn = useAuth(selectSignedIn);
   const { width } = useWindowDimensions();
   if (!firstRunDone) return <Redirect href="/first-run" />;
+  // After the story, a phone without an account sees the sign-in screen until it signs in or chooses to go on without one.
+  if (!signedIn && !signInSkipped) return <Redirect href="/sign-in" />;
   return (
     <Drawer
       drawerContent={(p) => <DrawerContent {...p} />}

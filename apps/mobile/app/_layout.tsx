@@ -81,6 +81,7 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(drawer)" />
                 <Stack.Screen name="first-run" options={{ animation: 'fade' }} />
+                <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
                 <Stack.Screen name="report" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="relay" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="drive" options={{ animation: 'fade' }} />

@@ -9,7 +9,7 @@ import {
   type SyncState,
   type UpsertOutcome,
 } from '@/lib/sync';
-import { SCENARIO_ID } from '@/lib/scenario';
+import { SCENARIO_ID } from '@/lib/scenarios';
 
 export type ConnectionState = 'connecting' | 'syncing' | 'live' | 'reconnecting';
 

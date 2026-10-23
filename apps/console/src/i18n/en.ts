@@ -225,6 +225,7 @@ export const en = {
     },
   },
   map: {
+    loading: 'Loading the map…',
     unavailable: 'Map unavailable: check the Google Maps key or the network',
     schematicLabel: 'Schematic view of the road graph (not a map)',
     schematicChip: 'Schematic view, not a map',
@@ -687,7 +688,7 @@ export const en = {
     openReport: 'Report an incident',
   },
   gate: {
-    loading: 'Checking your sign-in…',
+    loading: 'Loading…',
     title: 'Control room sign-in',
     intro: 'Sign in with an operator or admin account to run the control room.',
     demoAccess: 'Demo access (operator token)',

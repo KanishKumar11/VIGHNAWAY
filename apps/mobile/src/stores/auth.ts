@@ -107,6 +107,8 @@ export const useAuth = create<AuthState>()((set, get) => ({
   signOut: async () => {
     const { token, server } = get();
     get().clearLocal();
+    // Signing out on purpose brings the launch sign-in screen back (it can still be skipped).
+    useSettings.getState().setSignInSkipped(false);
     if (!token) return;
     try {
       await api.authLogout(server ?? apiUrl(), token);

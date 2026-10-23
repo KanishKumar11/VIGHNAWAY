@@ -8,6 +8,7 @@ Owners: Mobile and Console. Every string below is the exact copy; apps keep them
 ```text
 Root Stack (headerShown false)
 ├── first-run            shown once (stored flag), then replaced by (drawer)
+├── sign-in              after first-run while signed out and not skipped; again after signing out
 ├── (drawer)             Drawer, type front, width min(320, 80%), swipe disabled on Navigate
 │   ├── index            Navigate: map + persistent bottom sheet (peek / half / full)
 │   ├── activity         Journey-relevant changes
@@ -37,6 +38,18 @@ Root Stack (headerShown false)
 Copy: title "VIGHNAWAY"; badge "Simulated flood scenario: Andheri, Mumbai"; body "VIGHNAWAY
 compares routes against reported hazards and the evidence behind them, recommends a viable one and
 tells you why."; button "Continue". No permission prompts here.
+
+## 2a. Sign-in (launch)
+
+Shown after first-run when the phone has no account and the person has not chosen to go on without one, and again after
+signing out or deleting the account. Signing in stays optional (CONTRACTS.md): an account is never needed to navigate
+or report. Layout: the brand hero (mark, wordmark, tagline), the title, the email-and-code form shared with Account
+(step 1: email and optional name, "Send code"; step 2: six digit boxes, "Sign in", resend countdown, "Use a different
+email"), then the skip button and its hint at the bottom. A staff account is refused on the phone.
+
+Copy: title "Sign in"; body "Enter your email and we will send you a 6-digit code. No password needed."; button
+"Continue without an account" (remembered on this phone); hint "You can navigate and report without an account. Sign in
+any time from Account in the menu."
 
 ## 3. Navigate
 

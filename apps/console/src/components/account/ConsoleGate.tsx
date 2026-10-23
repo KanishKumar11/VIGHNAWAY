@@ -23,13 +23,14 @@ import { LiveRoute } from '@/components/account/LiveRoute';
 import { SignInForm } from '@/components/account/SignInForm';
 import { OperatorTokenDialog } from '@/components/console/OperatorTokenDialog';
 import { Wordmark } from '@/components/shared/BrandMark';
+import { ScreenLoading } from '@/components/shared/ScreenLoading';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { ViewMenu } from '@/components/shared/ViewMenu';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
 /** The loading and citizen states: one centred card on the page. */
-function Frame({ children }: { children: ReactNode }) {
+export function Frame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-shell p-6 text-ink-on-shell">
       <main className="flex w-full max-w-[calc(var(--spacing)*140)] flex-col gap-6 rounded-sheet border border-panel-line bg-panel p-8 text-ink shadow-lg">
@@ -192,15 +193,7 @@ export function ConsoleGate({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  if (!ready) {
-    return (
-      <Frame>
-        <p role="status" className="text-base text-ink-muted">
-          {t.gate.loading}
-        </p>
-      </Frame>
-    );
-  }
+  if (!ready) return <ScreenLoading full />;
 
   if (access) return <>{children}</>;
 
@@ -227,6 +220,14 @@ export function ConsoleGate({ children }: { children: ReactNode }) {
     );
   }
 
+  return <SignedOutView />;
+}
+
+/**
+ * The sign-in page: the brand panel with its animation on the left, the sign-in card on the right. The one
+ * signed-out screen, used by the control room's gate and by /login, so signing out always lands on the same page.
+ */
+export function SignedOutView() {
   return (
     <SignInLayout>
       <SignInForm showSteps />

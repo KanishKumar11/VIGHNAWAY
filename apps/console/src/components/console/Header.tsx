@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { t } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { API_URL } from '@/lib/env';
-import { isLiveScenario, LIVE_SCENARIO, SCENARIO } from '@/lib/scenario';
+import { isLiveScenario, LIVE_SCENARIO, SCENARIO } from '@/lib/scenarios';
 import { timezoneLabel } from '@/lib/timezone';
 import { useActiveScenario, useScenarioStore } from '@/stores/scenario';
 import { useLiveStore } from '@/stores/live';

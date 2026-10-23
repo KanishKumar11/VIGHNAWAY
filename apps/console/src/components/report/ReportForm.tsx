@@ -2,7 +2,6 @@
 
 import type { CongestionLevel, Depth, LatLng, ReportInput, ReportType, Severity, WalkingConcern } from '@vighnaway/contracts';
 import { REPORT_DESCRIPTION_MAX, REPORT_TYPES, ReportInputSchema } from '@vighnaway/contracts';
-import { snapToEdge } from '@vighnaway/engine';
 import { humanSilhouette, motion as motionTokens } from '@vighnaway/tokens';
 import successAnimation from '@vighnaway/tokens/lottie/success.json';
 import { CircleAlert, LocateFixed, MapPin, Send } from 'lucide-react';
@@ -12,17 +11,22 @@ import { t } from '@/i18n';
 import { ApiError, describeApiError } from '@/lib/api';
 import { sendReport } from '@/lib/sendReport';
 import { cn } from '@/lib/cn';
-import { buildScene } from '@/lib/scene';
-import { graphFor, GRAPH_FILE, SCENARIO_ID } from '@/lib/scenario';
+import { scenarioFor, SCENARIO_ID } from '@/lib/scenarios';
 import { getDeviceId } from '@/lib/storage';
-import { tripEnv } from '@/hooks/useDemoTrip';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { MapPanel } from '@/components/map/MapPanel';
+import dynamic from 'next/dynamic';
+import type { ReportGraph } from './reportGraph';
 import { IncidentGlyph } from '@/components/shared/IncidentGlyph';
 import { LottiePlayer } from '@/components/motion/LottiePlayer';
 import { toast } from '@/components/ui/toast';
 
 const NOT_ON_ROAD_M = 30;
+
+/** The picker map draws the road graph, so it arrives after the form (the form is the page people reach by QR code on a phone). */
+const MapPanel = dynamic(() => import('@/components/map/MapPanel').then((m) => m.MapPanel), {
+  ssr: false,
+  loading: () => <div role="status" className="grid size-full place-items-center bg-panel-sunken text-meta text-ink-muted">{t.map.loading}</div>,
+});
 type DepthChoice = Depth | 'unknown';
 type FieldErrors = Partial<Record<'type' | 'congestion' | 'concern' | 'description' | 'point' | 'form', string>>;
 const snappy = { type: 'spring' as const, ...motionTokens.springSnappy };
@@ -169,15 +173,25 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
   const [phase, setPhase] = useState<Phase>('form');
   // Live mode saves a report with no mapped road nearby as off-map: it changes no route, and the form says so.
   const [offMap, setOffMap] = useState(false);
-  const liveScenario = !tripEnv(scenarioId).scenario.simulated;
+  const liveScenario = !scenarioFor(scenarioId).simulated;
   const [locating, setLocating] = useState(false);
   const [locationMsg, setLocationMsg] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string>('');
   useEffect(() => setDeviceId(getDeviceId()), []);
 
-  const scene = useMemo(() => ({ ...buildScene(tripEnv(scenarioId), GRAPH_FILE, null, { phase: 'idle', flashOn: false, change: null }), origin: null }), [scenarioId]);
-  const nearest = useMemo(() => (point ? snapToEdge(graphFor('foot'), point) : null), [point]);
-  const nearestName = nearest ? (graphFor('foot').edges[graphFor('foot').edgeIndex.get(nearest.edgeId)!]?.name ?? '') : '';
+  // The road graph (about 10 MB) is fetched once the form is on screen.
+  const [graph, setGraph] = useState<ReportGraph | null>(null);
+  useEffect(() => {
+    let live = true;
+    void import('./reportGraph').then((m) => {
+      if (live) setGraph(m.loadReportGraph(scenarioId));
+    });
+    return () => {
+      live = false;
+    };
+  }, [scenarioId]);
+  const nearest = useMemo(() => (point && graph ? graph.nearestTo(point) : null), [point, graph]);
+  const nearestName = nearest?.name ?? '';
   const noteLen = note.trim().length;
   const noteTooLong = noteLen > REPORT_DESCRIPTION_MAX;
 
@@ -418,15 +432,21 @@ export function ReportForm({ scenarioId = SCENARIO_ID, audience = false }: { sce
       <Section eyebrow={t.report.step(2, 3)} label={t.report.locationLabel} error={errors.point} id={`${ids}-loc`}>
         <div className={cn('overflow-hidden rounded-card border bg-panel-raised', errors.point ? 'border-2 border-danger' : 'border-control-border')}>
           <div className="relative h-64">
-            <MapPanel
-              scene={scene}
-              compact
-              pick={point}
-              onPick={(p) => {
-                setPoint(p);
-                setErrors((e) => ({ ...e, point: undefined }));
-              }}
-            />
+            {graph ? (
+              <MapPanel
+                scene={graph.scene}
+                compact
+                pick={point}
+                onPick={(p) => {
+                  setPoint(p);
+                  setErrors((e) => ({ ...e, point: undefined }));
+                }}
+              />
+            ) : (
+              <div role="status" className="grid size-full place-items-center bg-panel-sunken text-meta text-ink-muted">
+                {t.map.loading}
+              </div>
+            )}
             <button
               type="button"
               onClick={locateMe}
