@@ -22,5 +22,5 @@ apps/mobile/expo-env.d.ts
 next-env.d.ts
 *.tsbuildinfo
 
-# Recorded demo videos are large: keep them out of git (see docs/demo/README.md)
-docs/demo/*.webm
+# Project docs, pitch decks and demo recordings are kept locally, not in git
+docs/

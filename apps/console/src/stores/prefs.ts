@@ -14,6 +14,8 @@ interface Prefs {
   listView: boolean;
   /** Incident queue column folded away to give the map more room. */
   queueHidden: boolean;
+  /** Presenter mode keeps the incident queue folded until the presenter opens it from the map edge. */
+  presenterQueue: boolean;
   /** Decision column folded away to give the map more room. */
   tripHidden: boolean;
   /** Map shows flood-prone roads coloured by how recent their latest report is (P1-5). Per session. */
@@ -34,6 +36,7 @@ const DEFAULTS: Prefs = {
   presenter: false,
   listView: false,
   queueHidden: false,
+  presenterQueue: false,
   tripHidden: false,
   coverage: false,
   walking: true,
@@ -85,6 +88,7 @@ const pick = (s: PrefsStore): Prefs => ({
   presenter: s.presenter,
   listView: s.listView,
   queueHidden: s.queueHidden,
+  presenterQueue: s.presenterQueue,
   tripHidden: s.tripHidden,
   coverage: s.coverage,
   walking: s.walking,
