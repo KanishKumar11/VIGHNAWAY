@@ -121,6 +121,17 @@ function SimClock({ replayAtS }: { replayAtS: number | null }) {
         </p>
         <span className="tech text-ink-on-shell-muted">{timezoneLabel(scenario.timezone, t.sim.tz)}</span>
       </div>
+      {/* The demo runs on its own story clock. Below 2100px the context line is hidden, so say it here: otherwise
+          "14:36 IST" reads as the real time, shown wrong. Live mode shows the real local time and needs no tag. */}
+      {!live && replayAtS === null && (
+        <span
+          title={t.sim.notRealTime}
+          className="inline-flex h-6 items-center rounded-chip border border-shell-line px-2 text-meta font-semibold text-ink-on-shell-muted min-[2100px]:hidden"
+          data-testid="sim-clock-tag"
+        >
+          {t.app.simulated}
+        </span>
+      )}
       <div className="hidden items-center gap-3 min-[2100px]:flex">
         <span aria-hidden className="h-5 w-px bg-shell-line" />
         <span className="text-meta font-medium text-ink-on-shell-muted">{replayAtS !== null ? t.replay.replaying('') : live ? t.sim.wallClock : t.sim.eyebrow}</span>

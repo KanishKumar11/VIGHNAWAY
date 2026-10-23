@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsx watch --conditions=@vighnaway/source --tsconfig tsconfig.json src/main.ts",
-    "start": "node dist/main.js",
+    "build": "node init && tsc -p tsconfig.build.json",
+    "dev": "node init && tsx watch --conditions=@vighnaway/source --tsconfig tsconfig.json src/main.ts",
+    "start": "node init && node dist/main.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run --config vitest.unit.config.ts",

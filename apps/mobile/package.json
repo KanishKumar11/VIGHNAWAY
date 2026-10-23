@@ -69,7 +69,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start --dev-client",
+    "start": "node init && expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "lint": "eslint app src test",

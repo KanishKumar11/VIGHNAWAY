@@ -24,7 +24,7 @@
     "lottie"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean && tsx scripts/gen-css.ts",
+    "build": "node init && tsup src/index.ts --format esm,cjs --dts --clean && tsx scripts/gen-css.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "eslint src",
