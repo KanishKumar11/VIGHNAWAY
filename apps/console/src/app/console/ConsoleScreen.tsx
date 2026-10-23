@@ -72,8 +72,11 @@ export function ConsoleScreen() {
   const presenter = usePrefs((s) => s.presenter);
   const listView = usePrefs((s) => s.listView);
   const queueHidden = usePrefs((s) => s.queueHidden);
+  const presenterQueue = usePrefs((s) => s.presenterQueue);
   const tripHidden = usePrefs((s) => s.tripHidden);
-  const showQueue = !presenter && !queueHidden;
+  // Presenter mode starts with the queue folded (the audience card takes its place) but can open it.
+  const queueKey = presenter ? 'presenterQueue' : 'queueHidden';
+  const showQueue = presenter ? presenterQueue : !queueHidden;
 
   // P toggles presenter mode; Escape leaves it.
   useEffect(() => {
@@ -224,7 +227,7 @@ export function ConsoleScreen() {
                 extraAttribution={live ? (feed.data?.attribution ?? null) : null}
               />
             </section>
-            {presenter && !replay && (
+            {presenter && !replay && !showQueue && (
               <div className="pointer-events-none absolute bottom-4 left-4 z-30">
                 <AudienceCard />
               </div>
@@ -250,15 +253,13 @@ export function ConsoleScreen() {
                 />
               )}
             </div>
-            {!presenter && (
-              <PanelToggle
-                side="left"
-                hidden={queueHidden}
-                onToggle={() => usePrefs.getState().toggle('queueHidden')}
-                label={queueHidden ? t.map.showQueue : t.map.hideQueue}
-                controls="console-queue"
-              />
-            )}
+            <PanelToggle
+              side="left"
+              hidden={!showQueue}
+              onToggle={() => usePrefs.getState().toggle(queueKey)}
+              label={showQueue ? t.map.hideQueue : t.map.showQueue}
+              controls="console-queue"
+            />
             <PanelToggle
               side="right"
               hidden={tripHidden}
