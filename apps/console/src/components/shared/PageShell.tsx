@@ -59,7 +59,11 @@ export function PageShell({
             <Wordmark plate className="h-12" />
           </Link>
           <SimulatedBadge onShell />
-          <nav className="order-last flex w-full gap-1 overflow-x-auto text-body md:order-none md:ml-auto md:w-auto">
+          {/* Its own row until the screen fits the bar in one line (2xl); sideways scroll only there, never vertical. */}
+          <nav
+            aria-label={t.app.name}
+            className="order-last flex w-full gap-1 overflow-x-auto overflow-y-hidden text-body [scrollbar-width:none] [&::-webkit-scrollbar]:hidden 2xl:order-none 2xl:ml-auto 2xl:w-auto 2xl:overflow-visible"
+          >
             {nav.map(([href, label]) => (
               <Link
                 key={href}
@@ -68,7 +72,7 @@ export function PageShell({
                 className={cn(
                   'relative shrink-0 rounded-button px-3 py-1.5 font-medium transition-colors',
                   active === href
-                    ? 'bg-brand-from/10 text-ink-on-shell after:absolute after:inset-x-3 after:-bottom-[calc(var(--spacing)*3.5)] after:h-0.5 after:rounded-chip after:bg-brand-from'
+                    ? 'bg-brand-from/10 text-ink-on-shell after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-chip after:bg-brand-from'
                     : 'text-ink-on-shell-muted hover:bg-panel-sunken hover:text-ink-on-shell',
                 )}
               >
@@ -76,7 +80,7 @@ export function PageShell({
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <ViewMenu console={false} />
             <ThemeToggle />
             <AccountMenu />
