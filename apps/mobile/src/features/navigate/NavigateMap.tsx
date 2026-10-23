@@ -9,7 +9,7 @@ import { t } from '@/i18n/en';
 import { buildIncidentIndex } from '@vighnaway/engine';
 import { evalContext, getGraph, routeCoords, type MapCoord } from '@/lib/engine';
 import { lastKnownPosition } from '@/features/search/startHere';
-import { checkLocationPermission } from '@/lib/location';
+import { checkLocationPermission, watchAccurate } from '@/lib/location';
 import { haptic } from '@/lib/feedback';
 import { isReduceMotion } from '@/lib/motion';
 import { useIncidentList } from '@/stores/incidents';
@@ -19,9 +19,10 @@ import { useSim } from '@/stores/sim';
 import { useTrip } from '@/stores/trip';
 import { useUi } from '@/stores/ui';
 import { useActiveProfile } from '@/features/trip/planGate';
-import { createStyles, motion } from '@/theme';
+import { useGuidance } from '@/stores/guidance';
+import { createStyles, motion, zIndex } from '@/theme';
 import { GoogleMapLayer } from './GoogleMapLayer';
-import { useLaunchReveal, useMapModel } from './mapModel';
+import { useLaunchReveal, useMapModel, type MapLine, type MapPin } from './mapModel';
 import { SchematicMap } from './SchematicMap';
 
 /** Navigation camera: zoom, tilt and timings (like Google Maps' driving view). */
@@ -72,6 +73,8 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   const permission = useUi((s) => s.locationPermission);
   const showsUser = liveMode && (permission === 'precise' || permission === 'approximate');
   const recenter = useUi((s) => s.recenterRequest);
+  const devicePosition = useUi((s) => s.devicePosition);
+  const deviceCourse = useUi((s) => s.deviceCourse);
   const [failure, setFailure] = useState<string | null>(googleMapsConfigured ? null : t('mapUnavailable'));
 
   const graph = useMemo(() => getGraph(graphFile, profile), [graphFile, profile]);
@@ -83,7 +86,29 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   const selectedRouteId = useTrip((s) => s.selectedRouteId);
   const mode = useTrip((s) => s.mode);
   const following = useUi((s) => s.following);
+  // The local roads from the start (and to the destination) to the road network: a dashed line, so it reads as
+  // "the way in", apart from the route the engine ranks.
+  const legKey = `${useSettings((s) => s.profile)}|${originId}|${destinationId ?? 'none'}`;
+  const legs = useGuidance((s) => (s.key === legKey && s.status === 'ready' ? s : null));
+  const accessLines = useMemo<MapLine[]>(
+    () =>
+      [legs?.from, legs?.to]
+        .filter((l): l is NonNullable<typeof l> => !!l && l.points.length > 1)
+        .map((l, i) => ({
+          key: `access-${i}`,
+          coords: l.points.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+          style: 'recommended' as const,
+          width: 5,
+          dash: [8, 6] as const,
+          zIndex: zIndex.recommended,
+          casing: false,
+          reveal: 1,
+        })),
+    [legs?.from, legs?.to],
+  );
   const model = useMapModel({ graph, plan, vehicle, transition, incidents, origin, destination, nowS: minuteS, revealProgress, ctx, index, selectedRouteId });
+
+  const lines = useMemo(() => [...model.lines, ...accessLines], [model.lines, accessLines]);
 
   // Tapping an alternative (or its time bubble) chooses it, like Google Maps; tapping the recommended
   // one goes back to it. Only while planning: a running trip keeps its route.
@@ -96,7 +121,22 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
 
   // Navigation camera: when the trip starts the map zooms to the vehicle, tilts, turns to its heading
   // and follows it. The traveller dragging the map lets go; the re-centre button takes it back.
-  const pin = model.vehiclePin;
+  // Live: one arrow marks where the phone really is, pointing the way it travels (GPS course). On a trip it
+  // replaces the snapped vehicle, so it is right off the mapped roads too (a campus lane), and Google's own dot
+  // is never drawn: two markers would disagree.
+  const liveTrip = liveMode && mode === 'en_route' && !!devicePosition;
+  const me = useMemo(
+    () => (showsUser && devicePosition ? { coordinate: { latitude: devicePosition.lat, longitude: devicePosition.lng }, headingDeg: deviceCourse, accuracyM: devicePosition.accuracyM } : null),
+    [showsUser, devicePosition, deviceCourse],
+  );
+  const livePin = useMemo<MapPin | null>(
+    () =>
+      liveMode && mode === 'en_route' && devicePosition
+        ? { key: 'vehicle', kind: 'vehicle', coordinate: { latitude: devicePosition.lat, longitude: devicePosition.lng }, headingDeg: deviceCourse ?? model.vehiclePin?.headingDeg }
+        : null,
+    [liveMode, mode, devicePosition, deviceCourse, model.vehiclePin?.headingDeg],
+  );
+  const pin = livePin ?? model.vehiclePin;
   const lastFollow = useRef(0);
   const followVehicle = (duration: number) => {
     if (!pin || !mapRef.current) return;
@@ -175,12 +215,53 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
     if (liveMode) void checkLocationPermission();
   }, [liveMode]);
 
+  // The phone's position (and its direction of travel) once a second while the arrow is on the map.
+  useEffect(() => {
+    if (!showsUser) return;
+    let sub: { remove: () => void } | null = null;
+    let cancelled = false;
+    watchAccurate(() => undefined)
+      .then((s) => {
+        if (cancelled) s.remove();
+        else sub = s;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      sub?.remove();
+    };
+  }, [showsUser]);
+
   // "Show my location": centre on the latest fix, close enough to read the streets.
   useEffect(() => {
-    const p = useUi.getState().devicePosition;
+    const ui = useUi.getState();
+    const p = ui.devicePosition;
     if (!recenter || !p || !mapRef.current) return;
-    mapRef.current.animateCamera({ center: { latitude: p.lat, longitude: p.lng }, zoom: 17 }, { duration: isReduceMotion() ? 0 : 450 });
+    const center = { latitude: p.lat, longitude: p.lng };
+    const duration = isReduceMotion() ? 0 : 450;
+    if (ui.locateMode === 'north') {
+      // Second tap: turn the map to the way the phone is heading (kept turning as it moves, below).
+      ui.setLocateMode('heading');
+      mapRef.current.animateCamera({ center, zoom: 17, pitch: 0, ...(ui.deviceCourse !== null ? { heading: ui.deviceCourse } : null) }, { duration });
+    } else {
+      // First tap, or the third: centre on the phone with north up and the map flat.
+      ui.setLocateMode('north');
+      mapRef.current.animateCamera({ center, zoom: 17, heading: 0, pitch: 0 }, { duration });
+    }
   }, [recenter]);
+
+  // Heading mode keeps the phone in the middle and the map turned to its direction of travel.
+  const locateMode = useUi((s) => s.locateMode);
+  const lastLocateFollow = useRef(0);
+  useEffect(() => {
+    if (locateMode !== 'heading' || mode === 'en_route' || !devicePosition || !mapRef.current) return;
+    if (Date.now() - lastLocateFollow.current < FOLLOW_MIN_MS) return;
+    lastLocateFollow.current = Date.now();
+    mapRef.current.animateCamera(
+      { center: { latitude: devicePosition.lat, longitude: devicePosition.lng }, pitch: 0, ...(deviceCourse !== null ? { heading: deviceCourse } : null) },
+      { duration: isReduceMotion() ? 0 : FOLLOW_GLIDE_MS },
+    );
+  }, [locateMode, mode, devicePosition, deviceCourse]);
 
   // Camera: fit every route on a new plan context; fit old and new route on a route change.
   const fit = (coords: MapCoord[]) => {
@@ -206,22 +287,28 @@ export const NavigateMap = memo(function NavigateMap({ padding, fitPadding, dimm
   return (
     <View style={StyleSheet.absoluteFill} testID="navigate-map">
       {failure ? (
-        <SchematicMap graphFile={graphFile} padding={fitPadding} onIncidentPress={onIncidentPress} onSelectRoute={onSelectRoute} {...model} />
+        <SchematicMap graphFile={graphFile} padding={fitPadding} onIncidentPress={onIncidentPress} onSelectRoute={onSelectRoute} {...model} lines={lines} vehiclePin={pin} />
       ) : (
         <GoogleMapLayer
           ref={mapRef}
           initialRegion={initialRegion}
           padding={padding}
           showsTraffic={showsTraffic}
-          showsUserLocation={showsUser}
+          showsUserLocation={false}
+          me={me}
           onUserLocation={(p) => useUi.getState().setDevicePosition(p)}
           onReady={() => useUi.getState().setMapStatus('ready')}
           onIncidentPress={onIncidentPress}
           onMapPress={onMapPress}
-          onUserPan={() => useUi.getState().setFollowing(false)}
+          onUserPan={() => {
+            useUi.getState().setFollowing(false);
+            useUi.getState().setLocateMode('free');
+          }}
           onSelectRoute={onSelectRoute}
           onRegionChange={(r) => useUi.getState().setMapCenter({ lat: r.latitude, lng: r.longitude })}
           {...model}
+          lines={lines}
+          vehiclePin={liveTrip ? null : model.vehiclePin}
         />
       )}
       {dimmed ? (

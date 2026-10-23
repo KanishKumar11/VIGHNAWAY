@@ -1,0 +1,15 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feat/new-logo",
+    "main"
+  ],
+  "parent": {
+    "feat/new-logo": "main",
+    "main": null
+  },
+  "order": [
+    "main",
+    "feat/new-logo"
+  ]
+}

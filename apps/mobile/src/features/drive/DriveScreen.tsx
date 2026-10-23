@@ -23,6 +23,8 @@ import { useSettings } from '@/stores/settings';
 import { useSim } from '@/stores/sim';
 import { recommendedRoute, useTrip } from '@/stores/trip';
 import { createStyles, fontFamily, glow, hairline, layout, radius, shadow, spacing, type, useBrand, useColors } from '@/theme';
+import { GuidanceBanner } from '@/features/guidance/GuidanceBanner';
+import { useLocalTimeS } from '@/features/guidance/localTime';
 import { roadsAhead } from './roads';
 
 const DRIVE_ETA = Math.round(type.display.size * 1.5);
@@ -73,10 +75,12 @@ export function DriveScreen() {
     return () => setDriveOpen(false);
   }, []);
 
+  const localS = useLocalTimeS();
   const etaS = useMemo(() => {
-    if (enRoute && vehicle) return remainingEtaS(graph, vehicle, buildIncidentIndex(incidents), evalContext(scenario, minuteS));
-    return rec ? rec.etaS + (plan?.leadInS ?? 0) : 0;
-  }, [enRoute, vehicle, graph, incidents, scenario, minuteS, rec, plan]);
+    // The engine's time, plus the slow local roads at either end (0 where the route starts and ends on mapped roads).
+    if (enRoute && vehicle) return remainingEtaS(graph, vehicle, buildIncidentIndex(incidents), evalContext(scenario, minuteS)) + localS;
+    return rec ? rec.etaS + (plan?.leadInS ?? 0) + localS : 0;
+  }, [enRoute, vehicle, graph, incidents, scenario, minuteS, rec, plan, localS]);
 
   const roads = useMemo(() => {
     if (enRoute && vehicle) return roadsAhead(graph, vehicle.edgeIds, vehicle.index);
@@ -183,7 +187,10 @@ export function DriveScreen() {
       <ScrollView style={styles.scrollBleed} contentContainerStyle={[styles.body, landscape && styles.bodyLandscape]} showsVerticalScrollIndicator={false}>
         {landscape ? (
           <>
-            <View style={styles.col}>{etaBlock}</View>
+            <View style={styles.col}>
+              <GuidanceBanner />
+              {etaBlock}
+            </View>
             <View style={styles.col}>
               {roadBlock}
               {nowBlock}
@@ -191,6 +198,7 @@ export function DriveScreen() {
           </>
         ) : (
           <>
+            <GuidanceBanner />
             {etaBlock}
             {roadBlock}
             {nowBlock}

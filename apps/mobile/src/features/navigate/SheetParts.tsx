@@ -19,7 +19,9 @@ import { fmtDelta, fmtDistance, fmtDuration } from '@/i18n/format';
 import type { DeltaBar } from '@/lib/geometry';
 import { useReduceMotion } from '@/lib/motion';
 import type { ActivityEntry } from '@/stores/activity';
-import type { Banner } from '@/stores/trip';
+import { useGuidance } from '@/stores/guidance';
+import { useSettings } from '@/stores/settings';
+import { useTrip, type Banner } from '@/stores/trip';
 import { createStyles, fontFamily, glow, hairline, layout, motion, radius, shadow, spacing, useColors, type ThemeColors } from '@/theme';
 import { useLanguage } from '@/i18n/useLanguage';
 
@@ -326,7 +328,15 @@ export const PeekCard = memo(function PeekCard({ route, etaS, enRoute, chosen, o
 export function RoadsOnlyNote({ access }: { access: { fromM: number; toM: number } | null }) {
   const tc = useColors();
   const styles = useStyles();
-  const far = access && (access.fromM > 500 || access.toM > 500);
+  const profile = useSettings((s) => s.profile);
+  const key = useTrip((s) => `${profile}|${s.originId}|${s.destinationId ?? 'none'}`);
+  const guide = useGuidance((s) => (s.key === key ? s : null));
+  const legs = guide?.status === 'ready' ? guide : null;
+  // An end with a local road found is explained by that road; only an end without one keeps the gap note.
+  const fromFar = !!access && access.fromM > 500 && !legs?.from;
+  const toFar = !!access && access.toM > 500 && !legs?.to;
+  const far = fromFar || toFar;
+  const localNote = legs?.from && legs.to ? t('guideLocalNoteBoth', { from: fmtDistance(legs.from.lengthM), to: fmtDistance(legs.to.lengthM) }) : legs?.from ? t('guideLocalNoteStart', { dist: fmtDistance(legs.from.lengthM) }) : legs?.to ? t('guideLocalNoteEnd', { dist: fmtDistance(legs.to.lengthM) }) : null;
   return (
     <View style={styles.roadsOnly} testID="roads-only-note" accessible>
       <Info size={18} color={tc.inkMuted} />
@@ -334,9 +344,24 @@ export function RoadsOnlyNote({ access }: { access: { fromM: number; toM: number
         <AppText variant="meta" tone="muted">
           {t('roadsOnlyNote')}
         </AppText>
-        {far ? (
+        {guide?.status === 'loading' && access && (access.fromM > 500 || access.toM > 500) ? (
+          <AppText variant="meta" tone="muted" testID="local-roads-loading">
+            {t('guideLocalLoading')}
+          </AppText>
+        ) : null}
+        {localNote ? (
+          <AppText variant="meta" tone="muted" testID="local-roads-note">
+            {localNote}
+          </AppText>
+        ) : null}
+        {far && access ? (
           <AppText variant="meta" tone="muted">
             {t('accessNote', { from: fmtDistance(access.fromM), to: fmtDistance(access.toM) })}
+          </AppText>
+        ) : null}
+        {guide?.status === 'failed' && access && (access.fromM > 500 || access.toM > 500) ? (
+          <AppText variant="meta" tone="muted" testID="local-roads-failed">
+            {t('guideLocalFailed')}
           </AppText>
         ) : null}
       </View>

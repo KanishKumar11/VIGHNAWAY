@@ -30,6 +30,14 @@ interface UiState {
   locationPermission: LocationPermission;
   /** Latest fix from the map's location layer or a location request; display and recentring only. */
   devicePosition: DevicePosition | null;
+  /** Direction of travel from GPS, degrees from north; null until the phone is moving. Display only. */
+  deviceCourse: number | null;
+  /**
+   * What the location button last did, like Google Maps: it centres north-up, then turns the map to the
+   * direction the phone travels, then straightens it again. Dragging the map sets it to free.
+   */
+  locateMode: 'free' | 'north' | 'heading';
+  setLocateMode: (m: 'free' | 'north' | 'heading') => void;
   /** Incremented to ask the map to centre on the phone. */
   recenterRequest: number;
   /**
@@ -46,6 +54,7 @@ interface UiState {
   setMapStatus: (s: UiState['mapStatus']) => void;
   setLocationPermission: (p: LocationPermission) => void;
   setDevicePosition: (p: DevicePosition) => void;
+  setDeviceCourse: (h: number | null) => void;
   requestRecenter: () => void;
 }
 
@@ -54,6 +63,9 @@ export const useUi = create<UiState>()((set, get) => ({
   mapStatus: 'loading',
   locationPermission: 'unknown',
   devicePosition: null,
+  deviceCourse: null,
+  locateMode: 'free',
+  setLocateMode: (locateMode) => set({ locateMode }),
   recenterRequest: 0,
   startHere: 'idle',
   setStartHere: (startHere) => set({ startHere }),
@@ -65,5 +77,6 @@ export const useUi = create<UiState>()((set, get) => ({
   setMapStatus: (mapStatus) => set({ mapStatus }),
   setLocationPermission: (locationPermission) => set({ locationPermission }),
   setDevicePosition: (devicePosition) => set({ devicePosition }),
+  setDeviceCourse: (deviceCourse) => set({ deviceCourse }),
   requestRecenter: () => set({ recenterRequest: get().recenterRequest + 1 }),
 }));

@@ -19,6 +19,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { startLiveMode } from '@/features/live/mode';
 import { startLiveSync } from '@/features/live/liveSync';
 import { useTripEngine } from '@/features/trip/useTripEngine';
+import { useGuidanceEngine } from '@/features/guidance/useGuidanceEngine';
 import { DialogHost } from '@/components/DialogHost';
 import { configureNotifications } from '@/lib/notifications';
 import { startAuth } from '@/stores/auth';
@@ -49,6 +50,7 @@ export default function RootLayout() {
     [devanagari.bold]: NotoSansDevanagari_700Bold,
   });
   useTripEngine();
+  useGuidanceEngine();
   const theme = useTheme();
   const navTheme = useMemo(() => navThemeFor(theme.name), [theme.name]);
 

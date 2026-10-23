@@ -5,7 +5,13 @@ import { useUi, type LocationPermission } from '@/stores/ui';
 /** A position with its reported accuracy radius in metres (null when the platform gives none). */
 export interface Fix extends LatLng {
   accuracyM: number | null;
+  /** GPS direction of travel (degrees from north) and speed; null when the platform has none. */
+  courseDeg?: number | null;
+  speedMps?: number | null;
 }
+
+/** Below this speed the GPS course is noise (standing still, or a phone swaying in a hand). */
+export const MIN_COURSE_MPS = 1;
 
 /** A fix this good is accepted at once (typical GPS outdoors is 5–15 m). */
 export const GOOD_FIX_M = 25;
@@ -92,9 +98,11 @@ export async function accurateFix({ timeoutMs = 12_000, goodEnoughM = GOOD_FIX_M
 
 /** Continuous high-accuracy updates for a trip that follows the phone. */
 export function watchAccurate(onFix: (f: Fix) => void): Promise<Location.LocationSubscription> {
-  return Location.watchPositionAsync({ accuracy: Location.Accuracy.BestForNavigation, timeInterval: 1000, distanceInterval: 3 }, (loc) => {
-    const fix: Fix = { lat: loc.coords.latitude, lng: loc.coords.longitude, accuracyM: loc.coords.accuracy ?? null };
-    useUi.getState().setDevicePosition(fix);
+  return Location.watchPositionAsync({ accuracy: Location.Accuracy.BestForNavigation, timeInterval: 1000, distanceInterval: 1 }, (loc) => {
+    const fix: Fix = { lat: loc.coords.latitude, lng: loc.coords.longitude, accuracyM: loc.coords.accuracy ?? null, courseDeg: loc.coords.heading ?? null, speedMps: loc.coords.speed ?? null };
+    useUi.getState().setDevicePosition({ lat: fix.lat, lng: fix.lng, accuracyM: fix.accuracyM });
+    // The arrow turns only when the phone really moves; standing still keeps the last direction.
+    if (fix.courseDeg != null && fix.courseDeg >= 0 && (fix.speedMps ?? 0) >= MIN_COURSE_MPS) useUi.getState().setDeviceCourse(Math.round(fix.courseDeg));
     onFix(fix);
   });
 }
