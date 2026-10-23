@@ -2,9 +2,11 @@
   "name": "vighnaway",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=20.19" },
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
-    "build": "turbo run build",
+    "build": "node init && turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",

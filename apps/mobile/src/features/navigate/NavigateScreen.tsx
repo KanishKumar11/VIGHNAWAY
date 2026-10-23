@@ -67,6 +67,8 @@ import {
   RouteRow,
   SectionLabel,
 } from './SheetParts';
+import { GuidanceBanner } from '@/features/guidance/GuidanceBanner';
+import { useLocalTimeS } from '@/features/guidance/localTime';
 import { TopBar } from './TopBar';
 import { useLanguage } from '@/i18n/useLanguage';
 
@@ -128,10 +130,12 @@ function SheetBody({
   const dest = placeById(scenario, destinationId);
   const enRoute = mode === 'en_route' && !!vehicle;
 
+  const localS = useLocalTimeS();
   const etaS = useMemo(() => {
-    if (enRoute && vehicle) return remainingEtaS(graph, vehicle, buildIncidentIndex(incidents), evalContext(scenario, minuteS));
-    return rec ? rec.etaS + (plan?.leadInS ?? 0) : 0;
-  }, [enRoute, vehicle, graph, incidents, scenario, minuteS, rec, plan]);
+    // The engine's time, plus the slow local roads at either end (0 where the route starts and ends on mapped roads).
+    if (enRoute && vehicle) return remainingEtaS(graph, vehicle, buildIncidentIndex(incidents), evalContext(scenario, minuteS)) + localS;
+    return rec ? rec.etaS + (plan?.leadInS ?? 0) + localS : 0;
+  }, [enRoute, vehicle, graph, incidents, scenario, minuteS, rec, plan, localS]);
 
   const travelledFraction = useMemo(() => {
     if (!enRoute || !vehicle || !rec) return undefined;
@@ -354,6 +358,7 @@ export function NavigateScreen() {
   const schematic = useUi((s) => s.mapStatus === 'unavailable');
   const mapReady = useUi((s) => s.mapStatus === 'ready');
   const liveMode = useSettings((s) => s.dataMode === 'live');
+  const locateMode = useUi((s) => s.locateMode);
   // While a trip runs the camera follows the vehicle; dragging the map lets go, and this button takes it back.
   const tripRunning = useTrip((s) => s.mode === 'en_route');
   const followingCamera = useUi((s) => s.following);
@@ -518,6 +523,7 @@ export function NavigateScreen() {
         pointerEvents={sheetIndex >= 2 ? 'none' : 'box-none'}
         onLayout={(e) => setOverlayH(e.nativeEvent.layout.height)}
       >
+        <GuidanceBanner />
         <View style={styles.overlayRow} pointerEvents="box-none">
           {schematic ? (
             <Animated.View entering={reduce ? undefined : FadeIn.duration(motion.banner)} style={styles.legend} accessibilityRole="text">
@@ -551,7 +557,7 @@ export function NavigateScreen() {
                 accessibilityHint={t('locateMeHint')}
                 testID="locate-me"
               >
-                <LocateFixed size={20} color={tc.accentInk} strokeWidth={2.25} />
+                {locateMode === 'heading' ? <Navigation size={20} color={tc.accentInk} strokeWidth={2.25} /> : <LocateFixed size={20} color={tc.accentInk} strokeWidth={2.25} />}
               </PressScale>
             ) : null}
             <PressScale onPress={openReport} style={[styles.fab, shadow('md')]} accessibilityRole="button" accessibilityLabel={t('reportButtonLabel')} testID="open-report">
